@@ -1,0 +1,52 @@
+{
+  "manifest_version": 3,
+  "name": "NextExplorer — Explorateur local",
+  "version": "1.0.0",
+  "description": "Vos fichiers, vos outils et vos projets web, dans un seul espace local.",
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA7EcN4FJpJBCFjZNsHsYIhGlwjge253BvlRWj7rRf2P0iarFtgP4NnSa2yINj+QX0Lw0uOllN3O+kF6xnNkEgaXPaMvwWZyPUHloc+DcocYEplVZ68DByeMBZFMtwf/P6QZ5geMqug6lXsoN0JDnuJ3uuzZndgvC+gFsBD1F41czvvH/lsc7yxTDTejOy792fBb7tYPGcaWaORXoXaZh+LjH3elWy3ABnfmkSIUdM/w4dz66jhkw56ieOYPYh9ZgVz5GWEFE7aaGfSAji0kblXcKGIVn0YM6FK1mv3WJlFjeYAhVivgFf+8oXb9LeEEZvuh/BTGMmKLTDznDUg9GcHwIDAQAB",
+  "minimum_chrome_version": "116",
+  "permissions": [
+    "nativeMessaging",
+    "storage",
+    "contextMenus",
+    "sidePanel",
+    "tabs",
+    "tabGroups",
+    "activeTab",
+    "scripting"
+  ],
+  "optional_permissions": ["debugger", "downloads"],
+  "optional_host_permissions": ["https://*/*", "http://*/*"],
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "action": {
+    "default_title": "Ouvrir NextExplorer"
+  },
+  "side_panel": {
+    "default_path": "index.html?panel=1"
+  },
+  "commands": {
+    "open-explorer": {
+      "suggested_key": {
+        "default": "Alt+E"
+      },
+      "description": "Ouvrir le panneau explorateur"
+    },
+    "open-dashboard": {
+      "suggested_key": {
+        "default": "Alt+Shift+E"
+      },
+      "description": "Ouvrir en pleine page"
+    }
+  },
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'; connect-src 'self' https: http:; img-src 'self' data: blob: https: http:; media-src 'self' blob: data:; frame-src 'self' blob:"
+  },
+  "icons": {
+    "16": "icon16.png",
+    "48": "icon48.png",
+    "128": "icon128.png"
+  }
+}

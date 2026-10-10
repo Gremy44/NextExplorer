@@ -1,0 +1,55 @@
+# Dependencies, builds and locally downloaded tools
+/node_modules/
+/dist/
+/release/
+/.tools/
+/test-results/
+/native/native-host*
+/native/tools/
+/native/com.local.file_explorer.json
+*.tsbuildinfo
+coverage/
+.cache/
+*.log
+*.tmp
+*.temp
+
+# Credentials, signing keys and local assistant configuration
+.env
+.env.*
+.npmrc
+.netrc
+_netrc
+*.pem
+*.key
+*.pfx
+*.p12
+*.p8
+id_rsa*
+id_ed25519*
+credentials.json
+credentials.csv
+/.aws/
+/.codex/
+/.agents/
+/.ssh/
+
+# Personal file journals, captures and browser profiles
+.nextexplorer-trash/
+.nextexplorer-extract-*/
+.nextexplorer-engine-*/
+*.session.json
+*.source.json
+/profiles/
+/chrome-profile/
+/chromium-profile/
+/backups/
+
+# Editor and operating system files
+/.idea/
+/.vscode/
+.DS_Store
+Thumbs.db
+Desktop.ini
+*.swp
+*.swo

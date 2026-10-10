@@ -1,0 +1,205 @@
+# Panneau latéral — espace d'action pendant la navigation
+
+## Retrouver les insertions — 10 octobre 2026
+
+Dans **Collecte**, **Insertions récentes** reste replié. Date, site, champ et noms/tailles permettent de retrouver les 20 dernières tentatives ayant atteint l’insertion, même après fermeture ou rechargement. La vue complète propose le même suivi dans **Examiner la collecte**. Les états distinguent **Insérée dans le champ**, **Non insérée** et **Résultat à vérifier sur le site** ; aucune tentative n’est rejouée. Les insertions directes et celles des copies préparées passent par ce suivi commun.
+
+Le remplissage du champ ne prouve pas la réception. Le site peut commencer un envoi dès les événements d’insertion. Seule l’origine du site est conservée, avec le libellé du champ et les noms/tailles ; aucun contenu de fichier, chemin local ou URL complète. Les plus anciennes entrées sortent du suivi au-delà de 20 tentatives. Retirer une entrée ou effacer le suivi conserve fichiers, collecte et formulaire, sans annuler un envoi. Le glisser-déposer Windows et les dépôts faits sur le site ne sont pas suivis. Un stockage illisible ou indisponible bloque avant mutation ; effacement du suivi sur clic seulement.
+
+## Espace suivi à portée de clic — 9 octobre 2026
+
+Une barre discrète **Espace suivi** affiche le projet et les tâches cochées. Cliquer ou appuyer sur Entrée ouvre ses tâches et place le focus sur leur résumé. Enregistrer ou reprendre un espace le choisit ; **Options → Espaces hybrides… → Suivre cet espace** permet de choisir le suivi sans ouvrir de dossiers ni de pages. L’import seul ne change pas ce choix. **Arrêter le suivi dans cette vue** conserve l’espace et ses tâches.
+
+Le panneau et la vue complète mémorisent chacun leur choix, conservé au rechargement. Noms et avancement suivent les modifications partagées ; supprimer l’espace retire le suivi correspondant. Ce repère est un choix personnel : navigation et changements de collecte/pages n’actualisent pas l’espace enregistré. Utilisez **Actualiser…** pour les conserver. Les noms longs sont abrégés visuellement et restent complets dans le nom accessible du bouton.
+
+## Suivi personnel par espace — 9 octobre 2026
+
+Dans **Options → Espaces hybrides…**, **Tâches** reste replié sous chaque espace enregistré. Ajout d’un libellé, cases d’avancement et retrait explicites ; compteur de tâches cochées. 20 tâches distinctes de 160 caractères maximum par espace. Les modifications locales sont synchronisées avec la vue complète, conservées après fermeture/rechargement et incluses dans l’export/import. L’actualisation des dossiers/pages garde l’avancement ; une modification concurrente après son aperçu empêche de l’écraser. Une écriture de tâche refuse de réécrire une liste contenant un espace illisible ou des identités en double, plutôt que de les supprimer silencieusement.
+
+Cocher indique seulement l’avancement déclaré par la personne, sans transmission ni confirmation de réception par le site. Aucun fichier, collecte, onglet ou page modifié au suivi. Les tâches sont associées à l’espace enregistré, avec choix explicite de l’espace suivi, sans détection automatique du site. Les brouillons non ajoutés ne sont pas conservés.
+
+## Préparer pour le champ choisi — 9 octobre 2026
+
+Dans **Collecte → Insérer dans un formulaire**, après repérage et choix du champ, **Préparer les images pour ce champ…** reprend les images cochées. Le dialogue existant montre le site, le champ et les formats déclarés, puis propose uniquement ses sorties JPEG (`.jpg`), PNG ou WebP compatibles. Pour un champ simple, une seule image est choisie avec des boutons radio ; les autres fichiers restent cochés dans la collecte.
+
+Dimensions et poids restent saisis par l’utilisateur. La création et la reprise des copies restent locales. Une action séparée **Insérer les copies dans ce champ** revérifie toutes les copies et la destination ; elle remplace les pièces du champ, sans valider explicitement le formulaire. Le site peut démarrer un envoi lors de ses événements d’insertion. Refus sans remplacement si copie incompatible, absente ou modifiée, page/champ changé, nombre ou poids total excessif. Fermer le dialogue arrête les demandes de vérification/insertion encore en attente ; une insertion déjà déclenchée dans la page ne peut pas être retirée. Aucun ajout automatique à la collecte. Le champ et son URL ne sont pas conservés dans le suivi des préparations. Après fermeture, réanalyse du champ puis récupération explicite des copies. Les consignes propres au site et l’état de réception restent à vérifier manuellement.
+
+## Vérifier la collecte — 9 octobre 2026
+
+Dans **Collecte → Gérer**, **Vérifier les fichiers** contrôle sur demande la présence et les métadonnées des 200 premières références locales. Progression et arrêt accessibles, heure du contrôle, problèmes détaillés ; les autres références restent signalées comme non vérifiées. Aucun retrait automatique, aucune lecture des contenus ou visite des liens web. Les résultats s’effacent après changement de collecte, déconnexion ou fermeture du dialogue. Le même contrôle existe dans **Examiner** en pleine page ; il ne garantit pas les contenus, l’accès ultérieur, l’intérieur des dossiers ou les cibles symboliques. Voir [le parcours et les limites](README.md).
+
+Validation : 74 tests TypeScript et parcours navigateur complet, arrêt avec réponse tardive ignorée et absence de lecture du contenu. Extension réelle avec référence absente, fichier modifié, TIFF 24 Mio, dossier présent, deux vues et références conservées. Résultats périmés effacés, largeurs 320/390/1024 px et retour en français revérifiés sur le build final ; capture `test-results/collection-check.png` inspectée.
+
+## Espaces transportables — 9 octobre 2026
+
+**Actualiser…** permet également de préparer un nouvel instantané depuis le panneau puis de le confirmer, avec aperçu des dossiers et des nombres de références avant/après. Le nom peut changer, l’identité reste la même. Les pages/groupes enregistrés restent conservés par défaut ; leur remplacement par ceux de la fenêtre est un choix explicite. Annulation sans stockage, aucun document modifié ni page ouverte/fermée. Un espace modifié ou supprimé dans une autre vue bloque la confirmation. La mise à jour reste manuelle, sans historique : exporter l’ancienne version permet de la garder.
+
+Validation de l’actualisation : 70 tests TypeScript et recette complète de l’extension réelle. Aperçu/annulation sans stockage, pages conservées ou remplacées explicitement, conflits de noms et modification/suppression dans la seconde vue couverts. Formulaire contenu à 320/390/1024 px ; capture `test-results/space-update.png` inspectée.
+
+Dans **Options du panneau → Espaces hybrides…**, **Exporter** et **Importer un espace…** restent dans le dialogue existant. L’import montre les dossiers et le nombre de références avant enregistrement ; son nom peut être modifié pour éviter les doublons. Il ajoute un instantané, sans remplacer un espace ni ouvrir de fichiers ou de pages. La reprise conserve son action distincte et son choix explicite pour les pages web. Fichier JSON limité à 2 Mio ; chemins et adresses web inclus, aucun document copié. Voir [le parcours détaillé](README.md).
+
+Validation : 66 tests TypeScript et parcours navigateur ; export/import dans l’extension réelle, annulation, erreurs et synchronisation entre vues. Aperçu sans débordement à 320/390/1024 px. Capture `test-results/space-import.png` inspectée.
+
+## Compléments J3 — 7 octobre 2026
+
+Les fonctions restent accessibles à la demande : **Page → Plus d’actions** contient le rangement des téléchargements et **Préparer des images pour le web…**. Les règles de rangement sont repliées dans leur dialogue ; elles proposent une destination et offrent une option automatique à activer explicitement par règle. Cette option range les nouveaux téléchargements terminés, même panneau fermé, et conserve les deux fichiers en cas de conflit. Une modification demande de confirmer à nouveau l’option ; la désactivation met l’automatisme en pause. Le suivi signale les blocages sans déplacer le fichier ni rejouer un transfert déjà lancé. Le transfert confirmé mémorise facultativement la destination et expose les résultats dans le suivi et l’activité. La provenance du nom final est consultable dans l’aperçu.
+
+**Options du panneau → Espaces hybrides…** enregistre dossiers, collecte et liens, avec inclusion facultative des pages/groupes. La reprise signale les références manquantes, fusionne la collecte et ouvre les pages seulement si leur option est cochée. La préparation d’images conserve les originaux, vérifie les copies contre les contraintes manuelles et laisse choisir celles à collecter. Aucun envoi ni IA automatiques. Voir [l’aide et les limites](README.md).
+
+Validation : 55 tests TypeScript et parcours navigateur complet ; extension réelle avec rangement/provenance après collision, préparation JPEG 64 px sans modification de l’original, espaces persistants, références manquantes, reprise web/groupes explicitement cochée et dialogues à 320/390/1024 px. Captures `test-results/download-rules.png`, `prepare-images.png`, `hybrid-spaces.png`.
+
+Décision de conception du 14 septembre 2026 : conserver le panneau comme axe prioritaire à valider. Il doit apporter une utilité propre pendant la navigation. La vue complète sert aux opérations demandant de la place ; le panneau relie la page courante aux fichiers et à l'espace de travail choisi.
+
+## Parcours simplifié — 6 octobre 2026
+
+### Choisir l’affichage des fichiers
+
+Le menu **Affichage des fichiers**, près de la recherche, est commun au panneau et à l’explorateur complet. Cliquez sur son icône ou son libellé pour l’ouvrir ; chaque mode possède un pictogramme distinct et une coche indique le choix actif. Le mode courant et son icône restent visibles sur le bouton. Le menu flotte au-dessus du contenu et se repositionne pour rester dans la fenêtre.
+
+| Mode | Présentation |
+| --- | --- |
+| Très grandes / grandes / moyennes icônes | Grille avec miniature ou icône, nom sur deux lignes et format/taille ; trois tailles distinctes |
+| Petites icônes | Grille compacte de noms avec icônes de 18 px |
+| Liste | Une ligne compacte par élément, avec nom et icône |
+| Détails | Colonnes nom, date de modification et taille ; la date se masque dans le panneau étroit pour garder les noms et tailles lisibles |
+| Mosaïques | Icône à gauche, nom et format/taille ; les raccourcis de sous-dossiers restent compacts dans le panneau |
+| Contenu | Miniature à gauche, nom, format/taille et date de modification |
+
+Le choix est conservé par onglet et par volet de l’explorateur ; le panneau Chrome possède ses propres préférences. Changer de mode conserve le dossier, les filtres, le tri et la sélection. Les anciennes préférences de grille migrent vers Icônes moyennes. Détails est le mode initial de l’explorateur, Mosaïques celui du panneau. Les grilles se réorganisent selon la place disponible ; dans l’explorateur, le clavier suit les lignes et colonnes et la sélection reste visible lors d’un redimensionnement.
+
+Les miniatures utilisent les aperçus existants et ne se chargent que pour les éléments visibles ou proches de la zone affichée. Leurs lectures sont annulées et leurs images libérées lorsqu’ils sortent de cette zone. Les TIFF gardent une icône, sans lecture ou décodage automatiques ; les limites des médias et des extraits texte restent appliquées. La vue complète conserve la virtualisation des lignes, et le panneau ses limites de 200 dossiers et 200 fichiers. Les actions d’aperçu, de collecte et le glisser-déposer restent disponibles dans chaque mode. Dans le panneau, les miniatures servent à identifier le fichier ; les contrôles de lecture audio restent dans l’explorateur et l’aperçu.
+
+Validation des affichages : 42 tests TypeScript réussis ; les huit modes vérifiés dans l’explorateur et le panneau à 390 et 1024 px, sans débordement horizontal. Sélection et navigation au clavier, migration et mémorisation après rechargement, indépendance panneau/page et miniature visible vérifiées. Extension réelle via Native Messaging et vrai glisser-déposer Windows réussis en Mosaïques, Grandes icônes et Petites icônes, dont un TIFF de 24 Mio. Captures `test-results/explorer-view-*.png` et `panel-view-*.png`.
+
+### Trier les fichiers
+
+Un second menu près de la recherche propose **Nom A–Z**, **Nom Z–A**, **Plus récents**, **Plus anciens**, **Plus volumineux** et **Plus petits**, avec pictogrammes et coche du choix actif. Il est disponible dans chaque affichage du panneau et de l’explorateur. Le tri utilise le compagnon existant, garde les dossiers avant les fichiers et conserve la sélection et les filtres. Le critère et le sens sont mémorisés par onglet et volet, indépendamment entre panneau et page. Dans Détails, cliquer une colonne change le critère ou inverse son sens ; la flèche visible correspond au tri actuel.
+
+Les deux menus s’ouvrent au clic, Entrée, Espace ou flèche haut/bas. Le focus arrive sur le choix actif ; flèches et Début/Fin parcourent les choix, Entrée ou Espace confirme. Échap, Tab et clic extérieur ferment le menu sans modifier le choix. Échap et la confirmation rendent le focus au bouton ; un redimensionnement ou un défilement du contenu ferme le menu. Les actions de la liste restent accessibles.
+
+Validation des menus : 42 tests TypeScript ; six tris réels en Grandes icônes dans Chrome, rechargement avec préférence conservée, clavier et sortie sans modification. Extension réelle à 320/390/1024 px : ouverture sur l’icône, pictogrammes, choix actif unique, menu contenu dans la fenêtre, Échap/focus et préférence du panneau indépendante. Vrai glisser-déposer Windows conservé. Captures `test-results/explorer-*-menu.png` et `companion-*-menu-*.png`.
+
+### Navigation, largeur du panneau et filtres
+
+Le dossier de travail et le sélecteur disposent d’une flèche **Dossier précédent**, d’une flèche **Dossier parent** et d’un chemin cliquable. Le retour reprend les emplacements visités, même après avoir remonté ou utilisé le chemin ; chaque historique conserve au plus 50 emplacements. **Alt + ←** permet aussi de revenir, **Alt + ↑** de remonter. Le dossier courant est un libellé sans action : le cliquer ne vide pas la liste ni la recherche. Les racines de lecteurs, les partages réseau et les chemins Unix sont préservés.
+
+Le chemin se répartit sur les lignes disponibles. Un chemin profond défile dans une zone bornée à deux lignes ; le dossier courant reste visible lors d’une navigation ou d’un redimensionnement. Les noms longs sont tronqués uniquement quand la place manque, avec le chemin complet au survol. Les filtres, tuiles de dossiers et lignes de fichiers utilisent plusieurs colonnes quand le panneau s’élargit, puis reviennent à la disposition compacte quand il rétrécit. Le sélecteur suit aussi la largeur disponible, jusqu’à 960 px : accès rapides et sous-dossiers se répartissent en colonnes, avec une seule zone de défilement pour le contenu.
+
+Validation des grandes largeurs : recette Chrome réussie à 320/390/520/760/1024/1440 px, puis retour à 390 px. La recette vérifie la largeur réelle du dialogue, les colonnes des fichiers et sous-dossiers, l’absence de débordement et le dossier courant visible lors du redimensionnement. Captures `test-results/companion-files-*.png`, `companion-filters-*.png` et `companion-folder-picker-*.png`, avec inspection des petites et grandes largeurs.
+
+Dans **Fichiers**, **Filtres** est replié par défaut et indique le nombre de filtres actifs. Il contient **Type de fichier** (documents, images, vidéos, audio, archives, autres), **Afficher les fichiers cachés** et **Réinitialiser les filtres** ; le tri possède son menu directement près de la recherche. Documents inclut les textes, PDF, liens enregistrés et formats bureautiques usuels. Le filtre de nom reste directement visible et se combine au type ; filtrer par type laisse les dossiers disponibles pour naviguer. La réinitialisation efface les filtres et restaure le tri A–Z. L’option des fichiers cachés s’applique aussi au sélecteur de dossier.
+
+Validation : 40 tests TypeScript réussis, notamment les racines de lecteurs, partages réseau et chemins Unix. Recette Chrome : historique, Alt + gauche, navigation par chemin, clic sur le dossier courant sans effacement, filtres combinés, document Office, tri par taille dans les deux sens, fichiers cachés dans le panneau et le sélecteur, puis réinitialisation. Contrôles et captures aux largeurs 320/390/520 px : pas de débordement horizontal et dossier courant visible après redimensionnement. Extension réelle via Native Messaging et vrai glisser-déposer Windows texte/TIFF de 24 Mio réussis. Captures `test-results/companion-filters-*.png`, `companion-files-*.png` et `companion-folder-picker-*.png`.
+
+### Choisir son dossier et lire son contenu
+
+**Changer** ouvre un sélecteur visuel dans le panneau. Documents, Bureau, Téléchargements et Mes fichiers ont des boutons directs ; favoris et disques restent accessibles sous leur propre bloc. Ouvrir un dossier affiche ses sous-dossiers ; la flèche permet de remonter. Le nom et le chemin du dossier parcouru restent visibles. **Choisir ce dossier** confirme la destination ; **Annuler** ou Échap ferme sans changer le dossier de travail et rend le focus au bouton d’ouverture. La recherche porte sur les noms des sous-dossiers. La saisie d’un chemin reste disponible sous **Saisir un chemin** et un emplacement inaccessible désactive la confirmation.
+
+La liste principale sépare **Dossiers**, en tuiles, et **Fichiers**, en lignes avec format et taille. Quatre dossiers sont visibles au départ ; une action déplie les suivants pour laisser de la place aux fichiers. Une recherche affiche les dossiers correspondants. Le clic sur un dossier navigue ; sur un fichier, il ouvre l’aperçu. Les fichiers conservent leur **+** et le vrai glisser-déposer Windows.
+
+Le sélecteur utilise le même compagnon et les mêmes lectures de dossier que l’explorateur, sans nouveau composant natif ni nouvelle permission. Limites d’affichage : 200 dossiers et 200 fichiers par groupe ; le sélecteur montre au plus 200 sous-dossiers depuis une lecture bornée à 500 entrées, triée avec les dossiers d’abord. La recherche affine la liste avant cette limite. Les dossiers cachés sont visibles lorsque l’option correspondante est activée dans Filtres.
+
+Validation : 39 tests TypeScript réussis ; recette navigateur avec navigation, confirmation, annulation, retour du focus, chemin invalide, dossier vide et recherche de sous-dossiers. Captures à 320, 390 et 520 px sans débordement. Extension Chrome réelle : navigation et confirmation via Native Messaging. Vrai panneau Windows : texte et TIFF de 24 Mio, dépôts successifs et Échap toujours vérifiés.
+
+### Les trois vues
+
+La nouvelle organisation remplace les vues Capturer / Retrouver / Envoyer. Le panneau accompagne une action courte à côté du site : trouver un fichier, garder une référence ou réutiliser sa collecte.
+
+| Vue | Action immédiate | Fonctions à la demande |
+| --- | --- | --- |
+| **Fichiers**, ouverte par défaut | Rechercher, ouvrir un dossier, choisir l’affichage ou le tri, consulter un aperçu ou glisser directement un fichier sur le site | **Changer** ouvre le sélecteur visuel ; flèches et chemin permettent de naviguer ; **Filtres** regroupe type et fichiers cachés ; le **+** garde un fichier dans la collecte |
+| **Page** | **Garder cette page**, **Capturer la sélection**, déposer une image/un lien/du texte depuis le site | **Plus d’actions** contient le PDF, le lien enregistré dans le dossier, les téléchargements et les notes |
+| **Collecte** | Retrouver les fichiers et références gardés entre les sites, glisser un fichier, consulter ou retirer un élément | **Gérer** ouvre les listes enregistrées et les outils existants ; **Insérer dans un formulaire** révèle le choix des fichiers, de la page cible et du champ |
+
+Parcours le plus court : ouvrir le panneau → rechercher un fichier si nécessaire → glisser son nom sur le site. Pas de collecte obligatoire ni de case à cocher pour ce geste. Les cases restent réservées à l’insertion par champ, où les choix et les limites doivent être explicites.
+
+Principes de lisibilité : une seule zone de défilement, navigation toujours visible, dossier sur une ligne compacte, nom de fichier à 14 px et informations secondaires à 12 px. Le titre du site apparaît dans Page et la cible du formulaire dans son bloc d’insertion. La collecte ne duplique plus sa liste sous chaque vue. Les messages se placent en bas du panneau et peuvent être fermés ; une capture à confirmer reste accessible depuis toutes les vues.
+
+**Agrandir** conserve le comportement d’ouverture en pleine page sur le dossier courant puis de fermeture du panneau. Le menu **Options du panneau** rassemble recherche de commandes, thème et réglages. La connexion garde une action principale et replie son aide technique. Les onglets sont utilisables au clavier avec les flèches et Début/Fin, avec un focus visible. Les surfaces, couleurs et formes réutilisent les tokens Material 3 existants, en clair et en sombre.
+
+Adaptation web des recommandations [Googlebook](https://developer.android.com/googlebook) pour les interactions de bureau et des [onglets Material 3](https://m3.material.io/components/tabs/overview). Ce panneau reste une extension Chrome, sans composants Android ajoutés.
+
+Validation de cette refonte : 39 tests TypeScript réussis, parcours navigateur réussis à 320, 390 et 520 px sans débordement horizontal ; navigation clavier, menu Options et Échap, retour en haut des vues, thème clair/sombre, collecte partagée, capture, choix du champ et invalidation de destination vérifiés. Extension Chrome réelle : image, PDF, provenance et rangement des téléchargements vérifiés via Native Messaging. Vrai panneau Chrome : texte complet et TIFF de 24 Mio reçus par glissement Windows, trois dépôts successifs, Échap et sources conservées. Captures dans `test-results/companion-files-*.png`, `explorer-tabs-sidepanel.png`, `explorer-light.png` et `companion-real.png`. L’évaluation avec des utilisateurs non spécialistes reste à mener ; aucune certification d’accessibilité ou de facilité d’utilisation n’est déduite des tests techniques.
+
+## Première interface dédiée — 4 octobre 2026
+
+L’organisation initiale affichait la page HTTP(S) active de sa fenêtre et conserve le dossier choisi pendant les changements d'onglet. Trois actions remplaçaient les onglets et le double panneau de l’explorateur (libellés désormais remplacés ci-dessus) :
+
+- **Capturer** : ajouter la page à la collecte, capturer le texte sélectionné avec confirmation, enregistrer la page ouverte en PDF après choix du dossier, enregistrer un lien enrichi, déposer une image/un lien/du texte avec les dialogues existants ou écrire une note. Les images HTTP(S) peuvent aussi être capturées par clic droit, avec brouillon persistant et confirmation.
+- **Retrouver** : changer de dossier par chemin, favoris ou racines ; filtrer ses fichiers, afficher les plus récents, consulter un aperçu et ajouter les pièces à la collecte. La liste compacte affiche au plus 200 résultats ; le filtre permet d'affiner un grand dossier.
+- **Téléchargements depuis Capturer** : consulter les 20 derniers téléchargements après autorisation optionnelle et ranger un fichier terminé dans un dossier choisi. Le dialogue de transfert montre la source, la destination et le choix de collision. Les éléments en cours ou interrompus restent visibles sans action de rangement ; le rangement automatique des nouveaux fichiers terminés nécessite l’activation explicite d’une règle.
+- **Envoyer** : cocher les fichiers de la collecte, repérer les champs de téléversement du document principal, choisir explicitement un champ et insérer les fichiers. Les règles `accept` et le nombre autorisé sont affichés et contrôlés ; une incompatibilité explique pourquoi le bouton est désactivé. Limites : 20 fichiers ordinaires et 20 Mo au total ; dossiers, liens web et liens symboliques restent dans la collecte. Le poids réel est revérifié avec le compagnon avant lecture, même si la taille collectée est périmée. L'acceptation par le site n'est pas garantie.
+
+La collecte et les listes enregistrées restent communes à la page complète et au panneau. Un changement de page ou un rechargement invalide le choix du formulaire ; une nouvelle analyse est nécessaire. L'insertion vérifie l'onglet, son URL, le document et les propriétés du champ avant lecture puis avant insertion. Une modification détectée de la taille/date d'un fichier pendant la préparation annule l'insertion. Les formulaires à l'intérieur de cadres ne sont pas parcourus dans cette version. Le format et le type MIME sont déduits du nom, sans vérification du contenu ; un MIME inconnu ne permet pas de confirmer une contrainte MIME du site. L'action réussie déclenche les événements `input` et `change` du site : celui-ci peut réagir à la sélection des fichiers selon son propre fonctionnement. Un refus préalable conserve le contenu du champ et ne déclenche pas ces événements.
+
+**Ouvrir en pleine page** ouvre le dossier en cours, en conservant les onglets déjà enregistrés de la vue complète, puis ferme le panneau. La fermeture utilise [`sidePanel.close`](https://developer.chrome.com/docs/extensions/reference/api/sidePanel#method-close) lorsqu'elle est disponible, avec repli sur la fermeture de la fenêtre du panneau pour les anciennes versions. Sans compagnon connecté, la collecte de liens reste disponible et les opérations locales sont désactivées avec une action de reconnexion.
+
+Validation : tests navigateur à 390 px avec un vrai compagnon local ; capture de sélection, choix entre deux champs, insertion et contenu des fichiers, invalidation du formulaire, transmission du dossier et fermeture. Une copie isolée de l'extension donne préalablement accès au site de recette local pour vérifier l'injection réelle dans Chrome sans automatiser le dialogue de permission. Les usages avancés et les propositions IA ci-dessous restent à construire.
+
+## Complément IA locale — conception du 18 septembre 2026
+
+La [stratégie IA locale](STRATEGIE_IA_LOCALE.md) prolonge S01 avec une liste de pièces extraite des consignes et des suggestions sourcées, S02 avec le classement expliqué, S03 avec une synthèse de l'espace. Ces propositions ne sont pas implémentées. Les parcours manuels restent utilisables sans modèle ; le panneau affiche les sources, les omissions et l'aperçu des actions avant application.
+
+## Trois usages prioritaires pour J3
+
+### S01 — Préparer les fichiers demandés par une page
+
+Exemple : une démarche en ligne demande un justificatif et une photo. Le panneau garde ces pièces à portée de main, affiche leur taille et permet de préparer les formats disponibles avant insertion.
+
+Parcours : choisir les fichiers → préparer une copie si nécessaire → vérifier la destination → insérer dans le champ choisi. Une liste de pièces attendues peut être renseignée manuellement ; les contraintes HTML explicites peuvent aider lorsqu'elles sont accessibles. Ne pas supposer qu'un site expose toutes ses règles ni qu'un fichier sera accepté parce que son extension correspond.
+
+Briques existantes : collecte, conversions et insertion explicite, limitée à 20 fichiers et 20 Mo au total. La première interface dédiée permet le choix des fichiers et du champ, contrôle les formats HTML déclarés, signale l'insertion et les erreurs de destination. À construire : états persistants « sélectionné », « préparé », « inséré », préréglages et prise en charge des refus spécifiques aux sites. « Inséré » ne signifie ni envoyé ni accepté par le serveur. L'utilisateur garde la validation finale du formulaire. La compression PDF n'est pas une capacité à déduire de la compression d'images existante.
+
+### S02 — Collecter au fil des sites sans perdre le contexte
+
+Exemple : préparer un voyage en passant entre plusieurs sites. Le panneau conserve un espace « Voyage » avec documents, images, liens, extraits et notes. Chaque capture garde sa provenance exploitable et peut être classée dans le dossier choisi.
+
+Parcours : sélectionner une ressource sur la page → l'ajouter au panier ou l'enregistrer → continuer la navigation avec la collection visible. Un clic droit « Ajouter à NextExplorer » et une action sur la sélection sont à prévoir. Ne pas enregistrer toute une page ou ses données privées pour une simple citation sélectionnée.
+
+Briques existantes : captures, notes, liens enrichis, collecte et liens épinglés. À construire : collection homogène, origine des fichiers, annotation reliée à la source et rangement des téléchargements terminés. Une ressource inaccessible doit rester un lien accompagné d'un état clair, pas une capture prétendument complète.
+
+### S03 — Garder un espace de travail à côté de la page
+
+Exemple : candidater à plusieurs offres en gardant CV, variantes de lettre, annonces sauvegardées et notes visibles. L'espace conserve les références utiles pendant les changements d'onglet et peut être rouvert plus tard.
+
+Parcours : choisir ou épingler un espace → consulter ses ressources et sa petite liste de tâches → préparer les fichiers adaptés à la page → enregistrer l'avancement. Les tâches cochées sont des indications de l'utilisateur, pas une preuve de dépôt sur un site.
+
+Briques livrées : espaces nommés réunissant dossiers/affichages/collecte/liens, pages/groupes web facultatifs, reprise choisie, export/import et actualisation manuelle. Liste de tâches personnelle par espace, cases synchronisées, avancement conservé et transporté par l’export/import. Barre d’espace suivi, choisi et mémorisé indépendamment dans le panneau et la vue complète, avec accès direct aux tâches. Aperçu des fichiers existant. Aucun suivi implicite des pages ou des fichiers. Pas besoin d’IA ou d’identification automatique du métier pour cette version.
+
+## Fonctions complémentaires, après validation des trois usages
+
+| ID | Fonction proposée | Valeur du panneau / jalon |
+| --- | --- | --- |
+| S04 | Téléchargement terminé : « Ranger dans cet espace », renommer, consulter la source | Décision immédiate à côté de la page d'origine ; J3 avec H07/H08. Pas de fenêtre surgissante à chaque fichier. |
+| S05 | Recherche dans l'espace : fichiers, captures et liens, avec aperçu compact | Consulter une référence tout en gardant le site visible ; J4 avec H10. |
+| S06 | Notes et comparaison manuelle de ressources collectées | Conserver ses critères et sources en passant d'une annonce ou d'un produit à l'autre ; après J3. Toute extraction automatique de prix/détails demanderait une recette séparée. |
+| S07 | Suivi des préparations en cours et récupération du résultat | J3 : Préparations récentes dans le dialogue existant, destination/contraintes/chemins connus conservés, récupération et revalidation explicites sans nouvelle conversion ni collecte automatique. 20 préparations ; retrait sans supprimer les copies ou arrêter la tâche. J5 conserve la reprise durable des traitements. |
+| S08 | Recettes enregistrées par l'utilisateur | Répéter « convertir ces images puis les ajouter au panier » ; J5. Une recette n'autorise pas à téléverser ou soumettre à n'importe quel site. |
+
+## Organisation de l’interface
+
+La disposition actuelle est décrite dans **Parcours simplifié** ci-dessus. Les vues **Fichiers / Page / Collecte** séparent les trois usages ; la collecte conserve le même modèle de données que la vue complète. Les outils avancés de gestion de fichiers et les listes enregistrées restent disponibles depuis la vue complète, la palette de commandes ou **Gérer**.
+
+Les propositions S01–S08 décrivent les prolongements du produit ; leur présence dans ce document ne signifie pas qu’elles sont toutes implémentées.
+
+## Contexte prévisible
+
+- L'espace peut être **épinglé** pendant que l'utilisateur change de site. Un changement d'onglet ne remplace ni les fichiers sélectionnés ni les notes.
+- La page cible suit l'onglet actif de la fenêtre concernée ; un envoi est lié à une destination précise. Si la page, le champ ou l'origine change pendant la préparation, suspendre l'insertion et faire choisir à nouveau la destination.
+- Une association mémorisée site/espace peut proposer un espace, jamais déplacer des fichiers ou envoyer des pièces sans action prévue par l'utilisateur.
+- Les fenêtres et profils ont des contextes distincts. Une même collection peut être accessible volontairement sans partager silencieusement leur destination d'envoi.
+- Le panneau s'ouvre sur demande et se ferme sans effacer l'espace. Il doit aussi afficher un état utile quand le compagnon manque ou qu'une page ne permet aucune interaction.
+
+Chrome permet un panneau persistant entre onglets ou lié à certains onglets/sites. Son ouverture programmée est encadrée par une interaction utilisateur. Prévoir une mise en œuvre compatible avec la version minimale annoncée et tester Edge séparément. [API Side Panel](https://developer.chrome.com/docs/extensions/reference/api/sidePanel).
+
+L'accès à la page reste soumis aux permissions. `activeTab` apporte un accès temporaire après invocation ; une navigation vers une autre origine ne conserve pas automatiquement ce droit. Évaluer les autorisations à chaque action, notamment dans les cadres intégrés. [Permission activeTab](https://developer.chrome.com/docs/extensions/develop/concepts/activeTab).
+
+Le site ne doit jamais pouvoir transformer son contenu ou ses messages en commandes sur le disque. Les contenus capturés sont des données, les commandes proviennent de l'interface NextExplorer. Les détails d'API et d'outils restent hors du parcours utilisateur courant.
+
+## Validation : mériter sa place
+
+En J0, prototyper S01 et S02 avant les fonctions secondaires. En J3, comparer trois méthodes sur les mêmes tâches avec ordre alterné : habitudes de la personne, NextExplorer en vue complète, NextExplorer en panneau. Observer changements de fenêtre, temps, erreurs de destination et besoin d'assistance, sur petits et grands écrans.
+
+Critères de décision proposés pour 10 testeurs non spécialistes : au moins 8 terminent seuls deux scénarios, au moins 6 préfèrent le panneau pour un usage répété et au moins 5 le réutilisent volontairement la semaine suivante. Aucun incident non résolu d'envoi vers une mauvaise cible. Ces seuils sont des règles de travail, pas une preuve statistique.
+
+Si le panneau n'apporte pas de bénéfice observable après deux itérations ciblées, réduire ses fonctions ou le retirer du parcours principal. Conserver les données et usages hybrides en vue complète. La décision de retrait porte sur la surface, pas sur l'abandon de l'atout web/local du projet.

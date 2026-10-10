@@ -1,0 +1,46 @@
+{
+  "repository": "https://github.com/libarchive/libarchive",
+  "commit": "abaa707d92fce052f386b6cc2c8d0593ce61e639",
+  "files": [
+    {
+      "name": "stored.rar",
+      "source": "https://raw.githubusercontent.com/libarchive/libarchive/abaa707d92fce052f386b6cc2c8d0593ce61e639/libarchive/test/test_read_format_rar5_stored.rar.uu",
+      "sha256": "35d75e315d164d2e329afc28f7d844f013271b4fcffd4ddd78efcdd114a383a7"
+    },
+    {
+      "name": "compressed.rar",
+      "source": "https://raw.githubusercontent.com/libarchive/libarchive/abaa707d92fce052f386b6cc2c8d0593ce61e639/libarchive/test/test_read_format_rar5_compressed.rar.uu",
+      "sha256": "68f9d7e2662cd5bc5607ba9c6bf1edbf121cf3b08011a7d8643091791750a7c8"
+    },
+    {
+      "name": "multiple_files_solid.rar",
+      "source": "https://raw.githubusercontent.com/libarchive/libarchive/abaa707d92fce052f386b6cc2c8d0593ce61e639/libarchive/test/test_read_format_rar5_multiple_files_solid.rar.uu",
+      "sha256": "0aa2c652c06304dedd93019663c1d52d5e85055d5fdb8045bfcc4345b90b4a0f"
+    },
+    {
+      "name": "encrypted.rar",
+      "source": "https://raw.githubusercontent.com/libarchive/libarchive/abaa707d92fce052f386b6cc2c8d0593ce61e639/libarchive/test/test_read_format_rar5_encrypted.rar.uu",
+      "sha256": "72b69a1d5f5757511e683a9207166c60e91ce0846ae446b8b332b085f9e0ba48"
+    },
+    {
+      "name": "encrypted_filenames.rar",
+      "source": "https://raw.githubusercontent.com/libarchive/libarchive/abaa707d92fce052f386b6cc2c8d0593ce61e639/libarchive/test/test_read_format_rar5_encrypted_filenames.rar.uu",
+      "sha256": "b2b98004c9cbf4f2a4000380ad47a16dea99f2d50835b1602c40d724eb82c300"
+    },
+    {
+      "name": "hardlink.rar",
+      "source": "https://raw.githubusercontent.com/libarchive/libarchive/abaa707d92fce052f386b6cc2c8d0593ce61e639/libarchive/test/test_read_format_rar5_hardlink.rar.uu",
+      "sha256": "2a0494afad63dcf7a5522afd593bde0cb42f53744888397febf112c00853f3d0"
+    },
+    {
+      "name": "symlink.rar",
+      "source": "https://raw.githubusercontent.com/libarchive/libarchive/abaa707d92fce052f386b6cc2c8d0593ce61e639/libarchive/test/test_read_format_rar5_symlink.rar.uu",
+      "sha256": "a7336968564786ea5ff106fff2f6ef8dfd8ad5ecca86fbd1db3d63ba42bcd29a"
+    },
+    {
+      "name": "multiarchive.part01.rar",
+      "source": "https://raw.githubusercontent.com/libarchive/libarchive/abaa707d92fce052f386b6cc2c8d0593ce61e639/libarchive/test/test_read_format_rar5_multiarchive.part01.rar.uu",
+      "sha256": "2f3894dc4b8a1bba90830ef1f89f457b0295b6f9030c70febd57283721bc2ce3"
+    }
+  ]
+}
