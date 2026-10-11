@@ -59,6 +59,7 @@ for (const file of [
   "FEATURES.md",
   "GLISSER_DEPOSER_WEB.md",
   "RECETTE_INSTALLATEUR.md",
+  "RECETTE_HYBRIDE.md",
   "THIRD_PARTY.md",
 ])
   copyFileSync(file, "release/NextExplorer/" + file);

@@ -11,6 +11,8 @@ import {
 import { createServer } from "node:http";
 import path from "node:path";
 import assert from "node:assert/strict";
+import { runHybridJourneys } from "./hybrid-journeys.mjs";
+import { runFileGroupJourney } from "./file-group-journey.mjs";
 process.env.PLAYWRIGHT_BROWSERS_PATH = path.resolve(".tools/browsers");
 const { chromium } = await import("playwright");
 async function waitUntil(check, message) {
@@ -1240,6 +1242,8 @@ try {
     console.log("Export/import local réel : JSON téléchargé, aperçu sans activation, conflits de noms, nouvelle identité, synchronisation, annulation, fichiers invalides/trop lourds et 320/390/1024 px : OK");
     console.log("Actualisation réelle : aperçu/annulation sans stockage, nouvelle collecte et dossiers, identité conservée, conflit de nom, pages conservées par défaut ou remplacées explicitement, synchronisation, modification/suppression concurrente refusée et 320/390/1024 px : OK");
     console.log("Espaces hybrides réels : persistance, ressource manquante, reprise locale sans ouverture web, réouverture web/groupes choisie, collecte préservée, synchronisation, 320/390/1024 px et suppression sans toucher aux fichiers : OK");
+    await runFileGroupJourney({ context, baseURL: `chrome-extension://${id}/index.html`, fixture });
+    await runHybridJourneys({ context, worker, companion, fixture, imageBytes });
     const automaticFolder = path.join(fixture, "Automatic");
     await mkdir(automaticFolder);
     await writeFile(path.join(automaticFolder, "auto-test.auto"), "Collision à conserver");

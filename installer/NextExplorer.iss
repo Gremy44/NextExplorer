@@ -38,7 +38,7 @@ Source: "{srcexe}"; DestDir: "{app}"; DestName: "NextExplorer-Maintenance.exe"; 
 
 [Icons]
 Name: "{userprograms}\NextExplorer\Installer ou réparer"; Filename: "{app}\NextExplorer-Maintenance.exe"
-Name: "{userprograms}\NextExplorer\Aide"; Filename: "{app}\package\README.md"
+Name: "{userprograms}\NextExplorer\Aide"; Filename: "{app}\package\GUIDE_UTILISATION.md"
 Name: "{userprograms}\NextExplorer\Dossier de l'extension"; Filename: "{app}\package\dist"
 
 [Code]

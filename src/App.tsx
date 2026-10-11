@@ -74,6 +74,9 @@ import {
 import { capturePagePDF } from "./page-capture";
 import { DownloadDestination, DownloadList } from "./DownloadList";
 import { SpacesDialog } from "./SpacesDialog";
+import { FileGroupsDialog } from "./FileGroupsDialog";
+import { verifyGroupOrigins, verifyGroupTransfer } from "./file-destinations";
+import { readProvenance } from "./provenance";
 import { restoreSpaces, spacesKey, type HybridSpace } from "./spaces";
 import { CollectionCheck } from "./CollectionCheck";
 import { InsertionHistory } from "./InsertionHistory";
@@ -192,7 +195,7 @@ function Modal({
       el?.removeEventListener("keydown", trap);
       previous?.focus();
     };
-  }, []);
+  }, [title]);
   return (
     <div
       className="overlay"
@@ -418,7 +421,7 @@ export function App() {
   };
   const navigate = (path: string, i = active, remember = true) => {
     const resolved = hello?.aliases[path] || path;
-    if (panel && resolved === panes[i].path) return;
+    if (resolved === panes[i].path) return;
     update(i, {
       path: resolved,
       selected: [],
@@ -831,6 +834,7 @@ export function App() {
       "downloads",
       "prepare",
       "spaces",
+      "groups",
       "trashList",
     ];
     if (!selected.length && !noSelection.includes(a)) {
@@ -1071,6 +1075,7 @@ export function App() {
     ["git", "Afficher git status"],
     ["scan", "Analyser l’espace disque"],
     ["duplicates", "Rechercher les doublons"],
+    ["groups", "Regrouper les fichiers"],
     ["web", "Capturer une page web"],
     ["saveSession", "Sauvegarder les onglets et groupes"],
     ["pdf", "Capturer la page en PDF"],
@@ -1118,6 +1123,10 @@ export function App() {
           break;
         case "transfer":
           if (dialog.value?.download) await verifyDownload(dialog.value.download);
+          if (dialog.value?.groupEntries) await verifyGroupTransfer(dialog.value.groupEntries, str("destination"),
+            path => bridge.request<Entry>("FS_STAT", { path }, 5000));
+          if (dialog.value?.groupOrigins) await verifyGroupOrigins(dialog.value.groupEntries, dialog.value.groupOrigins,
+            path => bridge.request<Entry>("FS_STAT", { path }, 5000), readProvenance);
           if (checked("merge") && hello?.features?.transferMerge !== true) {
             throw new Error("Mettez à jour le compagnon pour fusionner des dossiers.");
           }
@@ -1312,6 +1321,7 @@ export function App() {
                 <div onClick={(event) => { (event.currentTarget.parentElement as HTMLDetailsElement).open = false; }}>
                   <button onClick={() => { setPalette(true); setQuery(""); }}><Search size={17} /> Rechercher une action…</button>
                   <button onClick={() => showDialog("spaces")}><Folder size={17} /> Espaces hybrides…</button>
+                  <button onClick={() => showDialog("groups")}><Layers size={17} /> Regrouper les fichiers…</button>
                   <button title="Changer de thème" onClick={() => setTheme(theme === "dark" ? "light" : "dark")}><Sun size={17} /> Changer de thème</button>
                   <button title="Réglages" onClick={() => showDialog("settings")}><Settings2 size={17} /> Réglages</button>
                 </div>
@@ -1454,6 +1464,9 @@ export function App() {
             >
               <Copy size={16} />
               Doublons
+            </button>
+            <button className="nav-item" disabled={!hello} onClick={() => action("groups")}>
+              <Layers size={16} /> Groupes de fichiers
             </button>
             <button
               className="nav-item"
@@ -2303,6 +2316,7 @@ export function App() {
                 "page-pdf": "Enregistrer la page en PDF",
                 downloads: "Ranger les téléchargements",
                 spaces: "Espaces hybrides",
+                groups: "Regrouper les fichiers",
                 prepare: "Préparer des images pour le web",
                 metadata: "Modifier les métadonnées",
                 session: "Restaurer la session",
@@ -2318,7 +2332,15 @@ export function App() {
           }}
           wide={["batch", "result"].includes(dialog.kind)}
         >
-          {dialog.kind === "prepare" ? <div className="modal-content"><PrepareImagesDialog entries={dialog.value?.entries || (pane.selected.length ? pane.selected : localStash)} hello={hello} path={pane.path} favorites={favorites} page={dialog.value?.page} target={dialog.value?.target} onCollect={collect} /></div> : dialog.kind === "spaces" ? <div className="modal-content"><SpacesDialog connected={!!hello}
+          {dialog.kind === "groups" ? <div className="modal-content"><FileGroupsDialog selection={pane.selected} path={pane.path} connected={!!hello} showHidden={hidden} space={followedSpace || null}
+            onRules={() => showDialog("downloads")}
+            onTransfer={(entries, destination, origins) => showDialog("transfer", { paths: entries.map(entry => entry.path), destination,
+              value: { mode: "copy", groupEntries: entries, groupOrigins: origins } })}
+            onLocate={path => {
+            const parent = path.replace(/[\\/][^\\/]+$/, "");
+            navigate(/^[a-z]:$/i.test(parent) ? parent + "\\" : parent || "/");
+            setDialog(null);
+          }} /></div> : dialog.kind === "prepare" ? <div className="modal-content"><PrepareImagesDialog entries={dialog.value?.entries || (pane.selected.length ? pane.selected : localStash)} hello={hello} path={pane.path} favorites={favorites} page={dialog.value?.page} target={dialog.value?.target} onCollect={collect} /></div> : dialog.kind === "spaces" ? <div className="modal-content"><SpacesDialog connected={!!hello}
             followedId={followedSpaceId} focusId={dialog.value?.focusSpaceId} onFollow={followSpace}
             snapshot={{ tabs: tabs.map(tab => ({ paths: tab.panes.map(pane => pane.path), modes: tab.panes.map(pane => pane.viewMode), active: tab.active, dual: tab.dual, split: tab.split })), current, entries: stash, links }}
             onRestore={async space => {
@@ -2552,6 +2574,12 @@ export function App() {
                 )}
                 {dialog.kind === "collected-link" && <p>Enregistrer « {dialog.value.name} » sous forme de fichier .weblink : {dialog.value.path}. Le contenu de la page ne sera pas téléchargé.</p>}
                 {dialog.kind === "transfer" && dialog.value?.download && <p>Ranger le téléchargement terminé <strong>{basename(dialog.value.download.filename)}</strong><br />Depuis : {dialog.value.download.filename}<br />Le transfert sera enregistré dans l’activité. Vérifiez la destination et le choix en cas de fichier existant.</p>}
+                {dialog.kind === "transfer" && dialog.value?.groupEntries && <>
+                  <p>Destination proposée par vos règles {dialog.value.groupOrigins ? "d’extension et de site, avec une origine déclarée contrôlée" : "d’extension"}. Vérifiez les fichiers, la destination, l’opération et les conflits avant de confirmer. Présence, nom, taille et date seront revérifiés.</p>
+                  {dialog.value.groupOrigins && <p className="muted">Les origines déclarées seront relues et comparées à l’aperçu. Une origine modifiée ou indisponible bloque le transfert ; ces métadonnées ne prouvent pas l’authenticité du contenu.</p>}
+                  <ul className="path-list">{dialog.paths?.map(path => <li key={path}>{path}</li>)}</ul>
+                  <p className="muted">Les métadonnées voisines (.source.json) ne sont pas transférées. L’association de provenance n’est pas maintenue après copie ou déplacement. Aucune règle n’est créée ou activée.</p>
+                </>}
                 {dialog.kind === "page-pdf" && <>
                   <p><strong>{dialog.value.page.title}</strong><br />Source : {dialog.value.page.url.split(/[?#]/)[0]}</p>
                   <p>Enregistrer la page ouverte en PDF avec sa provenance. Chrome demandera l’autorisation de capture. La page doit rester active jusqu’à la fin.</p>

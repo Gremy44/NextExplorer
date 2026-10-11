@@ -189,15 +189,24 @@ export function downloadSuggestion(
   item: chrome.downloads.DownloadItem,
   rules: DownloadRule[],
 ) {
-  const matches = canFileDownload(item)
-    ? rules.filter(
-        (rule) =>
-          rule.enabled &&
-          (!rule.site || rule.site === downloadSite(item)) &&
-          (!rule.extension ||
-            item.filename.toLowerCase().endsWith(rule.extension)),
-      )
-    : [];
+  return fileRuleSuggestion(
+    item.filename,
+    downloadSite(item),
+    canFileDownload(item) ? rules : [],
+  );
+}
+
+export function fileRuleSuggestion(
+  filename: string,
+  site: string,
+  rules: DownloadRule[],
+) {
+  const matches = rules.filter(
+    (rule) =>
+      rule.enabled &&
+      (!rule.site || rule.site === site) &&
+      (!rule.extension || filename.toLowerCase().endsWith(rule.extension)),
+  );
   const specificity = (rule: DownloadRule) =>
     Number(!!rule.site) + Number(!!rule.extension);
   const priority = Math.max(0, ...matches.map(specificity));

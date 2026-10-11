@@ -12,12 +12,13 @@ L’interface est en français, avec des thèmes clair et sombre inspirés de Ma
 
 | Usage | Disponible aujourd’hui |
 | --- | --- |
-| Explorer | Onglets de dossiers, double panneau ajustable, navigation par chemin, favoris, huit modes d’affichage, filtres et tri. |
+| Explorer | Onglets de dossiers, double panneau ajustable, navigation par chemin, favoris, huit modes d’affichage, filtres et tri. Menu du clic droit avec icônes et groupes d’actions. |
 | Examiner | Volet aperçu et détails redimensionnable, aperçu texte, image, audio, vidéo et PDF, métadonnées. Les gros TIFF proposent une ouverture locale ou une copie de prévisualisation. |
 | Manipuler | Copie, déplacement, renommage, corbeille locale, conflits et fusion de dossiers, transferts vérifiés et annulation sous conditions. |
 | Préparer | Archives ZIP/7z/RAR, conversion de médias et préparation de copies d’images pour le web avec formats, dimensions et poids cibles. Certaines opérations nécessitent des moteurs optionnels. |
 | Utiliser sur le web | Glisser-déposer natif Windows, collecte de fichiers et de liens, capture de pages et insertion dans les champs de fichiers. Suivi local des 20 dernières tentatives d’insertion. |
 | Organiser un projet | Espaces hybrides enregistrés, dossiers et pages associés, tâches manuelles, export/import et espace suivi par vue. |
+| Regrouper les fichiers | Catégories par extension, familles par nom normalisé, mois de modification et sites d’origine déclarés et destinations proposées par vos règles d’extension et, sur option explicite, de site ; motifs et cas incertains séparés. Sélection, dossier ou références de l’espace suivi, aucun déplacement au regroupement. Transfert examiné de 20 fichiers maximum, copie par défaut et confirmation avec revalidation ; règles avec site disponibles sur option explicite et provenance revérifiée avant transfert, métadonnées voisines non transférées. Origine : 20 fichiers, seuls les JSON de provenance de 64 Kio maximum sont lus, métadonnées contrôlées ; aucune source authentifiée. |
 | Ranger les téléchargements | Règles de destination et rangement en arrière-plan uniquement pour les règles explicitement activées. |
 
 Les périmètres exacts et les limites sont décrits dans [la matrice des fonctionnalités](FEATURES.md) et [le guide d’utilisation](GUIDE_UTILISATION.md).
@@ -104,6 +105,7 @@ Le `.gitignore` exclut les dépendances, outils téléchargés, builds, profils 
 - [Direction visuelle Material 3](DESIGN.md)
 - [Glisser-déposer vers le web](GLISSER_DEPOSER_WEB.md)
 - [Recette Windows isolée](RECETTE_INSTALLATEUR.md)
+- [Recette des deux parcours hybrides](RECETTE_HYBRIDE.md)
 - [Composants tiers et licences](THIRD_PARTY.md)
 
 Les documents de planification présents dans le dépôt décrivent des objectifs futurs ; ils ne garantissent pas leur disponibilité dans le prototype.

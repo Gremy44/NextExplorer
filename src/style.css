@@ -1619,11 +1619,11 @@ main {
 .context-menu {
   position: fixed;
   z-index: 25;
-  width: 210px;
+  width: min(304px, calc(100dvw - 16px));
   max-height: calc(100dvh - 16px);
   overflow-y: auto;
   background: var(--raised);
-  padding: 5px;
+  padding: 8px;
   border: 1px solid var(--line);
   border-radius: 12px;
   box-shadow: 0 12px 35px #0007;
@@ -1631,12 +1631,37 @@ main {
 .context-menu button {
   width: 100%;
   font-size: 13px;
-  justify-content: space-between;
-  min-height: 36px;
+  justify-content: flex-start;
+  text-align: left;
+  gap: 12px;
+  padding: 8px 12px;
+  min-height: 44px;
+}
+.context-menu button > svg {
+  flex-shrink: 0;
+}
+.context-menu button > span {
+  flex: 1;
+  min-width: 0;
+}
+.context-menu button.context-trash {
+  color: var(--md-sys-color-error);
+}
+.context-group-label {
+  padding: 4px 12px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 500;
+}
+.context-separator {
+  height: 1px;
+  margin: 8px 4px;
+  background: var(--md-sys-color-outline-variant);
 }
 .context-menu kbd {
   font-size: 11px;
   border: 0;
+  flex-shrink: 0;
 }
 .toast {
   position: fixed;
@@ -1811,6 +1836,35 @@ main {
 .spaces-dialog fieldset { min-width: 0; border: 0; padding: 0; margin: 16px 0; }
 .spaces-dialog li { overflow-wrap: anywhere; }
 .spaces-dialog p { overflow-wrap: anywhere; }
+.file-groups { display: grid; gap: 16px; }
+.file-groups p { margin: 0; overflow-wrap: anywhere; }
+.file-groups button { min-height: 44px; white-space: normal; }
+.group-scope, .group-editor label { display: grid; gap: 8px; min-width: 0; }
+.file-groups > .checkbox { min-height: 44px; cursor: pointer; }
+.group-scope select, .group-editor input, .group-editor textarea { width: 100%; min-width: 0; }
+.group-source { overflow-wrap: anywhere; font-size: 12px; }
+.group-help summary { min-height: 44px; padding: 8px 0; cursor: pointer; color: var(--muted); }
+.group-help summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 8px; }
+.group-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.group-editor { padding: 16px; border-radius: 16px; background: var(--panel); display: grid; gap: 16px; }
+.group-editor fieldset { min-width: 0; margin: 0; padding: 16px; border: 1px solid var(--line); border-radius: 12px; display: grid; gap: 8px; }
+.group-editor legend { padding: 0 8px; }
+.group-results { display: grid; gap: 8px; }
+.file-groups .group-reason { padding: 0 16px 16px; }
+.file-groups .group-transfer { padding: 0 16px 16px; }
+.file-group { min-width: 0; background: var(--panel); border-radius: 16px; }
+.file-group summary { display: flex; align-items: center; gap: 8px; padding: 16px; min-height: 48px; cursor: pointer; }
+.file-group summary strong { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.file-group summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 16px; }
+.file-group summary::before { content: "›"; }
+.file-group[open] summary::before { transform: rotate(90deg); }
+.file-group ul { list-style: none; padding: 0 16px 8px; margin: 0; }
+.file-group li { display: flex; align-items: center; gap: 8px; padding: 8px 0; border-top: 1px solid var(--line); }
+.file-group li > svg { flex: none; }
+.file-group li > div { flex: 1; min-width: 0; }
+.file-group li strong, .file-group li small { display: block; overflow-wrap: anywhere; }
+.file-group li small { color: var(--muted); margin-top: 4px; }
+.file-group li button { padding: 8px; min-width: 44px; flex: none; }
 .space-follow { display: flex; align-items: center; gap: 8px; flex: none; width: 100%; min-height: 56px; border: 0; border-radius: 0; padding: 8px 16px; text-align: left; background: var(--md-sys-color-secondary-container); color: var(--md-sys-color-on-secondary-container); }
 .space-follow > svg { flex: none; }
 .space-follow-name { flex: 1; min-width: 0; }

@@ -28,6 +28,7 @@ for (const file of [
   "release/NextExplorer/GLISSER_DEPOSER_WEB.md",
   "release/NextExplorer/README.md",
   "release/NextExplorer/GUIDE_UTILISATION.md",
+  "release/NextExplorer/RECETTE_HYBRIDE.md",
 ])
   assert.ok((await stat(file)).size > 0, file);
 assert.ok((await stat("native/native-host.exe")).size < 15 * 1024 * 1024);

@@ -26,7 +26,7 @@ function Get-NextExplorerDiagnosis(
     if ($ExtensionId -cnotmatch '^[a-p]{32}$') { throw 'ID Chrome invalide (32 lettres a-p).' }
     $InstallRoot = [IO.Path]::GetFullPath($InstallRoot)
     $manifestPath = Join-Path $InstallRoot 'com.local.file_explorer.json'
-    $repair = 'Verifiez -ExtensionId, puis lancez scripts/repair-host.ps1 avec le meme -Browser pour voir les corrections. Ajoutez -Apply pour les appliquer avec sauvegarde. Consultez le README avant de choisir une copie de moteurs.'
+    $repair = 'Verifiez -ExtensionId, puis lancez scripts/repair-host.ps1 avec le meme -Browser pour voir les corrections. Ajoutez -Apply pour les appliquer avec sauvegarde. Consultez GUIDE_UTILISATION.md avant de choisir une copie de moteurs.'
     $checks = @()
     $manifest = $null
     $binary = $null

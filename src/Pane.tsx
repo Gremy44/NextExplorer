@@ -17,6 +17,17 @@ import {
   Link as LinkIcon,
   Plus,
   ArrowDown,
+  Eye,
+  ExternalLink,
+  Copy,
+  Scissors,
+  Pencil,
+  ListOrdered,
+  FileCog,
+  Archive,
+  ArchiveRestore,
+  Fingerprint,
+  Trash2,
 } from "lucide-react";
 import { bridge } from "./bridge";
 import { FileIcon } from "./Preview";
@@ -35,6 +46,43 @@ import {
   type Quicklink,
   safeURL,
 } from "./types";
+
+const contextActionGroups = [
+  {
+    label: "Ouvrir",
+    actions: [
+      ["preview", "Aperçu", "Espace", Eye],
+      ["open", "Ouvrir dans l’application", "", ExternalLink],
+    ],
+  },
+  {
+    label: "Organiser",
+    actions: [
+      ["stash", "Ajouter à la collecte", "", Plus],
+      ["copy", "Copier", "Ctrl+C", Copy],
+      ["cut", "Couper", "Ctrl+X", Scissors],
+      ["rename", "Renommer", "F2", Pencil],
+      ["batch", "Renommer par lot", "", ListOrdered],
+    ],
+  },
+  {
+    label: "Transformer",
+    actions: [
+      ["convert", "Convertir…", "", FileCog],
+      ["zip", "Créer une archive ZIP", "", Archive],
+      ["extract", "Extraire une archive…", "", ArchiveRestore],
+    ],
+  },
+  {
+    label: "Vérifier",
+    actions: [["hash", "Calculer une empreinte", "", Fingerprint]],
+  },
+  {
+    label: "Supprimer",
+    actions: [["trash", "Mettre à la corbeille", "Suppr", Trash2]],
+  },
+] as const;
+
 export type PaneState = {
   path: string;
   history: string[];
@@ -84,6 +132,7 @@ export function Pane({
     entry: Entry;
   } | null>(null);
   const scroll = useRef<HTMLDivElement>(null);
+  const contextMenu = useRef<HTMLDivElement>(null);
   const anchor = useRef(0);
   const rows = pane.listing?.entries || [];
   const [width, setWidth] = useState(0);
@@ -137,10 +186,28 @@ export function Pane({
     return () => clearTimeout(timer);
   }, [address, editing, showHidden]);
   useEffect(() => {
-    const close = () => setMenu(null);
-    window.addEventListener("click", close);
-    return () => window.removeEventListener("click", close);
+    const close = (event: Event) => {
+      if (
+        !(event.target instanceof Node) ||
+        !contextMenu.current?.contains(event.target)
+      )
+        setMenu(null);
+    };
+    window.addEventListener("pointerdown", close);
+    window.addEventListener("resize", close);
+    return () => {
+      window.removeEventListener("pointerdown", close);
+      window.removeEventListener("resize", close);
+    };
   }, []);
+  useLayoutEffect(() => {
+    if (!menu || !contextMenu.current) return;
+    const element = contextMenu.current;
+    const { width, height } = element.getBoundingClientRect();
+    element.style.left = `${Math.max(8, Math.min(menu.x, window.innerWidth - width - 8))}px`;
+    element.style.top = `${Math.max(8, Math.min(menu.y, window.innerHeight - height - 8))}px`;
+    element.querySelector<HTMLButtonElement>("button")?.focus();
+  }, [menu]);
   function navigate(path: string) {
     if (path === pane.path) return;
     onChange({ history: [...pane.history, pane.path].slice(-50) });
@@ -397,6 +464,20 @@ export function Pane({
         tabIndex={0}
         onKeyDown={(e) => {
           if (!rows.length || e.altKey || e.ctrlKey || e.metaKey) return;
+          if (e.key === "ContextMenu" || (e.shiftKey && e.key === "F10")) {
+            const entry = pane.selected.at(-1);
+            if (!entry) return;
+            e.preventDefault();
+            e.stopPropagation();
+            const target = [
+              ...e.currentTarget.querySelectorAll<HTMLElement>(
+                '[role="option"]',
+              ),
+            ].find((element) => element.title === entry.path);
+            const box = (target || e.currentTarget).getBoundingClientRect();
+            setMenu({ x: box.left + 8, y: box.bottom, entry });
+            return;
+          }
           const index = Math.max(
             0,
             rows.findIndex((r) => r.path === pane.selected.at(-1)?.path),
@@ -560,11 +641,8 @@ export function Pane({
                           e.preventDefault();
                           if (!selected) onChange({ selected: [entry] });
                           setMenu({
-                            x: Math.min(e.clientX, window.innerWidth - 210),
-                            y: Math.max(
-                              8,
-                              Math.min(e.clientY, window.innerHeight - 480),
-                            ),
+                            x: e.clientX,
+                            y: e.clientY,
                             entry,
                           });
                         }}
@@ -594,35 +672,96 @@ export function Pane({
         </span>
       </footer>
       {menu && (
-        <div className="context-menu" style={{ left: menu.x, top: menu.y }}>
-          {menu.entry.type === "directory" && (
-            <button
-              onClick={() => {
-                onOpenTab(menu.entry.path);
-                setMenu(null);
-              }}
-            >
-              Ouvrir dans un nouvel onglet
-            </button>
-          )}
-          {[
-            ["preview", "Aperçu", "Espace"],
-            ["open", "Ouvrir dans l’application", ""],
-            ["stash", "Ajouter à la collecte", ""],
-            ["copy", "Copier", "Ctrl+C"],
-            ["cut", "Couper", "Ctrl+X"],
-            ["rename", "Renommer", "F2"],
-            ["batch", "Renommer par lot", ""],
-            ["convert", "Convertir…", ""],
-            ["zip", "Créer une archive ZIP", ""],
-            ["extract", "Extraire une archive…", ""],
-            ["hash", "Calculer une empreinte", ""],
-            ["trash", "Mettre à la corbeille", "Suppr"],
-          ].map(([a, l, k]) => (
-            <button key={a} onClick={() => onAction(a)}>
-              {l}
-              <kbd>{k}</kbd>
-            </button>
+        <div
+          ref={contextMenu}
+          className="context-menu"
+          role="menu"
+          aria-label="Actions sur les fichiers"
+          style={{ left: menu.x, top: menu.y }}
+          onKeyDown={(event) => {
+            if (
+              ((event.ctrlKey || event.metaKey || event.altKey) &&
+                !["Control", "Meta", "Alt"].includes(event.key)) ||
+              ["F2", "F5", "Delete"].includes(event.key)
+            ) {
+              setMenu(null);
+              scroll.current?.focus();
+              return;
+            }
+            event.stopPropagation();
+            if (event.key === "Escape" || event.key === "Tab") {
+              if (event.key === "Escape") event.preventDefault();
+              setMenu(null);
+              scroll.current?.focus();
+              return;
+            }
+            if (!["ArrowDown", "ArrowUp", "Home", "End"].includes(event.key))
+              return;
+            event.preventDefault();
+            const buttons = [
+              ...event.currentTarget.querySelectorAll<HTMLButtonElement>(
+                "button",
+              ),
+            ];
+            const index = buttons.indexOf(
+              document.activeElement as HTMLButtonElement,
+            );
+            const next =
+              event.key === "Home"
+                ? 0
+                : event.key === "End"
+                  ? buttons.length - 1
+                  : (index +
+                      (event.key === "ArrowDown" ? 1 : -1) +
+                      buttons.length) %
+                    buttons.length;
+            buttons[next]?.focus();
+          }}
+        >
+          {contextActionGroups.map((group, index) => (
+            <div key={group.label}>
+              {index > 0 && (
+                <div className="context-separator" role="separator" />
+              )}
+              <div role="group" aria-label={group.label}>
+                <div className="context-group-label" aria-hidden="true">
+                  {group.label}
+                </div>
+                {index === 0 && menu.entry.type === "directory" && (
+                  <button
+                    type="button"
+                    role="menuitem"
+                    tabIndex={-1}
+                    onClick={() => {
+                      setMenu(null);
+                      onOpenTab(menu.entry.path);
+                    }}
+                  >
+                    <FolderPlus size={18} aria-hidden="true" />
+                    <span>Ouvrir dans un nouvel onglet</span>
+                  </button>
+                )}
+                {group.actions.map(([action, label, shortcut, Icon]) => (
+                  <button
+                    key={action}
+                    type="button"
+                    role="menuitem"
+                    tabIndex={-1}
+                    className={action === "trash" ? "context-trash" : undefined}
+                    aria-label={label}
+                    onClick={() => {
+                      setMenu(null);
+                      scroll.current?.focus();
+                      onAction(action);
+                    }}
+                  >
+                    <Icon size={18} aria-hidden="true" />
+                    <span>{label}</span>
+                    {shortcut && <kbd aria-hidden="true">{shortcut}</kbd>}
+                  </button>
+                ))}
+              </div>
+            </div>
           ))}
         </div>
       )}

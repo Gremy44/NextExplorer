@@ -14,6 +14,7 @@ import {
 import path from "node:path";
 import { tmpdir } from "node:os";
 import assert from "node:assert/strict";
+import { runFileGroupJourney } from "./file-group-journey.mjs";
 async function chooseFileOption(page, label, value) {
   const trigger = page.getByRole("button", { name: label, exact: true });
   await trigger.locator("svg").first().click();
@@ -448,7 +449,7 @@ try {
   assert.equal(await page.getByRole("tab").count(), 1);
   assert.equal(await page.locator(".pane").count(), 1);
   await page.getByRole("option", { name: /Documents/ }).click({ button: "right" });
-  await page.getByRole("button", { name: "Ouvrir dans un nouvel onglet" }).click();
+  await page.getByRole("menuitem", { name: "Ouvrir dans un nouvel onglet" }).click();
   await page.getByRole("heading", { name: "Documents", exact: true }).waitFor();
   await page.locator(".workspace-tab.current .tab-close").click();
   await page.getByRole("option", { name: /README.md/ }).waitFor();
@@ -807,13 +808,13 @@ try {
     .getByRole("option", { name: /budget-2026.csv/ })
     .click({ button: "right" });
   await page
-    .getByRole("button", { name: "Créer une archive ZIP", exact: true })
+    .getByRole("menuitem", { name: "Créer une archive ZIP", exact: true })
     .click();
   await page.getByLabel("Nom", { exact: true }).fill("test.zip");
   await page.getByRole("button", { name: "Confirmer", exact: true }).click();
   await page.getByRole("option", { name: /test.zip/ }).waitFor();
   await page.getByRole("option", { name: /test.zip/ }).click({ button: "right" });
-  await page.getByRole("button", { name: "Extraire une archive…", exact: true }).click();
+  await page.getByRole("menuitem", { name: "Extraire une archive…", exact: true }).click();
   await page.getByRole("dialog", { name: "Extraire une archive", exact: true }).waitFor();
   await page.getByRole("button", { name: "Confirmer", exact: true }).click();
   await page.getByRole("option", { name: /test-extrait/ }).waitFor();
@@ -822,7 +823,7 @@ try {
     await readFile(path.join(fixture, "Exports", "budget-2026.csv"), "utf8"),
   );
   await page.getByRole("option", { name: /test.zip/ }).click({ button: "right" });
-  await page.getByRole("button", { name: "Extraire une archive…", exact: true }).click();
+  await page.getByRole("menuitem", { name: "Extraire une archive…", exact: true }).click();
   await page.getByLabel("Extraire directement dans le dossier de destination et fusionner").check();
   assert.equal(await page.getByLabel("Nom", { exact: true }).count(), 0);
   await page.getByRole("button", { name: "Confirmer", exact: true }).click();
@@ -837,14 +838,14 @@ try {
   });
   await page.getByRole("option", { name: /engine.7z/ }).waitFor();
   await page.getByRole("option", { name: /engine.7z/ }).click({ button: "right" });
-  await page.getByRole("button", { name: "Extraire une archive…", exact: true }).click();
+  await page.getByRole("menuitem", { name: "Extraire une archive…", exact: true }).click();
   await page.getByRole("button", { name: "Confirmer", exact: true }).click();
   await page.getByRole("option", { name: /engine-extrait/ }).waitFor();
   assert.equal(await readFile(path.join(fixture, "Exports", "engine-extrait", "budget-2026.csv"), "utf8"), await readFile(path.join(fixture, "Exports", "budget-2026.csv"), "utf8"));
   await writeFile(path.join(fixture, "Exports", "reference.rar"), await readFile(path.join(root, "native/testdata/rar5/compressed.rar")));
   await page.getByRole("option", { name: /reference.rar/ }).waitFor();
   await page.getByRole("option", { name: /reference.rar/ }).click({ button: "right" });
-  await page.getByRole("button", { name: "Extraire une archive…", exact: true }).click();
+  await page.getByRole("menuitem", { name: "Extraire une archive…", exact: true }).click();
   await page.getByRole("button", { name: "Confirmer", exact: true }).click();
   await page.getByRole("option", { name: /reference-extrait/ }).waitFor();
   const rar5Data = await readFile(path.join(fixture, "Exports", "reference-extrait", "test.bin"));
@@ -1306,6 +1307,7 @@ try {
     assert.equal(await readFile(path.join(trash, saved), "utf8"), "cross-volume browser proof");
     console.log("Browser: annulation réelle entre volumes et copie de sécurité vérifiées");
   }
+  await runFileGroupJourney({ context, baseURL: url, fixture });
   const offline = await browser.newPage({
     viewport: { width: 1280, height: 900 },
   });
