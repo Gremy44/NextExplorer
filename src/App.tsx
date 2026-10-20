@@ -737,9 +737,11 @@ export function App() {
             })
           : [];
       controller.signal.throwIfAborted();
-      const needsFirstFolder = firstFolder || (!last &&
-        !new URLSearchParams(location.search).get("path") &&
-        workspace.tabs.every((tab) => tab.panes.every((pane) => !pane.path)));
+      const needsFirstFolder =
+        firstFolder ||
+        (!last &&
+          !new URLSearchParams(location.search).get("path") &&
+          workspace.tabs.every((tab) => tab.panes.every((pane) => !pane.path)));
       setHello(h);
       setFirstFolder(needsFirstFolder);
       if (h.workerError)
@@ -1992,7 +1994,7 @@ export function App() {
             title="Enregistrer ou reprendre un espace"
           >
             <Folder size={15} />
-            <span>Espace local</span>
+            <span>Espaces</span>
             <ChevronDown size={13} />
           </button>
           {!panel && (
@@ -2128,24 +2130,9 @@ export function App() {
                 <Search size={17} />
                 Recherche locale
               </button>
-              <button className="nav-item" onClick={() => showDialog("tags")}>
-                <Layers size={17} />
-                Tags
-              </button>
-              {tags.labels.map((tag) => (
-                <button
-                  key={tag.id}
-                  className="nav-item"
-                  onClick={() =>
-                    showDialog("tagged", { value: { tag: tag.id } })
-                  }
-                >
-                  <span className={"tag-dot tag-" + tag.color} /> {tag.name}
-                </button>
-              ))}
               <button
                 className={
-                  "nav-item " + (pane.path !== DRIVES_PATH ? "current" : "")
+                  "nav-item " + (pane.path === hello?.home ? "current" : "")
                 }
                 onClick={() => {
                   if (hello) navigate(hello.home);
@@ -2259,6 +2246,24 @@ export function App() {
                       }
                     />
                   </span>
+                </button>
+              ))}
+              <div className="nav-section">
+                <span>Organisation</span>
+              </div>
+              <button className="nav-item" onClick={() => showDialog("tags")}>
+                <Layers size={17} />
+                Tags
+              </button>
+              {tags.labels.map((tag) => (
+                <button
+                  key={tag.id}
+                  className="nav-item"
+                  onClick={() =>
+                    showDialog("tagged", { value: { tag: tag.id } })
+                  }
+                >
+                  <span className={"tag-dot tag-" + tag.color} /> {tag.name}
                 </button>
               ))}
               <div className="nav-section">
@@ -4358,10 +4363,13 @@ export function App() {
                 {dialog.kind === "settings" ? (
                   <>
                     <PreferencesDialog />
-                    <EngineStatus tools={hello?.tools} onRefresh={() => {
+                    <EngineStatus
+                      tools={hello?.tools}
+                      onRefresh={() => {
                         setDialog(null);
                         connect();
-                      }} />
+                      }}
+                    />
                     <button
                       onClick={() =>
                         void changeTheme(theme === "dark" ? "light" : "dark")

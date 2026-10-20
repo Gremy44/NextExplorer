@@ -1,5 +1,16 @@
 # Feuille de route — fichiers locaux et usages dans le navigateur
 
+## Aperçu visuel local — 20 octobre 2026
+
+Refonte graphite et verre dépoli inspirée du visuel de Josh Corbett, sur la branche
+`design/fluent-preview`. État complet précédent sauvegardé sous le tag
+`visual-safe-1.0.3`. Explorateur, panneau, dialogues, menus et thèmes harmonisés ;
+parcours allégé autour des fichiers et réglages d’apparence plus compacts.
+[Direction, aperçus et retour arrière](VISUEL_FLUENT.md).
+
+Le panneau flottant au-dessus d’un site reste une **étude visuelle**, distincte du
+panneau natif Chrome. La release et la soumission Store 1.0.3 ne sont pas remplacées.
+
 ## Socle gratuit — préversion 1.0.3, 20 octobre 2026
 
 La [paire extension/compagnon 1.0.3](https://github.com/Gremy44/NextExplorer-Downloads/releases/tag/v1.0.3)

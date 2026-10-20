@@ -1,0 +1,586 @@
+/* Fluent-inspired preview. The complete prior UI is tagged visual-safe-1.0.3. */
+:root {
+  font-family: "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
+  --appbar-height: 58px;
+  --statusbar-height: 30px;
+  --md-sys-shape-corner-small: 6px;
+  --md-sys-shape-corner-medium: 8px;
+  --md-sys-shape-corner-large: 12px;
+  --md-sys-shape-corner-extra-large: 12px;
+  --md-sys-color-surface: #252728;
+  --md-sys-color-surface-container-low: #202223;
+  --md-sys-color-surface-container: #292c2e;
+  --md-sys-color-surface-container-high: #303335;
+  --md-sys-color-on-surface: #eceeef;
+  --md-sys-color-on-surface-variant: #afb6ba;
+  --md-sys-color-outline: #747d83;
+  --md-sys-color-outline-variant: #3c4144;
+  --md-sys-color-primary: #79b8e8;
+  --md-sys-color-on-primary: #0c2537;
+  --md-sys-color-primary-container: #283f50;
+  --md-sys-color-on-primary-container: #d9edff;
+  --md-sys-color-secondary-container: #34434c;
+  --md-sys-color-on-secondary-container: #e0eef7;
+  --md-sys-color-tertiary: #a3ceb2;
+  --folder-color: #e2b75b;
+  --image-color: #88bfc4;
+  --video-color: #d3a3c7;
+  --hairline: color-mix(in srgb, var(--text) 9%, transparent);
+}
+:root[data-theme="light"] {
+  --md-sys-color-surface: #fafbfc;
+  --md-sys-color-surface-container-low: #f0f2f4;
+  --md-sys-color-surface-container: #f4f6f7;
+  --md-sys-color-surface-container-high: #ffffff;
+  --md-sys-color-on-surface: #20282d;
+  --md-sys-color-on-surface-variant: #56636c;
+  --md-sys-color-outline: #78848d;
+  --md-sys-color-outline-variant: #d2d8de;
+  --md-sys-color-primary: #216798;
+  --md-sys-color-on-primary: #ffffff;
+  --md-sys-color-primary-container: #deedf7;
+  --md-sys-color-on-primary-container: #174a6b;
+  --md-sys-color-secondary-container: #e3edf4;
+  --md-sys-color-on-secondary-container: #213e53;
+  --md-sys-color-tertiary: #326347;
+  --folder-color: #9b6b10;
+  --image-color: #3b7479;
+  --video-color: #8e467b;
+}
+button {
+  border-radius: 6px;
+  font-weight: 400;
+}
+button.primary {
+  font-weight: 600;
+}
+input,
+select,
+textarea {
+  border-color: var(--line);
+  background: var(--panel);
+}
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--accent);
+}
+h1 {
+  font-weight: 600;
+  font-size: 20px;
+}
+button:disabled {
+  opacity: 0.45;
+}
+.appbar {
+  padding-inline: 20px;
+  gap: 16px;
+  border-bottom-color: var(--hairline);
+}
+.brand {
+  font-size: 16px;
+  min-width: 184px;
+  justify-content: flex-start;
+}
+.brand-mark {
+  background: transparent;
+  color: var(--accent);
+  border-radius: 6px;
+}
+.brand strong > span {
+  color: var(--text);
+}
+.appbar-divider {
+  display: none;
+}
+.command-trigger {
+  width: min(420px, 32vw);
+  min-height: 36px;
+  background: var(--bg);
+  border: 1px solid var(--hairline);
+  border-radius: 6px;
+  margin-right: auto;
+}
+.command-trigger kbd {
+  border: 0;
+}
+.appbar-actions > button {
+  width: 36px;
+  min-height: 36px;
+  padding: 8px;
+}
+.sidebar {
+  width: 224px;
+  padding: 18px 12px 10px;
+  border-right-color: var(--hairline);
+}
+.sidebar-top {
+  padding: 0 12px 12px;
+  font-weight: 600;
+}
+.nav-item {
+  position: relative;
+  min-height: 38px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  margin-block: 1px;
+}
+.nav-item.current {
+  background: var(--hover);
+  color: var(--text);
+}
+.nav-item.current::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 10px;
+  bottom: 10px;
+  width: 3px;
+  border-radius: 2px;
+  background: var(--accent);
+}
+.nav-item.current svg {
+  color: var(--accent);
+}
+.nav-section {
+  padding: 20px 12px 8px;
+  font-weight: 600;
+  color: var(--text);
+}
+.sidebar .shortcut {
+  font:
+    11px "Segoe UI",
+    system-ui,
+    sans-serif;
+  opacity: 0.7;
+}
+.sidebar-bottom {
+  padding: 24px 12px 8px;
+}
+main {
+  margin-right: 0;
+  border-radius: 0;
+}
+.tabs-bar {
+  height: 48px;
+  padding: 4px 16px 0;
+  background: var(--panel);
+  border-bottom-color: var(--hairline);
+}
+.workspace-tab {
+  height: 40px;
+  border-radius: 7px 7px 0 0;
+}
+.workspace-tab.current {
+  box-shadow: none;
+  border: 1px solid var(--hairline);
+  border-bottom-color: var(--bg);
+}
+.tab-select,
+.tab-close + .tab-select {
+  border-radius: 6px;
+  font-size: 12px;
+}
+.tab-new::before {
+  border-radius: 6px;
+  border-color: color-mix(in srgb, var(--accent) 48%, var(--line));
+}
+.workspace-toolbar {
+  height: 42px;
+  padding-inline: 18px;
+  border-bottom-color: var(--hairline);
+}
+.workspace-toolbar button {
+  min-height: 32px;
+}
+.status-dot {
+  width: 5px;
+  height: 5px;
+}
+.toggled {
+  border-color: var(--hairline);
+}
+.pathbar {
+  padding: 8px 16px;
+  border-bottom-color: transparent;
+}
+.address {
+  background: var(--raised);
+  border: 1px solid var(--hairline);
+  border-radius: 5px;
+  margin-inline: 5px;
+}
+.breadcrumbs button {
+  font-family: inherit;
+  min-height: 30px;
+}
+.folder-heading {
+  padding: 14px 24px 12px;
+}
+.folder-heading h1 {
+  margin: 0;
+}
+.folder-heading > button {
+  width: 36px;
+  min-height: 36px;
+  padding: 8px;
+}
+.quicklinks {
+  margin-bottom: 10px;
+}
+.quicklinks > a {
+  border-radius: 5px;
+}
+.file-toolbar {
+  gap: 6px;
+  padding-bottom: 16px;
+}
+.filter {
+  border-radius: 6px;
+  border-color: var(--hairline);
+  background: var(--panel);
+}
+.file-menu-trigger {
+  border-color: var(--hairline);
+  background: transparent;
+  border-radius: 6px;
+}
+.table-head {
+  background: transparent;
+  border-top-color: transparent;
+  border-bottom-color: var(--hairline);
+  height: 38px;
+}
+.file-row {
+  border-bottom-color: transparent;
+}
+.file-size {
+  font-family: inherit;
+  font-variant-numeric: tabular-nums;
+}
+.file-icon.folder {
+  fill: color-mix(in srgb, var(--folder-color) 22%, transparent);
+  stroke-width: 1.6;
+}
+.file-icon.image,
+.file-icon.video,
+.file-icon.archive {
+  fill: color-mix(in srgb, currentColor 12%, transparent);
+}
+.file-row.selected,
+.file-item.selected {
+  box-shadow: inset 3px 0 var(--accent);
+}
+.selectionbar {
+  background: var(--panel);
+  border-top: 1px solid var(--hairline);
+}
+.pane-footer,
+.statusbar {
+  border-color: var(--hairline);
+  background: var(--panel);
+}
+.details-pane,
+.jobs {
+  background: var(--panel);
+  border-color: var(--hairline);
+}
+.details-pane > header,
+.jobs > header {
+  border-bottom-color: var(--hairline);
+}
+.details-tabs {
+  border-bottom-color: var(--hairline);
+}
+.details-tabs button {
+  position: relative;
+  font-size: 12px;
+  border-radius: 4px;
+}
+.details-tabs button[aria-pressed="true"] {
+  background: transparent;
+  color: var(--text);
+  box-shadow: inset 0 -2px var(--accent);
+}
+.file-details {
+  padding: 20px;
+}
+.file-details h2 {
+  font-size: 17px;
+}
+.overlay {
+  background: #080b0e80;
+  backdrop-filter: blur(5px);
+}
+.modal,
+.companion-folder-picker {
+  background: var(--md-sys-color-surface-container);
+  border: 1px solid var(--line);
+  box-shadow:
+    0 24px 80px #0006,
+    0 2px 8px #0003;
+}
+.modal > header,
+.preview > header {
+  padding: 18px 22px;
+  border-bottom: 1px solid var(--hairline);
+  background: var(--md-sys-color-surface-container);
+}
+.modal > header strong {
+  font-size: 18px;
+  font-weight: 600;
+}
+.modal-content {
+  padding: 22px;
+}
+.modal footer,
+.companion-folder-picker > footer {
+  padding: 16px 22px;
+  background: var(--panel);
+  border-top: 1px solid var(--hairline);
+}
+.modal footer .primary {
+  margin-left: 0;
+  min-width: 100px;
+}
+.context-menu,
+.file-options-menu,
+.companion-options > div,
+.tab-options > div {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--md-sys-color-surface-container);
+  box-shadow: 0 12px 36px #0005;
+}
+.context-menu button,
+.file-options-menu button,
+.command-list button {
+  border-radius: 4px;
+}
+.sidepanel .brand {
+  min-width: 0;
+}
+.sidepanel .appbar {
+  border-bottom-color: var(--hairline);
+}
+.sidepanel .appbar-actions .companion-expand {
+  width: auto;
+  flex-shrink: 0;
+  background: transparent;
+  border: 1px solid var(--line);
+  color: var(--text);
+  border-radius: 6px;
+}
+.preferences-appearance {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+}
+.preferences-appearance .field {
+  margin-bottom: 4px;
+}
+.preferences-appearance .organization-check {
+  min-height: 44px;
+}
+/* Frosted surfaces stay legible over content; the native side panel cannot blur a web page. */
+.details-pane,
+.modal,
+.companion-folder-picker,
+.context-menu,
+.file-options-menu,
+.sidepanel {
+  background:
+    linear-gradient(135deg, #ffffff0c, transparent 55%),
+    color-mix(in srgb, var(--panel) 88%, transparent);
+  backdrop-filter: blur(24px) saturate(125%);
+  box-shadow:
+    inset 0 1px #ffffff12,
+    0 12px 40px #0002;
+}
+.details-pane {
+  background:
+    radial-gradient(ellipse at top right, #7295af22, transparent 65%),
+    linear-gradient(135deg, #ffffff08, transparent 55%),
+    color-mix(in srgb, var(--panel) 90%, transparent);
+}
+.modal > header,
+.modal footer,
+.sidepanel .appbar,
+.sidepanel .workspace,
+.sidepanel main,
+.sidepanel .companion-modes,
+.sidepanel .statusbar {
+  background: transparent;
+}
+@media (max-width: 600px) {
+  .preferences-appearance {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+@media (prefers-reduced-transparency: reduce), (forced-colors: active) {
+  .details-pane,
+  .modal,
+  .companion-folder-picker,
+  .context-menu,
+  .file-options-menu,
+  .sidepanel {
+    background: var(--panel);
+    backdrop-filter: none;
+  }
+}
+.companion-options > summary {
+  border-radius: 6px;
+}
+.companion-modes {
+  padding-inline: 12px;
+  background: var(--panel);
+  border-bottom-color: var(--hairline);
+}
+.companion-modes button {
+  min-height: 44px;
+}
+.companion-modes button[aria-selected="true"] {
+  color: var(--text);
+}
+.companion-modes button[aria-selected="true"]::after {
+  height: 2px;
+  left: 24%;
+  right: 24%;
+}
+.companion-scroll {
+  padding: 16px;
+}
+.companion-folder {
+  border: 1px solid var(--hairline);
+  margin-bottom: 16px;
+}
+.companion-folder-trigger > svg:first-child {
+  color: var(--folder-color);
+}
+.companion-path-current {
+  background: transparent;
+  color: var(--text);
+}
+.companion-content {
+  gap: 10px;
+}
+.companion-search-toolbar {
+  flex-wrap: nowrap;
+  gap: 4px;
+}
+.companion-search-toolbar > .companion-search {
+  flex: 1 1 0;
+}
+.companion-search-toolbar > .file-options {
+  flex: 0 0 auto;
+}
+.companion-search input,
+.companion-search-toolbar .file-menu-trigger {
+  min-height: 40px;
+  height: 40px;
+}
+.companion-search > svg {
+  top: 11px;
+  left: 10px;
+}
+.companion-search input {
+  padding-left: 34px;
+}
+.companion-search-toolbar .file-menu-trigger {
+  padding-inline: 10px;
+}
+.companion-disclosure,
+.companion-document-group .companion-entry {
+  border-color: var(--hairline);
+}
+.companion-disclosure > summary {
+  min-height: 40px;
+}
+.companion-folder-tiles button {
+  background: var(--panel);
+  border: 1px solid var(--hairline);
+}
+.companion-table-head {
+  background: transparent;
+  border-bottom: 1px solid var(--hairline);
+}
+.companion-hint {
+  padding-block: 2px;
+}
+@container companion (max-width: 580px) {
+  .companion-search-toolbar .file-menu-trigger {
+    grid-template-columns: 18px;
+    justify-content: center;
+    width: 44px;
+  }
+  .companion-search-toolbar .file-menu-trigger > span,
+  .companion-search-toolbar .file-menu-trigger > svg:last-child {
+    display: none;
+  }
+}
+@media (max-width: 1000px) {
+  .brand {
+    min-width: 0;
+  }
+  .workspace-switch {
+    padding-inline: 6px;
+  }
+  .new-folder-command span {
+    display: none;
+  }
+}
+.panes.dual .new-folder-command span {
+  display: none;
+}
+@media (max-width: 760px) {
+  .appbar {
+    padding-inline: 12px;
+    gap: 8px;
+  }
+  .command-trigger {
+    width: 36px;
+    margin-right: 0;
+  }
+  .sidebar {
+    width: 224px;
+  }
+  .tabs-bar {
+    padding-inline: 8px;
+  }
+  .workspace-toolbar {
+    padding-inline: 10px;
+  }
+  .pathbar {
+    padding-inline: 10px;
+  }
+  .folder-heading {
+    padding: 12px 16px;
+  }
+  .folder-heading h1 {
+    font-size: 20px;
+  }
+  .file-toolbar {
+    padding-inline: 16px;
+  }
+  .quicklinks {
+    margin-inline: 16px;
+  }
+  .modal > header,
+  .modal-content {
+    padding: 16px;
+  }
+  .modal > header strong {
+    white-space: normal;
+    font-size: 17px;
+  }
+  .modal footer {
+    padding: 12px 16px;
+  }
+  .companion-scroll {
+    padding: 12px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .overlay {
+    backdrop-filter: none;
+  }
+}

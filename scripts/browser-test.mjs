@@ -19,6 +19,7 @@ import { runLayoutJourney } from "./layout-journey.mjs";
 import { runQuickTagsJourney } from "./quick-tags-journey.mjs";
 import { runSpaceJourney } from "./space-journey.mjs";
 import { runConsoleJourney } from "./console-journey.mjs";
+import { runVisualJourney } from "./visual-journey.mjs";
 async function chooseFileOption(page, label, value) {
   const trigger = page.getByRole("button", { name: label, exact: true });
   await trigger.locator("svg").first().click();
@@ -269,7 +270,10 @@ try {
     "reconnexion automatique après indisponibilité",
   );
   await page.getByRole("option", { name: /README.md/ }).waitFor();
-  if (process.argv.includes("--console-only")) {
+  if (process.argv.includes("--visual-only")) {
+    await runVisualJourney({ page, context, fixture, baseline: process.argv.includes("--baseline") });
+    assert.deepEqual(errors, []);
+  } else if (process.argv.includes("--console-only")) {
     page.setDefaultTimeout(15000);
     try { await runConsoleJourney({ page, fixture }); }
     catch (error) {

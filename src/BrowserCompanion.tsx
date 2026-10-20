@@ -536,17 +536,6 @@ export function BrowserCompanion(props: Props) {
                   </div>
                 </details>
               )}
-              <details className="companion-disclosure">
-                <summary>Organiser ce dossier</summary>
-                <div className="companion-disclosure-content companion-tools">
-                  <button onClick={() => props.onFolderAction("tags")}>
-                    Tags du dossier…
-                  </button>
-                  <button onClick={() => props.onFolderAction("appearance")}>
-                    Personnaliser le dossier…
-                  </button>
-                </div>
-              </details>
               <div
                 className={`companion-files file-layout-${view.layout}`}
                 data-view={pane.viewMode}
@@ -682,6 +671,17 @@ export function BrowserCompanion(props: Props) {
                   </>
                 )}
               </div>
+              <details className="companion-disclosure">
+                <summary>Organiser ce dossier</summary>
+                <div className="companion-disclosure-content companion-tools">
+                  <button onClick={() => props.onFolderAction("tags")}>
+                    Tags du dossier…
+                  </button>
+                  <button onClick={() => props.onFolderAction("appearance")}>
+                    Personnaliser le dossier…
+                  </button>
+                </div>
+              </details>
             </section>
           )}
 

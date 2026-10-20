@@ -468,9 +468,11 @@ export function Pane({
       </div>
       <div className="folder-heading">
         <div>
-          <span className="muted">Dossier local</span>
           <h1>{basename(pane.path) || "Explorateur"}</h1>
         </div>
+        <button title="Épingler un lien" onClick={() => onPin()}>
+          <LinkIcon size={17} />
+        </button>
         <button
           title="Ajouter aux favoris"
           onClick={() => onAction("favorite")}
@@ -478,10 +480,10 @@ export function Pane({
           <Star size={17} />
         </button>
       </div>
-      <div className="quicklinks">
-        <LinkIcon size={12} />
-        {links.length ? (
-          links.map((l) => (
+      {links.length > 0 && (
+        <div className="quicklinks">
+          <LinkIcon size={12} />
+          {links.map((l) => (
             <a
               key={l.url}
               href={safeURL(l.url) || "#"}
@@ -494,14 +496,9 @@ export function Pane({
             >
               {l.title}
             </a>
-          ))
-        ) : (
-          <span>Les liens de votre projet, à portée de main</span>
-        )}
-        <button title="Épingler un lien" onClick={() => onPin()}>
-          <Plus size={13} />
-        </button>
-      </div>
+          ))}
+        </div>
+      )}
       {pane.listing?.truncated && (
         <p role="status" className="listing-limit">
           Liste partielle : limite de 10 000 résultats, 8 Mio de métadonnées ou
@@ -544,8 +541,14 @@ export function Pane({
           />
           <kbd>/</kbd>
         </label>
-        <button title="Nouveau dossier" onClick={() => onAction("mkdir")}>
+        <button
+          className="new-folder-command"
+          title="Nouveau dossier"
+          aria-label="Nouveau dossier"
+          onClick={() => onAction("mkdir")}
+        >
           <FolderPlus size={17} />
+          <span>Nouveau</span>
         </button>
         <FileViewMenu
           value={pane.viewMode}

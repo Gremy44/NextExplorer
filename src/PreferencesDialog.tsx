@@ -70,7 +70,7 @@ export function PreferencesDialog() {
       </label>
     ) : null;
   return (
-    <section className="organization-dialog">
+    <section className="organization-dialog preferences-dialog">
       <label className="field">
         Rechercher un réglage
         <input
@@ -79,7 +79,7 @@ export function PreferencesDialog() {
           onChange={(event) => setFilter(event.target.value)}
         />
       </label>
-      <fieldset>
+      <fieldset className="preferences-appearance">
         <legend>Apparence et navigation</legend>
         <label className="field">
           Thème
