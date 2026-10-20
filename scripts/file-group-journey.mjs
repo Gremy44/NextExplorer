@@ -11,6 +11,8 @@ import { createHash } from "node:crypto";
 import path from "node:path";
 import { runFileDestinationJourney } from "./file-destination-journey.mjs";
 import { runOriginDestinationJourney } from "./origin-destination-journey.mjs";
+import { runFileFamilyJourney } from "./file-family-journey.mjs";
+import { runFileCopyJourney } from "./file-copies-journey.mjs";
 
 export async function runFileGroupJourney({ context, baseURL, fixture }) {
   const folder = path.join(fixture, "Référence française C0");
@@ -131,7 +133,26 @@ export async function runFileGroupJourney({ context, baseURL, fixture }) {
         .getByRole("group", { name: label, exact: true })
         .waitFor();
     assert.equal(await contextMenu.getByRole("separator").count(), 4);
-    assert.equal(await contextMenu.getByRole("menuitem").count(), 12);
+    assert.equal(await contextMenu.getByRole("menuitem").count(), 15);
+    assert.equal(await contextMenu.getByRole("menuitemcheckbox").count(), 7);
+    assert.equal(
+      await contextMenu
+        .getByRole("menuitem", { name: "Tags…", exact: true })
+        .isDisabled(),
+      false,
+    );
+    assert.equal(
+      await contextMenu
+        .getByRole("menuitem", {
+          name: "Personnaliser les dossiers…",
+          exact: true,
+        })
+        .isDisabled(),
+      true,
+    );
+    await contextMenu
+      .getByRole("menuitem", { name: "Actions rapides…", exact: true })
+      .waitFor();
     assert.ok(
       await contextMenu
         .getByRole("menuitem")
@@ -284,7 +305,7 @@ export async function runFileGroupJourney({ context, baseURL, fixture }) {
         exact: true,
       })
       .waitFor();
-    assert.equal(await contextMenu.getByRole("menuitem").count(), 13);
+    assert.equal(await contextMenu.getByRole("menuitem").count(), 16);
     await page
       .getByRole("heading", { name: path.basename(folder), exact: true })
       .click();
@@ -949,7 +970,11 @@ export async function runFileGroupJourney({ context, baseURL, fixture }) {
     }
     await page.setViewportSize({ width: 1440, height: 1000 });
     await page.goto(`${baseURL}?path=${encodeURIComponent(large)}`);
-    await page.getByRole("option").first().waitFor();
+    await page
+      .getByRole("listbox", { name: "Fichiers", exact: true })
+      .getByRole("option")
+      .first()
+      .waitFor();
     dialog = await openGroups(page);
     await dialog
       .getByLabel("Regrouper par", { exact: true })
@@ -1167,7 +1192,11 @@ export async function runFileGroupJourney({ context, baseURL, fixture }) {
     });
     await page.keyboard.press("Escape");
     await page.goto(`${baseURL}?path=${encodeURIComponent(large)}`);
-    await page.getByRole("option").first().waitFor();
+    await page
+      .getByRole("listbox", { name: "Fichiers", exact: true })
+      .getByRole("option")
+      .first()
+      .waitFor();
     dialog = await openGroups(page);
     await dialog
       .getByLabel("Regrouper par", { exact: true })
@@ -1214,6 +1243,15 @@ export async function runFileGroupJourney({ context, baseURL, fixture }) {
       fixture,
       openGroups,
     });
+    await runFileFamilyJourney({
+      page,
+      panel,
+      baseURL,
+      fixture,
+      openGroups,
+      large,
+    });
+    await runFileCopyJourney({ context, baseURL, fixture });
     assert.deepEqual(errors, []);
   } catch (error) {
     await panel.screenshot({

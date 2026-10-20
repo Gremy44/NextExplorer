@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import {
   File,
   Folder,
@@ -22,6 +22,9 @@ import { mediaType, safeURL, size, type Entry } from "./types";
 import { previewText, TEXT_PREVIEW_BYTES } from "./preview-text";
 import { readProvenance, type Provenance } from "./provenance";
 import { mimes } from "./file-mime";
+import { nativeThumbnail } from "./native-thumbnail";
+import { useOrganization } from "./OrganizationContext";
+import { fileKey } from "./file-families";
 export function FileIcon({
   entry,
   size: dim = 18,
@@ -29,6 +32,9 @@ export function FileIcon({
   entry: Entry;
   size?: number;
 }) {
+  const { appearances } = useOrganization();
+  const appearance =
+    entry.type === "directory" ? appearances[fileKey(entry.path)] : undefined;
   const kind = mediaType(entry);
   const Icon = {
     folder: Folder,
@@ -41,7 +47,42 @@ export function FileIcon({
     text: entry.ext ? FileCode : File,
     binary: File,
   }[kind];
+  if (appearance)
+    return (
+      <span
+        className="custom-folder-icon"
+        style={{
+          width: dim,
+          height: dim,
+          color:
+            appearance.color === "default"
+              ? "var(--folder-color)"
+              : `var(--label-${appearance.color})`,
+        }}
+      >
+        <Folder size={dim} className="file-icon" style={{ color: "inherit" }} />
+        <span style={{ fontSize: Math.max(10, dim * 0.42) }}>
+          {appearance.symbol}
+        </span>
+      </span>
+    );
   return <Icon size={dim} className={"file-icon " + kind} />;
+}
+export function FolderIcon({
+  path,
+  name = "",
+  size = 18,
+}: {
+  path: string;
+  name?: string;
+  size?: number;
+}) {
+  return (
+    <FileIcon
+      entry={{ path, name, type: "directory", size: 0, mtime: 0, ext: "" }}
+      size={size}
+    />
+  );
 }
 export function CardPreview({
   entry,
@@ -60,6 +101,8 @@ export function CardPreview({
   const preview = useRef<HTMLDivElement>(null);
   const [visible, setVisible] = useState(false);
   const kind = mediaType(entry);
+  const hoveredMedia =
+    (kind === "video" || kind === "audio") && hover && interactive;
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([item]) => setVisible(item.isIntersecting),
@@ -73,7 +116,7 @@ export function CardPreview({
     setURL("");
     if (!visible) return;
     let live = true;
-    let object = "";
+    let mediaToken = "";
     const controller = new AbortController();
     if (kind === "link" && entry.size < 200000)
       bridge
@@ -90,31 +133,38 @@ export function CardPreview({
           if (live) setText(value.binary ? "" : value.text);
         })
         .catch(() => {});
-    if (
-      (kind === "image" &&
-        !/\.tiff?$/i.test(entry.ext) &&
-        entry.size < 8 * 1024 * 1024) ||
-      ((kind === "video" || kind === "audio") &&
-        hover &&
-        interactive &&
-        entry.size < 64 * 1024 * 1024)
-    )
-      bridge
-        .bytes(entry.path, 64 * 1024 * 1024, controller.signal)
-        .then((bytes) => {
-          object = URL.createObjectURL(
-            new Blob([bytes], { type: mimes[entry.ext] }),
+    if (kind === "image" || hoveredMedia) {
+      void (async () => {
+        if (kind === "image") {
+          const url = await nativeThumbnail(entry, controller.signal);
+          if (live) setURL(url);
+        } else {
+          const expected = await bridge.request<Entry>("FS_STAT", {
+            path: entry.path,
+          });
+          if (!live) return;
+          const value = await bridge.request<{ url: string; token: string }>(
+            "MEDIA_OPEN",
+            { path: entry.path, expected },
           );
-          if (live) setURL(object);
-          else URL.revokeObjectURL(object);
-        })
-        .catch(() => {});
+          mediaToken = value.token;
+          if (live) setURL(value.url);
+          else
+            void bridge
+              .request("MEDIA_CLOSE", { name: mediaToken })
+              .catch(() => {});
+        }
+      })().catch(() => {});
+    }
     return () => {
       live = false;
       controller.abort();
-      if (object) URL.revokeObjectURL(object);
+      if (mediaToken)
+        void bridge
+          .request("MEDIA_CLOSE", { name: mediaToken })
+          .catch(() => {});
     };
-  }, [entry.path, entry.mtime, hover, visible, interactive]);
+  }, [entry.path, entry.mtime, entry.stamp, hoveredMedia, visible]);
   let content = <FileIcon entry={entry} size={iconSize} />;
   if (kind === "text" && text) {
     const snippet = text.slice(0, 512).split("\n").slice(0, 5).join("\n");
@@ -161,6 +211,7 @@ export function CardPreview({
   if (kind === "video" && url)
     content = (
       <video
+        preload="metadata"
         className="thumbnail"
         src={url}
         muted
@@ -198,7 +249,9 @@ export function CardPreview({
       className="card-preview"
       onPointerEnter={interactive ? () => setHover(true) : undefined}
       onPointerLeave={() => {
+        setHover(false);
         audio.current?.pause();
+        video.current?.pause();
       }}
     >
       {content}
@@ -211,12 +264,14 @@ export function Preview({
   onError,
   onConvert,
   embedded = false,
+  actions,
 }: {
   entry: Entry;
   onClose: () => void;
   onError: (s: string) => void;
   onConvert?: () => void;
   embedded?: boolean;
+  actions?: ReactNode;
 }) {
   const [url, setURL] = useState("");
   const [text, setText] = useState("");
@@ -236,13 +291,12 @@ export function Preview({
   const tiff = /\.tiff?$/i.test(entry.ext);
   const unsupported =
     kind === "binary" ||
-    tiff ||
     (embedded && (kind === "folder" || kind === "archive"));
   useEffect(() => {
     setSourceOpen(false);
     setSource(null);
     setSourceError("");
-  }, [entry.path, entry.mtime]);
+  }, [entry.path, entry.mtime, entry.stamp]);
   useEffect(() => {
     if (!sourceOpen) return;
     const controller = new AbortController();
@@ -256,9 +310,10 @@ export function Preview({
         if (!controller.signal.aborted) setSourceError(error.message);
       });
     return () => controller.abort();
-  }, [sourceOpen, entry.path, entry.mtime]);
+  }, [sourceOpen, entry.path, entry.mtime, entry.stamp]);
   useEffect(() => {
     let object = "";
+    let mediaToken = "";
     let live = true;
     const controller = new AbortController();
     setURL("");
@@ -304,6 +359,54 @@ export function Preview({
           if (live) setText(t);
           return;
         }
+        if (kind === "image") {
+          const expected = await bridge.request<Entry>("FS_STAT", {
+            path: entry.path,
+          });
+          const value = await bridge.request<{ data: string }>(
+            "IMAGE_PREVIEW",
+            { path: entry.path, expected, width: embedded ? 640 : 1600 },
+            12000,
+          );
+          if (live) setURL(`data:image/jpeg;base64,${value.data}`);
+          return;
+        }
+        if (kind === "video" || kind === "audio") {
+          const expected = await bridge.request<Entry>("FS_STAT", {
+            path: entry.path,
+          });
+          const value = await bridge.request<{ url: string; token: string }>(
+            "MEDIA_OPEN",
+            { path: entry.path, expected },
+          );
+          mediaToken = value.token;
+          if (live) setURL(value.url);
+          else
+            void bridge
+              .request("MEDIA_CLOSE", { name: mediaToken })
+              .catch(() => {});
+          if (kind === "audio" && live)
+            void bridge
+              .request<{ peaks: number[] }>(
+                "MEDIA_WAVEFORM",
+                { path: entry.path, expected },
+                12000,
+              )
+              .then(({ peaks }) => {
+                if (!live) return;
+                const c = canvas.current,
+                  g = c?.getContext("2d");
+                if (!c || !g) return;
+                g.clearRect(0, 0, c.width, c.height);
+                g.fillStyle = getComputedStyle(c).color;
+                peaks.forEach((peak, i) => {
+                  const height = Math.max(2, (peak / 32768) * c.height);
+                  g.fillRect(i * 3, (c.height - height) / 2, 2, height);
+                });
+              })
+              .catch(() => {});
+          return;
+        }
         const data = await bridge.bytes(
           entry.path,
           (embedded ? 16 : 128) * 1024 * 1024,
@@ -315,39 +418,6 @@ export function Preview({
           }),
         );
         if (live) setURL(object);
-        if (kind === "audio" && data.byteLength <= 8 * 1024 * 1024 && live) {
-          const ctx = new AudioContext();
-          try {
-            const decoded = await ctx.decodeAudioData(data.buffer.slice(0));
-            if (!live) return;
-            const samples = decoded.getChannelData(0);
-            const c = canvas.current;
-            const g = c?.getContext("2d");
-            if (c && g) {
-              g.clearRect(0, 0, c.width, c.height);
-              g.fillStyle = "#f59e0b";
-              for (let x = 0; x < c.width; x += 3) {
-                const start = Math.floor((x / c.width) * samples.length);
-                let peak = 0;
-                for (
-                  let k = start;
-                  k <
-                  Math.min(
-                    start + Math.ceil(samples.length / c.width),
-                    samples.length,
-                  );
-                  k += Math.max(1, Math.ceil(samples.length / c.width / 128))
-                )
-                  peak = Math.max(peak, Math.abs(samples[k]));
-                const height = Math.max(2, peak * c.height);
-                g.fillRect(x, (c.height - height) / 2, 2, height);
-              }
-            }
-          } catch {
-          } finally {
-            await ctx.close().catch(() => {});
-          }
-        }
       } catch (e) {
         if (live && !controller.signal.aborted) setError(String(e));
       }
@@ -356,8 +426,12 @@ export function Preview({
       live = false;
       controller.abort();
       if (object) URL.revokeObjectURL(object);
+      if (mediaToken)
+        void bridge
+          .request("MEDIA_CLOSE", { name: mediaToken })
+          .catch(() => {});
     };
-  }, [entry.path, entry.mtime]);
+  }, [entry.path, entry.mtime, entry.stamp]);
   useEffect(() => {
     setHTML("");
     if (kind !== "text" || !text) return;
@@ -441,13 +515,9 @@ export function Preview({
           )}
           {unsupported ? (
             <p className="muted">
-              {tiff
-                ? "Les images TIFF ne disposent pas d’un aperçu natif dans Chrome."
-                : "Ce format ne dispose pas d’un aperçu intégré."}{" "}
-              Ouvrez ce fichier dans son application
-              {tiff && onConvert
-                ? " ou créez une copie PNG pour le consulter."
-                : "."}
+              Ce format ne dispose pas d’un aperçu intégré. Ouvrez ce fichier
+              dans son application
+              {onConvert ? " ou créez une copie PNG pour le consulter." : "."}
             </p>
           ) : error ? (
             <p className="error">{error}</p>
@@ -474,6 +544,7 @@ export function Preview({
             </>
           ) : kind === "video" && url ? (
             <video
+              preload="metadata"
               ref={video}
               src={url}
               controls
@@ -489,10 +560,16 @@ export function Preview({
             <div className="audio-preview">
               <Music size={64} />
               <h2>{entry.name}</h2>
-              <canvas ref={canvas} width={600} height={100} />
+              <canvas
+                ref={canvas}
+                width={600}
+                height={100}
+                aria-label="Forme d’onde du début du fichier, 30 secondes maximum"
+              />
               {url && (
                 <>
                   <audio
+                    preload="metadata"
                     ref={audio}
                     src={url}
                     controls
@@ -597,6 +674,7 @@ export function Preview({
             )}
           </section>
         )}
+        {actions}
         <footer>
           {!embedded && (
             <span>

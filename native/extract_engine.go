@@ -30,7 +30,7 @@ func (b *strictBuffer) Write(p []byte) (int, error) {
 	}
 	return b.Builder.Write(p)
 }
-func parseEngineList(text string) ([]engineEntry, error) {
+func parseEngineList(text string, password ...bool) ([]engineEntry, error) {
 	text = strings.ReplaceAll(text, "\r\n", "\n")
 	entries := []engineEntry{}
 	seen := map[string]bool{}
@@ -78,7 +78,7 @@ func parseEngineList(text string) ([]engineEntry, error) {
 				return nil, fmt.Errorf("fichier spécial refusé")
 			}
 		}
-		if fields["Encrypted"] != "-" && fields["Encrypted"] != "" {
+		if fields["Encrypted"] != "-" && fields["Encrypted"] != "" && !(len(password) > 0 && password[0]) {
 			return nil, fmt.Errorf("archive chiffrée non prise en charge")
 		}
 		if fields["Split Before"] == "+" || fields["Split After"] == "+" {
@@ -122,6 +122,9 @@ func (w *archiveSink) Write(p []byte) (int, error) {
 
 // 7-Zip never receives an output directory: bytes go through bounded Go writers.
 func (j *Job) convertArchive(source, dest, extension string) (string, func(), error) {
+	return j.convertArchivePassword(source, dest, extension, "")
+}
+func (j *Job) convertArchivePassword(source, dest, extension, password string) (string, func(), error) {
 	engine, err := toolPath("7z")
 	if err != nil {
 		return "", nil, err
@@ -176,6 +179,9 @@ func (j *Job) convertArchive(source, dest, extension string) (string, func(), er
 	j.Done = 0
 	j.mu.Unlock()
 	kind := "-t7z"
+	if extension == ".zip" {
+		kind = "-tzip"
+	}
 	if extension == ".rar" {
 		kind = "-trar"
 		probe, err := os.Open(snapshot)
@@ -189,7 +195,11 @@ func (j *Job) convertArchive(source, dest, extension string) (string, func(), er
 			kind = "-trar5"
 		}
 	}
-	args := []string{"l", kind, "-slt", "-sccUTF-8", "-pNextExplorer-no-password", "--", snapshot}
+	passwordArg := "-pNextExplorer-no-password"
+	if password != "" {
+		passwordArg = "-p" + password
+	}
+	args := []string{"l", kind, "-slt", "-sccUTF-8", passwordArg, "--", snapshot}
 	command := exec.CommandContext(ctx, engine, args...)
 	quiet(command)
 	listing := &strictBuffer{limit: 1024 * 1024}
@@ -211,7 +221,7 @@ func (j *Job) convertArchive(source, dest, extension string) (string, func(), er
 			return "", nil, fmt.Errorf("archive multivolume refusée")
 		}
 	}
-	entries, err := parseEngineList(entryText)
+	entries, err := parseEngineList(entryText, password != "")
 	if err != nil {
 		return "", nil, err
 	}
@@ -246,7 +256,7 @@ func (j *Job) convertArchive(source, dest, extension string) (string, func(), er
 		if entry.directory {
 			continue
 		}
-		command := exec.CommandContext(ctx, engine, "x", kind, "-so", "-spd", "-r-", "-y", "-bso0", "-bsp0", "-pNextExplorer-no-password", "--", snapshot, entry.name)
+		command := exec.CommandContext(ctx, engine, "x", kind, "-so", "-spd", "-r-", "-y", "-bso0", "-bsp0", passwordArg, "--", snapshot, entry.name)
 		quiet(command)
 		sink := &archiveSink{job: j, out: member, remaining: entry.size}
 		command.Stdout = sink

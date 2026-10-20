@@ -32,8 +32,12 @@ func (j *Job) beginTransaction(p Payload) (func(error) error, error) {
 		return noop, nil
 	}
 	event := transactionEvent{Action: "transfer", Phase: "begin", Mode: p.Mode, Conflict: p.Conflict, Merge: p.Merge}
-	if err := j.appendTransaction(event); err != nil {
-		return nil, fmt.Errorf("transfert arrêté : journal transactionnel : %w", err)
+	dir, _ := j.host.transactionDir(j.ID)
+	_, beginErr := os.Stat(filepath.Join(dir, "00000000-begin.json"))
+	if !(j.resuming && beginErr == nil) {
+		if err := j.appendTransaction(event); err != nil {
+			return nil, fmt.Errorf("transfert arrêté : journal transactionnel : %w", err)
+		}
 	}
 	return func(operationErr error) error {
 		event.Phase = "end"

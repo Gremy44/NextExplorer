@@ -1,5 +1,13 @@
 ﻿# Audit UI/UX — NextExplorer, 3 octobre 2026
 
+## Espace disque et inventaire des outils — complément du 18 octobre 2026
+
+Périmètre choisi : **espace disque amélioré + liste complète**, avant une revue outil par outil. Le volet d’aperçu dépasse désormais 640 px selon la place disponible et peut occuper toute la zone centrale. Survol et focus affichent nom complet, chemin, taille et pourcentage des blocs, même minuscules. Six couleurs contrastées, séparations blanches et texte lisible remplacent les trois teintes peu distinctes. Un clic sur un résultat remet les fichiers à l’écran sans perdre l’analyse.
+
+Compilation et **224 tests / 36 fichiers** réussis ; parcours Chrome/compagnon dédié avec souris, clavier, mémorisation, navigation, pagination et thèmes à 320/390/900/1440 px. Contraste du texte vérifié, fichiers d’essai intacts. Preuves dans [la recette hybride](RECETTE_HYBRIDE.md). Ces contrôles ne constituent pas une étude avec utilisateurs.
+
+[La revue des 47 parcours](REVUE_ERGONOMIE_OUTILS.md) donne leurs accès, un essai court pour chacun, les références aux logiciels existants et les premiers points à retravailler. Les autres outils restent à valider avec l’utilisateur ; ils n’ont pas été refondus dans ce lot.
+
 ## Menus d’affichage et de tri — complément du 6 octobre 2026
 
 Demande utilisateur : rendre l’icône d’affichage cliquable et illustrer les options d’affichage et de tri dans les deux interfaces. Deux boutons près de la recherche ouvrent des menus superposés au contenu. Le mode et le tri courants restent visibles avec leur icône ; les huit affichages et les six tris possèdent un pictogramme distinct, avec une coche sur l’option active. Surfaces tonales, formes et focus suivent Material 3. Dans le panneau, le tri quitte les filtres repliés pour devenir directement accessible. Dans Détails, les flèches des colonnes indiquent le critère et le sens actuels.

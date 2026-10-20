@@ -3,11 +3,11 @@ import {
   copyFileSync,
   cpSync,
   rmSync,
-  readFileSync,
   writeFileSync,
 } from "node:fs";
 import path from "node:path";
-const id = readFileSync("extension-id.txt", "utf8").trim();
+import { readExtensionIdentity } from "./extension-identity.mjs";
+const id = readExtensionIdentity();
 const ext = process.platform === "win32" ? ".exe" : "";
 const manifest = {
   name: "com.local.file_explorer",
@@ -24,9 +24,11 @@ mkdirSync("release/NextExplorer/scripts", { recursive: true });
 mkdirSync("release/NextExplorer/native", { recursive: true });
 const releaseRoot = path.resolve("release/NextExplorer");
 const releaseDist = path.join(releaseRoot, "dist");
-if (path.dirname(releaseDist) !== releaseRoot) throw new Error("Destination du build invalide");
+if (path.dirname(releaseDist) !== releaseRoot)
+  throw new Error("Destination du build invalide");
 rmSync(releaseDist, { recursive: true, force: true });
 cpSync("dist", "release/NextExplorer/dist", { recursive: true });
+cpSync("store", "release/NextExplorer/store", { recursive: true });
 cpSync("native/security", "release/NextExplorer/native/security", {
   recursive: true,
 });
@@ -51,15 +53,24 @@ for (const file of [
   copyFileSync("scripts/" + file, "release/NextExplorer/scripts/" + file);
 for (const file of [
   "README.md",
+  "LICENSE",
   "GUIDE_UTILISATION.md",
   "DESIGN.md",
   "PANNEAU_LATERAL.md",
   "AUDIT_UI_UX.md",
+  "REVUE_ERGONOMIE_OUTILS.md",
+  "APERCUS_100_FORMATS.md",
   "extension-id.txt",
   "FEATURES.md",
   "GLISSER_DEPOSER_WEB.md",
   "RECETTE_INSTALLATEUR.md",
   "RECETTE_HYBRIDE.md",
+  "EVALUATION_CLASSEMENT.md",
+  "J4_ORGANISATION_RECHERCHE.md",
+  "C2_COPIES_IDENTIQUES.md",
+  "J5_MEDIAS_TACHES.md",
+  "AMELIORATIONS_FINDER.md",
+  "CONSOLE_INTEGREE.md",
   "THIRD_PARTY.md",
 ])
   copyFileSync(file, "release/NextExplorer/" + file);

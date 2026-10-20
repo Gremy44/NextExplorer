@@ -20,6 +20,7 @@ type Entry struct {
 	Size  int64  `json:"size"`
 	Mtime int64  `json:"mtime"`
 	Ext   string `json:"ext"`
+	Stamp string `json:"stamp,omitempty"`
 }
 
 func validPath(p string) (string, error) {
@@ -58,36 +59,63 @@ func statEntry(p string) (Entry, error) {
 	if s.Mode()&os.ModeSymlink != 0 {
 		kind = "symlink"
 	}
-	return Entry{s.Name(), a, kind, s.Size(), s.ModTime().Unix(), strings.ToLower(filepath.Ext(a))}, nil
+	return Entry{s.Name(), a, kind, s.Size(), s.ModTime().Unix(), strings.ToLower(filepath.Ext(a)), fmt.Sprint(s.ModTime().UnixNano())}, nil
 }
 func listDir(p Payload) (any, error) {
 	dir, e := validPath(p.Path)
 	if e != nil {
 		return nil, e
 	}
-	rows, e := os.ReadDir(dir)
+	folder, e := os.Open(dir)
 	if e != nil {
 		return nil, e
 	}
+	defer folder.Close()
 	entries := []Entry{}
-	for _, d := range rows {
-		if !p.ShowHidden && hidden(filepath.Join(dir, d.Name()), d.Name()) {
-			continue
+	truncated := false
+	bytes, scanned := 0, 0
+listing:
+	for {
+		rows, readErr := folder.ReadDir(256)
+		if readErr != nil && readErr != io.EOF {
+			return nil, readErr
 		}
-		if p.Filter != "" && !strings.Contains(strings.ToLower(d.Name()), strings.ToLower(p.Filter)) {
-			continue
+		for _, d := range rows {
+			scanned++
+			if scanned > 200000 || len(entries) >= 10000 || bytes >= 8*1024*1024 {
+				truncated = true
+				break listing
+			}
+			if !p.ShowHidden && hidden(filepath.Join(dir, d.Name()), d.Name()) {
+				continue
+			}
+			if p.Filter != "" && !strings.Contains(strings.ToLower(d.Name()), strings.ToLower(p.Filter)) {
+				continue
+			}
+			v, e := statEntry(filepath.Join(dir, d.Name()))
+			if e == nil {
+				weight := len(v.Path) + len(v.Name) + 160
+				if bytes+weight > 8*1024*1024 {
+					truncated = true
+					break listing
+				}
+				entries = append(entries, v)
+				bytes += weight
+			}
 		}
-		v, e := statEntry(filepath.Join(dir, d.Name()))
-		if e == nil {
-			entries = append(entries, v)
+		if readErr == io.EOF {
+			break
 		}
 	}
 	sort.SliceStable(entries, func(i, j int) bool {
 		a, b := entries[i], entries[j]
-		if (a.Type == "directory") != (b.Type == "directory") {
+		if !p.MixedSort && (a.Type == "directory") != (b.Type == "directory") {
 			return a.Type == "directory"
 		}
 		cmp := strings.Compare(strings.ToLower(a.Name), strings.ToLower(b.Name))
+		if p.SortBy == "type" {
+			cmp = strings.Compare(a.Ext, b.Ext)
+		}
 		if p.SortBy == "size" {
 			if a.Size < b.Size {
 				cmp = -1
@@ -121,7 +149,7 @@ func listDir(p Payload) (any, error) {
 	if parent == dir {
 		parent = nil
 	}
-	return M{"currentPath": dir, "parentPath": parent, "entries": entries[offset:end], "total": total, "nextOffset": end}, nil
+	return M{"currentPath": dir, "parentPath": parent, "entries": entries[offset:end], "total": total, "nextOffset": end, "truncated": truncated}, nil
 }
 func hello() M {
 	home, _ := os.UserHomeDir()
@@ -144,7 +172,7 @@ func hello() M {
 			}
 		}
 	}
-	return M{"version": "1.0.0", "protocolVersion": protocolVersion, "platform": runtime.GOOS, "home": home, "roots": roots, "aliases": homeAliases(home), "tools": toolCapabilities(), "features": M{"nativeDrag": runtime.GOOS == "windows", "nativeDragVersion": 2, "transferMerge": true, "operationJournal": true, "transferUndo": true, "zipExtract": runtime.GOOS == "windows", "archiveExtract": runtime.GOOS == "windows", "extractMerge": runtime.GOOS == "windows"}}
+	return M{"version": "1.0.0", "protocolVersion": protocolVersion, "platform": runtime.GOOS, "home": home, "roots": roots, "aliases": homeAliases(home), "tools": toolCapabilities(), "features": M{"imageSamples": true, "mediaStream": true, "checkedHash": true, "nativeDrag": runtime.GOOS == "windows", "nativeDragVersion": 2, "transferMerge": true, "operationJournal": true, "transferUndo": true, "zipExtract": runtime.GOOS == "windows", "archiveExtract": runtime.GOOS == "windows", "extractMerge": runtime.GOOS == "windows"}}
 }
 func readChunk(p Payload) (any, error) {
 	a, e := validPath(p.Path)

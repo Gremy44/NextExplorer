@@ -2,6 +2,13 @@
 
 Décision de conception du 14 septembre 2026, suivi actualisé le 18 septembre. Ce document décrit l’installateur cible et distingue les briques déjà développées ci-dessous.
 
+**État courant, 20 octobre 2026 :** préversion 1.0.3 publiée avec connexion guidée,
+identité Store officielle et présentation des moteurs ; soumise au Chrome Web
+Store, en attente d’examen avec publication automatique après approbation.
+Le [kit de recette](RECETTE_INSTALLATEUR.md) contient l’EXE public exact. Tests
+isolés réussis ; J1.7 sur Windows propre et pilote utilisateur restent ouverts.
+Les points ci-dessous conservent l’historique de validation des briques.
+
 **Périmètre actualisé le 9 octobre 2026 :** l'installateur sert les traitements de fichiers locaux et les parcours navigateur. J6 est retiré : aucun pack de clients cloud, FTP ou de nouvelles intégrations tierces à préparer. Les moteurs locaux nécessaires restent les seuls composants fonctionnels à distribuer selon les usages retenus.
 
 ## Avancement du jalon J1
@@ -16,7 +23,7 @@ Décision de conception du 14 septembre 2026, suivi actualisé le 18 septembre. 
 
 ## Solution retenue pour la première distribution
 
-Une extension distribuée par sa boutique et **un seul installateur Windows signé**, regroupant le compagnon et la gestion des moteurs. L'utilisateur ne doit jamais installer Go, Node, FFmpeg, ImageMagick, ExifTool ou 7-Zip séparément ni modifier PATH ou le registre.
+Une extension distribuée par sa boutique et **un seul installateur Windows**, regroupant le compagnon et la gestion des moteurs. Choix du propriétaire : aucune dépense de signature ; l’EXE reste non signé et cela est indiqué dans les téléchargements. Go et Node ne sont pas nécessaires à l’utilisation. Le paquet léger n’embarque pas les moteurs ; leur préparation reste avancée dans la préversion, expliquée dans les réglages et le guide public. La gestion intégrée des téléchargements de moteurs reste une amélioration future, pas un prérequis déclaré livré.
 
 Choix technique proposé : **Inno Setup**, installation par utilisateur avec `PrivilegesRequired=lowest`, dans `%LOCALAPPDATA%\Programs\NextExplorer`. Il sait produire un EXE, gérer fichiers/registre et désinstallation ; vérifier les conditions commerciales de la version retenue et les intégrer au budget. Une installation sans élévation reste soumise aux politiques du PC. [Inno Setup](https://jrsoftware.org/isinfo.php), [droits d'installation](https://jrsoftware.org/ishelp/topic_setup_privilegesrequired.htm).
 

@@ -123,7 +123,11 @@ export async function runOriginDestinationJourney({
   async function groups(view = page, isPanel = false) {
     if (!isPanel) {
       await view.goto(`${baseURL}?path=${encodeURIComponent(folder)}`);
-      await view.getByRole("option").first().waitFor();
+      await view
+        .getByRole("listbox", { name: "Fichiers", exact: true })
+        .getByRole("option")
+        .first()
+        .waitFor();
     }
     const dialog = await openGroups(view, isPanel);
     await dialog

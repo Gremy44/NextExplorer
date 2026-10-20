@@ -80,8 +80,8 @@ func (j *Job) extract(p Payload) (any, error) {
 	if err != nil {
 		return nil, err
 	}
-	if ext != ".zip" {
-		converted, cleanup, err := j.convertArchive(archive, dest, ext)
+	if ext != ".zip" || p.Password != "" {
+		converted, cleanup, err := j.convertArchivePassword(archive, dest, ext, p.Password)
 		if err != nil {
 			return nil, err
 		}

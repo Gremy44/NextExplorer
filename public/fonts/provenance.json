@@ -1,0 +1,50 @@
+[
+  {
+    "file": "fonts/UbuntuMono-Regular.ttf",
+    "source": "https://raw.githubusercontent.com/google/fonts/47d54ca1ebb14fd864695f1d39dc734f39017c33/ufl/ubuntumono/UbuntuMono-Regular.ttf",
+    "sha256": "b35dd9d2131d5d83a9b87fe9ad22c6288fa3d17688d43302c14da29812417d63",
+    "size": 205748
+  },
+  {
+    "file": "fonts/UbuntuMono-Bold.ttf",
+    "source": "https://raw.githubusercontent.com/google/fonts/47d54ca1ebb14fd864695f1d39dc734f39017c33/ufl/ubuntumono/UbuntuMono-Bold.ttf",
+    "sha256": "11f15c3a6bbd998a8695fdefb3475931c3789aa035d7546f2efe78e83b352f6b",
+    "size": 191400
+  },
+  {
+    "file": "licenses/Ubuntu-Mono.txt",
+    "source": "https://raw.githubusercontent.com/google/fonts/47d54ca1ebb14fd864695f1d39dc734f39017c33/ufl/ubuntumono/UFL.txt",
+    "sha256": "2f0015108d68627bd788d313f529c21ff4da2c2c42a5e1f3883acc83480f9002",
+    "size": 4673
+  },
+  {
+    "file": "licenses/Ubuntu-Mono-trademarks.txt",
+    "source": "https://raw.githubusercontent.com/google/fonts/47d54ca1ebb14fd864695f1d39dc734f39017c33/ufl/ubuntumono/TRADEMARKS.txt",
+    "sha256": "e8119cf38bda67ffbf5cdd59aabf2bcaf02033b42f6d591cf3704a147a57ed2d",
+    "size": 183
+  },
+  {
+    "file": "fonts/JetBrainsMono.ttf",
+    "source": "https://raw.githubusercontent.com/google/fonts/47d54ca1ebb14fd864695f1d39dc734f39017c33/ofl/jetbrainsmono/JetBrainsMono%5Bwght%5D.ttf",
+    "sha256": "48715a42ec242c21e9f02692891e147d022299a52e48d5e413e1a942193ffeda",
+    "size": 187208
+  },
+  {
+    "file": "licenses/JetBrains-Mono.txt",
+    "source": "https://raw.githubusercontent.com/google/fonts/47d54ca1ebb14fd864695f1d39dc734f39017c33/ofl/jetbrainsmono/OFL.txt",
+    "sha256": "b2fe5e8987594e9ffd1d2ca52a2f5d73eb8335243893c5d6254b5ad69269591d",
+    "size": 4399
+  },
+  {
+    "file": "fonts/CascadiaMono.ttf",
+    "source": "https://raw.githubusercontent.com/google/fonts/47d54ca1ebb14fd864695f1d39dc734f39017c33/ofl/cascadiamono/CascadiaMono%5Bwght%5D.ttf",
+    "sha256": "78864a1b4d03767a44731454a6f24c6b7d6e93fb5f62932860eb02e409cd50cb",
+    "size": 704344
+  },
+  {
+    "file": "licenses/Cascadia-Mono.txt",
+    "source": "https://raw.githubusercontent.com/google/fonts/47d54ca1ebb14fd864695f1d39dc734f39017c33/ofl/cascadiamono/OFL.txt",
+    "sha256": "82c05d6c53dfa0c9025985c19e371810020b74ed2c61d51d370f2a8ab2506d52",
+    "size": 4395
+  }
+]

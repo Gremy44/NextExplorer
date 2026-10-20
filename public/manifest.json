@@ -2,8 +2,8 @@
   "manifest_version": 3,
   "name": "NextExplorer — Explorateur local",
   "version": "1.0.0",
-  "description": "Vos fichiers, vos outils et vos projets web, dans un seul espace local.",
-  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA7EcN4FJpJBCFjZNsHsYIhGlwjge253BvlRWj7rRf2P0iarFtgP4NnSa2yINj+QX0Lw0uOllN3O+kF6xnNkEgaXPaMvwWZyPUHloc+DcocYEplVZ68DByeMBZFMtwf/P6QZ5geMqug6lXsoN0JDnuJ3uuzZndgvC+gFsBD1F41czvvH/lsc7yxTDTejOy792fBb7tYPGcaWaORXoXaZh+LjH3elWy3ABnfmkSIUdM/w4dz66jhkw56ieOYPYh9ZgVz5GWEFE7aaGfSAji0kblXcKGIVn0YM6FK1mv3WJlFjeYAhVivgFf+8oXb9LeEEZvuh/BTGMmKLTDznDUg9GcHwIDAQAB",
+  "description": "Explorez et préparez vos fichiers locaux depuis Chrome. Compagnon Windows requis.",
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAvfgQhDuxBJ7HISF+62rtWABvvAiJXM2gmX1S5uzduPz6ySz/LWFJeqreqp40+UgYCqwKQ28H7OIQbUQ1RLenZWEBK0NWP1YbPfKjxxDrWwDUdKtKv0hcOVW72BsPQHuE+HEsJvaUf7T8ZegN1sjUzAPZkqx50iNJuy3vFzH/pNGfxWaEBiTLSsjeE5vko3LJtbRl0FF6zTGS8jyfeiiX83Qz/3mt6PyAmv/z+m6MxpFGFzhokEVM0l8+BLst8zQfyo/8NzwnMDOhUymyCNbJk0PQSYbPms2eO8MqKzf9g/lile0uohWuSIsb0056LWnp8/WuCvzymAelkbDH3BhnfwIDAQAB",
   "minimum_chrome_version": "116",
   "permissions": [
     "nativeMessaging",
@@ -15,8 +15,14 @@
     "activeTab",
     "scripting"
   ],
-  "optional_permissions": ["debugger", "downloads"],
-  "optional_host_permissions": ["https://*/*", "http://*/*"],
+  "optional_permissions": [
+    "debugger",
+    "downloads"
+  ],
+  "optional_host_permissions": [
+    "https://*/*",
+    "http://*/*"
+  ],
   "background": {
     "service_worker": "background.js",
     "type": "module"
@@ -42,7 +48,7 @@
     }
   },
   "content_security_policy": {
-    "extension_pages": "script-src 'self'; object-src 'self'; connect-src 'self' https: http:; img-src 'self' data: blob: https: http:; media-src 'self' blob: data:; frame-src 'self' blob:"
+    "extension_pages": "script-src 'self'; object-src 'self'; connect-src 'self' https: http:; img-src 'self' data: blob: https: http:; media-src 'self' blob: data: http://127.0.0.1:*; frame-src 'self' blob:"
   },
   "icons": {
     "16": "icon16.png",

@@ -1,5 +1,40 @@
 # Panneau latéral — espace d'action pendant la navigation
 
+
+## J5 — médias et activité, 17 octobre 2026
+
+**Options → Regrouper les fichiers → Images similaires** complète les copies identiques, avec analyse native bornée et résultats indicatifs. Les TIFF admissibles ont un aperçu réduit ; les médias compatibles utilisent une lecture locale progressive. **Préréglages et recettes** reste replié dans les formulaires de conversion/préparation, et l’**Activité** conserve les tâches autorisées après fermeture de Chrome. Reprise après arrêt uniquement sur demande et aux étapes sûres. Mêmes fonctions en vue complète ; [guide J5 et limites](J5_MEDIAS_TACHES.md).
+
+## J5/C2 — copies identiques, 17 octobre 2026
+
+**Options → Regrouper les fichiers → Copies identiques** compare la sélection, le dossier ou les références de l’espace suivi par empreinte BLAKE3 complète. Progression et arrêt, cache en mémoire contrôlé avant réutilisation et motifs pour les fichiers non comparés ; aucun décodage d’image dans ce mode ni suppression automatique. Même mode dans l’explorateur complet, compagnon à jour requis. Voir [le guide C2 et ses limites](C2_COPIES_IDENTIQUES.md).
+
+## J4 — organisation et recherche locales, 17 octobre 2026
+
+**Prototype J4 validé localement : compilation, 176 tests TypeScript et recette J4 avec le compagnon réussis.** Recherche lexicale dans un dossier choisi et ses sous-dossiers, rapprochement de vocabulaire TF-IDF, règles de mots-clés, recherche commune fichiers/liens/espaces, tags multiples, tailles de dossiers et préférences exportables. Aucun modèle d’IA ajouté.
+
+- **Recherche locale** ou **Ctrl+Maj+F** : index de 1 000 entrées / 100 dossiers / profondeur 8, extraits TXT/Markdown bornés, origine déclarée contrôlée pour 20 fichiers. Réindexation après changement, résultats périmés masqués, arrêt et effacement. PDF textuel : connecteur **pdftotext** optionnel, moteur absent du paquet et extraction réelle non validée ici ; aucun OCR.
+- **Tags** : 32 tags colorés, 2 000 chemins, attribution/retrait par lots, filtre et tri ; les associations suivent les renommages et déplacements natifs réussis. Changements externes non réconciliés automatiquement.
+- **Réglages et moteurs** : thème système/clair/sombre, couleurs, navigation/sélection, miniatures/extensions, colonnes et unités, affichages/tri par dossier, démarrage et accueil configurables, raccourcis contrôlés, menus et export/import explicite des préférences/tags/règles/vues. L’index et les fichiers sont exclus de cet export.
+- **Tailles et grands dossiers** : totaux natifs disponibles dans les listes et leur tri ; calcul annulable via l’activité. Listes natives bornées avec avertissement et filtre par nom ; affichage Colonnes de dossiers en complément des huit modes précédents.
+
+Voir [le guide J4 et ses limites](J4_ORGANISATION_RECHERCHE.md). **Suite : J5/C2**, puis J7 et seulement ensuite A0/A1. La recette Windows propre J1.7 reste ouverte.
+
+## Historique avant J4 — palier C1, 17 octobre 2026
+
+**Palier C1 du prototype validé localement.** Compilation, 161 tests et recettes navigateur/compagnon réussis. La recherche textuelle C3 et le reste de J4 viennent ensuite ; J1.7 sur Windows propre reste ouvert.
+
+Dans **Regrouper les fichiers**, les sept choix sont **Format**, **Nom apparenté**, **Date de modification**, **Taille**, **Relations enregistrées**, **Destination proposée** et **Origine web**. Sélection, dossier courant ou références de l’espace suivi ; analyse explicite, non récursive et limites visibles.
+
+- **Taille :** fichiers vides, moins de 1 Mio, 1 à moins de 10 Mio, 10 à moins de 100 Mio et 100 Mio ou plus. Taille de l’instantané ; valeurs invalides séparées, aucune preuve de doublon.
+- **Familles manuelles :** sélectionnez de 2 à 20 fichiers puis **Familles enregistrées → Relier la sélection**, ou dépliez un groupe et choisissez **Enregistrer une famille**. Donnez un nom puis confirmez ; les métadonnées doivent toujours concorder avant stockage. 50 familles locales, noms distincts, données illisibles et modifications concurrentes refusées sans écraser les autres familles. **Retirer** enlève seulement le lien.
+- **Relations enregistrées :** liens manuels et sources/copies des nouvelles préparations, y compris hors du dossier choisi. Les nouvelles préparations conservent les sources au lancement et les premières copies vérifiées ; les anciennes sans sources ne sont pas rattachées par déduction. Il s’agit du lien de la préparation entière, sans correspondance source/copie individuelle inventée. Jusqu’à 200 fichiers contrôlés et 1 000 références candidates ; références modifiées/absentes et non vérifiées séparées. Relance explicite, arrêt et réponses tardives ignorées ; les changements du suivi entre vues effacent les résultats périmés.
+- **Créer une règle :** dans un groupe avec extension commune ou origine web commune contrôlée, ouvrez le brouillon H07 prérempli. Vérifiez nom, critères et dossier puis enregistrez. Aucun fichier déplacé, aucune règle enregistrée à l’ouverture ou après annulation. Règle manuelle par défaut ; l’automatisme garde son activation explicite et sa permission. Le brouillon manuel est utilisable sans permission Chrome downloads.
+
+Les familles et liens de préparations restent dans ce profil, synchronisés entre ses vues ; ils ne font pas partie de l’export d’un espace. Les références enregistrent chemins, noms, taille et date ; elles ne suivent pas automatiquement les déplacements/renommages et ne prouvent pas le contenu. Aucun document/image ouvert par Taille ou Relations, aucun nouveau moteur, permission ou dépendance. Le TIFF de recette de 24 Mio reste sans décodage Chrome. Les limites des transferts confirmés et des JSON de provenance voisins non transférés restent celles des lots précédents.
+
+**Rapprochements approximatifs :** Jaccard et Levenshtein mesurés sur 20 paires synthétiques ; tous les seuils essayés produisent des faux positifs. Ils ne sont pas proposés dans l’application. Voir [les résultats et la décision](EVALUATION_CLASSEMENT.md). Les noms normalisés exacts et les liens choisis restent disponibles ; aucune justesse sur un corpus personnel n’est annoncée.
+
 ## Groupes virtuels — 11 octobre 2026
 
 **Options → Regrouper les fichiers…** ouvre le même dialogue que l’explorateur, depuis la sélection, le dossier courant ou les références collectées de l’espace suivi. Les groupes sont repliés, avec leur nom et nombre de fichiers ; en les ouvrant, on retrouve les motifs par extension, tailles et chemins. **Personnaliser** conserve les catégories dans ce profil et synchronise les vues, avec refus d’un brouillon dépassé par une autre sauvegarde.
@@ -18,7 +53,7 @@ Dans un groupe de **20 fichiers maximum**, **Examiner le transfert** ouvre la co
 
 **Regrouper par → Origine web (.source.json)** utilise les provenances enregistrées, avec un nouveau clic sur **Regrouper** et le compagnon connecté. Chaque groupe expose le site déclaré, les sources épurées et les dates. Limite : 20 fichiers par analyse ; seuls les JSON voisins réguliers de 64 Kio maximum sont lus, après contrôle des métadonnées. Nom, taille déclarée et stabilité contrôlés, provenances invalides/absentes/incompatibles et fichiers non analysés séparés. Aucun site visité ou contenu de document/image ouvert. Les `.source.json` sont exclus des groupes ; entrer/quitter ce mode efface le résultat. Une provenance déclarée n’authentifie pas la source.
 
-Premiers lots C0 et C1, sans déplacement au regroupement ou activer une règle H07. Dossiers/liens exclus et sous-dossiers non parcourus ; 1 000 entrées au maximum et vue partielle annoncée. Le dossier ignore la recherche et respecte le choix des fichiers cachés. Format/Nom/Date/Destination ne lisent aucun contenu et ne revérifient pas les références de l’espace ; Origine contrôle leurs métadonnées sans modifier les références. Les contrôles et listes utilisent les surfaces Material 3 existantes, dans les deux thèmes ; le reste de C1, le regroupement par contenu et la recherche commune relèvent des lots suivants.
+Premiers lots C0 et C1, sans déplacement au regroupement ou activer une règle H07. Dossiers/liens exclus et sous-dossiers non parcourus ; 1 000 entrées au maximum et vue partielle annoncée. Le dossier ignore la recherche et respecte le choix des fichiers cachés. Format/Nom/Date/Taille/Destination sans l’option origine ne lisent aucun contenu et ne revérifient pas les références de l’espace ; Origine et Destination avec cette option contrôlent leurs métadonnées sans modifier les références. Les contrôles et listes utilisent les surfaces Material 3 existantes, dans les deux thèmes ; le regroupement par contenu et la recherche commune C3 relèvent des lots suivants.
 
 ## Deux parcours complets — 10 octobre 2026
 

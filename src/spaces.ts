@@ -1,5 +1,6 @@
 import { collectedLink, type CollectionEntry, type Quicklink } from "./types";
 import { restoreViewMode, type ViewMode } from "./FileView";
+import { DRIVES_PATH } from "./disk-space";
 
 export const spacesKey = "hybridSpaces";
 export const SPACE_FILE_LIMIT = 2 * 1024 * 1024;
@@ -141,7 +142,9 @@ export function normalizeSpace(value: any): HybridSpace {
     if (!Array.isArray(tab?.paths) || tab.paths.length !== 2)
       throw new Error("Dossiers d’espace invalides.");
     return {
-      paths: tab.paths.map(path),
+      paths: tab.paths.map((value: unknown) =>
+        value === DRIVES_PATH ? DRIVES_PATH : path(value),
+      ),
       modes: [0, 1].map((i) =>
         restoreViewMode(tab.modes?.[i], undefined, "details"),
       ),

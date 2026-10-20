@@ -18,6 +18,7 @@ import {
 import { basename, size, type Entry, type Hello, type Job } from "./types";
 import type { BrowserPage, UploadTarget } from "./web";
 import { uploadIssue, UPLOAD_TOTAL_BYTES } from "./uploads";
+import { ConversionPresets } from "./ConversionPresets";
 
 const formatName = { jpg: "JPEG", png: "PNG", webp: "WebP" };
 
@@ -286,17 +287,20 @@ export function PrepareImagesDialog({
                 throw new Error(
                   "Choisissez un dossier de destination accessible.",
                 );
+              const sources: Entry[] = [];
               for (const path of selected) {
                 const entry = await bridge.request<Entry>("FS_STAT", { path });
                 if (!preparableImage(entry))
                   throw new Error(
                     `Image devenue indisponible : ${basename(path)}`,
                   );
+                sources.push(entry);
               }
               const started = await startImagePreparation(
                 selected,
                 folder.path,
                 constraints,
+                sources,
               );
               if (live.current) {
                 setJobId(started.jobId!);
@@ -351,6 +355,7 @@ export function PrepareImagesDialog({
       >
         <fieldset disabled={busy || !available || !ready || !formats.length}>
           <legend>Images à préparer</legend>
+          <ConversionPresets context="prepare" />
           {images.map((entry) => (
             <label className="checkbox" key={entry.path}>
               <input

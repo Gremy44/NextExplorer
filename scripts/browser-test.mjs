@@ -15,6 +15,10 @@ import path from "node:path";
 import { tmpdir } from "node:os";
 import assert from "node:assert/strict";
 import { runFileGroupJourney } from "./file-group-journey.mjs";
+import { runLayoutJourney } from "./layout-journey.mjs";
+import { runQuickTagsJourney } from "./quick-tags-journey.mjs";
+import { runSpaceJourney } from "./space-journey.mjs";
+import { runConsoleJourney } from "./console-journey.mjs";
 async function chooseFileOption(page, label, value) {
   const trigger = page.getByRole("button", { name: label, exact: true });
   await trigger.locator("svg").first().click();
@@ -33,6 +37,7 @@ async function chooseFileOption(page, label, value) {
 const root = process.cwd();
 await mkdir("test-results", { recursive: true });
 const fixture = await mkdtemp(path.join(root, "test-results", "workspace-"));
+const nativeConfig = await mkdtemp(path.join(root, "test-results", "native-config-"));
 for (const name of ["Design", "Documents", "Exports", "Images", "Sources"])
   await mkdir(path.join(fixture, name));
 await writeFile(
@@ -68,7 +73,7 @@ const host = spawn(
   path.join(root, "native/native-host.exe"),
   [`chrome-extension://${id}/`],
   { stdio: ["pipe", "pipe", "pipe"], windowsHide: true,
-    env: { ...process.env, AppData: path.join(fixture, "test-appdata"), APPDATA: path.join(fixture, "test-appdata") } },
+    env: { ...process.env, AppData: nativeConfig, APPDATA: nativeConfig } },
 );
 let buffer = Buffer.alloc(0);
 const pending = new Map();
@@ -106,6 +111,7 @@ function rpc(message) {
 const server = await createServer({
   server: { host: "127.0.0.1", port: 5173, strictPort: false },
 });
+const testWorker = await rpc({ id:"j5-test-worker",action:"WORKER_HELLO",payload:{} });
 await server.listen();
 const url = server.resolvedUrls.local[0];
 let browser;
@@ -143,7 +149,12 @@ try {
     }
     return reply;
   });
-  await page.context().exposeFunction("__nativeEvents", () => events.splice(0));
+  const eventCursors = new WeakMap();
+  await page.context().exposeBinding("__nativeEvents", ({ page }) => {
+    const next = events.slice(eventCursors.get(page) || 0);
+    eventCursors.set(page, events.length);
+    return next;
+  });
   await page.context().addInitScript(
     ({ id, fixture }) => {
       const readStored = () => ({ lastPath: fixture, ...JSON.parse(localStorage.getItem("test-storage") || "{}") });
@@ -159,6 +170,7 @@ try {
       });
       const listeners = [];
       const tabListeners = new Set();
+      const grantedPermissions = new Set();
       window.__testPage = { id: 22, windowId: 11, url: "https://example.com/project", title: "Projet Atlas", active: true };
       window.__changeTestPage = (change) => {
         Object.assign(window.__testPage, change);
@@ -174,7 +186,10 @@ try {
         },
         windows: { async getCurrent() { return { id: 11 }; } },
         sidePanel: { async close(options) { window.__closedPanel = options; } },
-        permissions: { async request() { return true; } },
+        permissions: {
+          async request(options = {}) { for (const permission of [...options.permissions || [], ...options.origins || []]) grantedPermissions.add(permission); return true; },
+          async contains(options = {}) { return [...options.permissions || [], ...options.origins || []].every(permission => grantedPermissions.has(permission)); },
+        },
         scripting: {
           async executeScript({ target, func, args = [] }) {
             if (target.documentIds && target.documentIds[0] !== window.__testDocumentId) throw new Error("Document remplacé");
@@ -199,6 +214,7 @@ try {
           id,
           getURL(path) { return `chrome-extension://${id}/${path}`; },
           connect() {
+            const owner = crypto.randomUUID();
             return {
               onMessage: {
                 addListener(fn) {
@@ -207,6 +223,7 @@ try {
               },
               onDisconnect: { addListener() {} },
               postMessage(msg) {
+                if (msg.action.startsWith("TERMINAL_")) msg.payload = { ...msg.payload, owner };
                 window
                   .__nativeRPC(msg)
                   .then((response) => {
@@ -221,10 +238,17 @@ try {
           onChanged: { addListener(fn) { storageListeners.add(fn); }, removeListener(fn) { storageListeners.delete(fn); } },
           local: {
             async get(k) {
-              return { [k]: readStored()[k] };
+              const stored = readStored(), keys = Array.isArray(k) ? k : [k];
+              return Object.fromEntries(keys.filter(key => Object.hasOwn(stored, key)).map(key => [key, stored[key]]));
             },
             async set(v) {
               const before = readStored(), after = { ...before, ...v };
+              localStorage.setItem("test-storage", JSON.stringify(after));
+              changed(before, after);
+            },
+            async remove(keys) {
+              const before = readStored(), after = { ...before };
+              for (const key of Array.isArray(keys) ? keys : [keys]) delete after[key];
               localStorage.setItem("test-storage", JSON.stringify(after));
               changed(before, after);
             },
@@ -245,6 +269,25 @@ try {
     "reconnexion automatique après indisponibilité",
   );
   await page.getByRole("option", { name: /README.md/ }).waitFor();
+  if (process.argv.includes("--console-only")) {
+    page.setDefaultTimeout(15000);
+    try { await runConsoleJourney({ page, fixture }); }
+    catch (error) {
+      await page.screenshot({ path: "test-results/console-failure.png" });
+      await writeFile("test-results/console-failure.txt", await page.locator("body").innerText());
+      throw error;
+    }
+    assert.deepEqual(errors, []);
+  } else if (process.argv.includes("--layout-only")) {
+    await runLayoutJourney({ page });
+    assert.deepEqual(errors, []);
+  } else if (process.argv.includes("--tags-only")) {
+    await runQuickTagsJourney({ page, fixture });
+    assert.deepEqual(errors, []);
+  } else if (process.argv.includes("--space-only")) {
+    await runSpaceJourney({ page, fixture, reads });
+    assert.deepEqual(errors, []);
+  } else {
   assert.equal(await page.getByRole("listbox", { name: "Fichiers", exact: true }).getByRole("option").count(), 9);
   const viewModes = ["extra-large-icons", "large-icons", "medium-icons", "small-icons", "list", "details", "tiles", "content"];
   const explorerView = page.getByRole("button", { name: "Affichage des fichiers", exact: true });
@@ -705,7 +748,7 @@ try {
   await page.getByRole("option", { name: /volumineux.tiff/ }).click();
   const readsBeforeTiff = reads.filter((read) => read.path === tiffPath).length;
   await page.getByTitle("Volet d’aperçu", { exact: true }).click();
-  await details.getByText(/Les images TIFF/).waitFor();
+  await details.getByText(/aperçu indisponible ou limite atteinte/).waitFor();
   assert.equal(reads.filter(read => read.path === tiffPath).length, readsBeforeTiff);
   await page.reload();
   await details.getByText("Sélectionnez un fichier pour voir son aperçu et ses informations.").waitFor();
@@ -714,7 +757,7 @@ try {
   await page.getByRole("option", { name: /volumineux.tiff/ }).click();
   await page.keyboard.press("Space");
   const tiffPreview = page.getByRole("dialog", { name: "Aperçu de volumineux.tiff", exact: true });
-  await tiffPreview.getByText(/Les images TIFF/).waitFor();
+  await tiffPreview.getByText(/aperçu indisponible ou limite atteinte/).waitFor();
   await page.screenshot({ path: "test-results/large-tiff-preview.png", fullPage: true });
   await tiffPreview.getByRole("button", { name: "Créer une copie PNG…", exact: true }).click();
   const convertDialog = page.getByRole("dialog", { name: "Convertir les fichiers", exact: true });
@@ -733,7 +776,7 @@ try {
   assert.ok(logReads.every((read) => read.limit === 65536 && read.offset === 0));
   await logPreview.getByRole("button", { name: "Fermer l’aperçu", exact: true }).click({ timeout: 3000 });
   await logPreview.waitFor({ state: "hidden", timeout: 3000 });
-  console.log("TIFF 24 Mo sans lecture, copie PNG proposée et journal 2 Mo limité à 64 Ko : OK");
+  console.log("TIFF invalide 24 Mo refusé par le décodeur isolé sans lecture Chrome, copie PNG proposée et journal 2 Mo limité à 64 Ko : OK");
   await page.getByRole("option", { name: /renommé.txt/ }).click();
   await page.keyboard.press("Delete");
   await page
@@ -808,7 +851,7 @@ try {
     .getByRole("option", { name: /budget-2026.csv/ })
     .click({ button: "right" });
   await page
-    .getByRole("menuitem", { name: "Créer une archive ZIP", exact: true })
+    .getByRole("menuitem", { name: "Créer une archive", exact: true })
     .click();
   await page.getByLabel("Nom", { exact: true }).fill("test.zip");
   await page.getByRole("button", { name: "Confirmer", exact: true }).click();
@@ -1186,7 +1229,7 @@ try {
   await journalEntry.getByRole("button", { name: "Vérifier l’annulation", exact: true }).click();
   await page.getByText("Cette opération a déjà été annulée.", { exact: true }).waitFor();
   await page.getByRole("button", { name: "Retour à l’activité", exact: true }).click();
-  const recoveryDir = path.join(fixture, "test-appdata", "NextExplorer", "journal", "transactions", transfer.data.jobId, "undo");
+  const recoveryDir = path.join(nativeConfig, "NextExplorer", "journal", "transactions", transfer.data.jobId, "undo");
   const confirmedStep = await readFile(path.join(recoveryDir, "00000001-result.json"), "utf8");
   await unlink(path.join(recoveryDir, "00000000-end.json"));
   await journalEntry.getByRole("button", { name: "Vérifier l’annulation", exact: true }).click();
@@ -1313,7 +1356,7 @@ try {
   });
   await offline.goto(url);
   await offline
-    .getByRole("button", { name: "Se connecter", exact: true })
+    .getByRole("button", { name: "Vérifier la connexion", exact: true })
     .waitFor();
   await offline.screenshot({
     path: "test-results/explorer-setup.png",
@@ -1323,10 +1366,14 @@ try {
   console.log(
     "Browser: navigation, aperçu, création, renommage, collecte, corbeille, restauration, filtre, palette, double panneau, watcher, thèmes, compagnon 390 px, capture, choix du champ, insertion, invalidation de destination, ouverture en pleine page, extraction ZIP/7z/RAR5 et journal de transfert : OK",
   );
+  }
 } finally {
   if (browser) await browser.close();
   await server.close();
   host.stdin.end();
   host.kill();
+  if (testWorker.data?.tasks === path.join(nativeConfig,"NextExplorer","worker","tasks")) {
+    try { process.kill(testWorker.data.pid); } catch {}
+  }
   for (const p of pending.values()) clearTimeout(p.timer);
 }

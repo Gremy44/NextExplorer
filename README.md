@@ -2,24 +2,45 @@
 
 **Vos fichiers locaux et vos projets web dans un même espace.**
 
+**Téléchargements publics :** [NextExplorer-Downloads](https://github.com/Gremy44/NextExplorer-Downloads) — [préversion technique 1.0.1](https://github.com/Gremy44/NextExplorer-Downloads/releases/tag/v1.0.1), gratuite et non signée, pour essais sur fichiers fictifs. Le code applicatif reste privé ; la [licence](LICENSE) autorise l’utilisation des versions compilées. Aucun paiement requis pour cette distribution.
+
+**Présentation publique :** [usages et captures grand format](distribution/README.md), [guide détaillé des fonctionnalités](distribution/FONCTIONNALITES.md). Six captures réelles de démonstration, dont le panneau Chrome recevant un dépôt Windows et Codex CLI ouvert dans la console du dossier actif.
+
 NextExplorer associe une extension Chrome à un compagnon natif pour explorer, préparer et utiliser ses fichiers pendant la navigation. Le panneau latéral garde les fichiers à portée de main ; la vue complète propose un explorateur à onglets et à double panneau.
 
 L’interface est en français, avec des thèmes clair et sombre inspirés de Material 3. Le fonctionnement repose sur le navigateur et le compagnon local, sans compte NextExplorer ni serveur applicatif distant.
 
 > **Projet en développement.** La cible actuellement testée est Windows avec Chrome/Chromium. La recette complète de l’installateur sur une machine Windows propre reste à effectuer. L’IA locale figure dans les pistes futures ; aucun modèle d’IA n’est actuellement intégré.
 
+**Distribution J7 :** [dossier Chrome Web Store](store/README.md), ZIP de l’extension et textes/visuels préparés localement. `npm run package:store` produit l’archive séparée du compagnon Windows ; aucun élément publié. Identité Store, URLs, premier parcours d’installation et recette Windows propre restent à finaliser.
+
 ## Fonctionnalités
+
+**Console intégrée :** **Aperçu → Console** ouvre un vrai PowerShell dans le dossier actif, avec suivi désactivable, saisie/commande en cours préservées et session conservée quand le volet est masqué. Windows et compagnon mis à jour requis. [Guide et limites](CONSOLE_INTEGREE.md).
+
+**Nouveautés du 18 octobre :** tags à sept couleurs et recherche dans tous les dossiers, personnalisation des dossiers, actions rapides (rotation, annotation, PDF, découpe), analyse d’espace dans l’aperçu et vue **Ce PC** avec les capacités des lecteurs. [Guide et limites](AMELIORATIONS_FINDER.md).
+
+**Revue ergonomique :** espace disque agrandissable, noms et détails des blocs au survol/clavier, couleurs plus contrastées. [Liste des 47 parcours à vérifier ensemble](REVUE_ERGONOMIE_OUTILS.md).
+
+**Aperçus de fichiers :** [audit des 100 formats](APERCUS_100_FORMATS.md), avec prise en charge actuelle, formats ouverts ou d’éditeur, limites et pistes d’aperçus locaux. Cette étude n’ajoute pas encore de lecteur.
 
 | Usage | Disponible aujourd’hui |
 | --- | --- |
-| Explorer | Onglets de dossiers, double panneau ajustable, navigation par chemin, favoris, huit modes d’affichage, filtres et tri. Menu du clic droit avec icônes et groupes d’actions. |
-| Examiner | Volet aperçu et détails redimensionnable, aperçu texte, image, audio, vidéo et PDF, métadonnées. Les gros TIFF proposent une ouverture locale ou une copie de prévisualisation. |
+| Explorer | Onglets de dossiers, double panneau ajustable, navigation par chemin, favoris, neuf modes d’affichage dont colonnes de dossiers, filtres, tags et tri. Menu du clic droit avec icônes et groupes d’actions. |
+| Examiner | Volet aperçu et détails redimensionnable ; images/TIFF réduits par le compagnon, audio/vidéo compatible par lecture locale progressive, texte/PDF et métadonnées. Limites de taille/décodage visibles. |
 | Manipuler | Copie, déplacement, renommage, corbeille locale, conflits et fusion de dossiers, transferts vérifiés et annulation sous conditions. |
-| Préparer | Archives ZIP/7z/RAR, conversion de médias et préparation de copies d’images pour le web avec formats, dimensions et poids cibles. Certaines opérations nécessitent des moteurs optionnels. |
+| Préparer | Convertisseur réservé aux images et vidéos, réglages/préréglages adaptés, lots mixtes séparés et copies sans écrasement. Recette conversion → ZIP, préparation web, création ZIP/7z et extraction ZIP/7z/RAR. Moteurs optionnels selon les opérations. |
 | Utiliser sur le web | Glisser-déposer natif Windows, collecte de fichiers et de liens, capture de pages et insertion dans les champs de fichiers. Suivi local des 20 dernières tentatives d’insertion. |
 | Organiser un projet | Espaces hybrides enregistrés, dossiers et pages associés, tâches manuelles, export/import et espace suivi par vue. |
-| Regrouper les fichiers | Catégories par extension, familles par nom normalisé, mois de modification et sites d’origine déclarés et destinations proposées par vos règles d’extension et, sur option explicite, de site ; motifs et cas incertains séparés. Sélection, dossier ou références de l’espace suivi, aucun déplacement au regroupement. Transfert examiné de 20 fichiers maximum, copie par défaut et confirmation avec revalidation ; règles avec site disponibles sur option explicite et provenance revérifiée avant transfert, métadonnées voisines non transférées. Origine : 20 fichiers, seuls les JSON de provenance de 64 Kio maximum sont lus, métadonnées contrôlées ; aucune source authentifiée. |
+| Regrouper les fichiers | Neuf modes : format, nom apparenté, mois, taille, relations enregistrées, origine web, destination, copies identiques et images similaires. Comparaisons bornées, progression et arrêt, aucune suppression automatique. Familles manuelles, liens avec les copies préparées et brouillons H07 à confirmer. Transferts examinés de 20 fichiers, copie par défaut et revalidation. |
+| Retrouver | Index lexical TXT/Markdown borné sur un dossier choisi et ses sous-dossiers, mots-clés et vocabulaire proche ; recherche commune avec liens et espaces enregistrés. |
+| Personnaliser | Accueil, démarrage, thèmes système/clair/sombre, colonnes, raccourcis et préférences par dossier ; tags et réglages exportables. |
 | Ranger les téléchargements | Règles de destination et rangement en arrière-plan uniquement pour les règles explicitement activées. |
+| Suivre les traitements | Worker local indépendant, file séquentielle et états durables. Les tâches autorisées continuent quand Chrome ferme ; reprise explicite après interruption, uniquement aux étapes sûres. |
+
+Le [guide J4](J4_ORGANISATION_RECHERCHE.md) détaille la recherche, les tags et les préférences ; le moteur PDF textuel est optionnel et absent du paquet actuel.
+
+Le [guide des copies identiques C2](C2_COPIES_IDENTIQUES.md) détaille les empreintes et le cache. Le [guide J5](J5_MEDIAS_TACHES.md) décrit les ressemblances visuelles indicatives, les gros médias, les recettes et la récupération des tâches.
 
 Les périmètres exacts et les limites sont décrits dans [la matrice des fonctionnalités](FEATURES.md) et [le guide d’utilisation](GUIDE_UTILISATION.md).
 
@@ -60,7 +81,7 @@ Les fichiers `dist/`, `release/` et les exécutables sont générés localement 
 
 ## Développement et vérifications
 
-L’extension utilise React, TypeScript et Vite ; le compagnon est écrit en Go. La communication native passe par l’entrée et la sortie standard, sans port HTTP ouvert par le compagnon.
+L’extension utilise React, TypeScript et Vite ; le compagnon est écrit en Go. Les commandes passent par Native Messaging puis un canal nommé privé vers le worker Windows. La lecture audio/vidéo utilise un serveur temporaire limité à `127.0.0.1`, avec URL secrète et révocation à la fermeture de l’aperçu. Aucun serveur distant NextExplorer.
 
 | Commande | Rôle |
 | --- | --- |
@@ -69,6 +90,8 @@ L’extension utilise React, TypeScript et Vite ; le compagnon est écrit en Go.
 | `npm run native:test` | Tests du compagnon Go. Les moteurs installés permettent des vérifications supplémentaires. |
 | `npm run test:browser` | Parcours d’interface avec un transport de test et le vrai compagnon. |
 | `npm run test:extension` | Recette de l’extension dans un profil Chromium temporaire, préparé avec Playwright. |
+| `npm run test:j5:worker` | File durable, fermeture du proxy, arrêt du worker et récupération sans doublon. |
+| `npm run test:j5:extension` | Variantes visuelles, gros médias, préréglages et continuité des tâches/tags hors navigateur. |
 | `npm run package` | Construction de l’extension, du compagnon et du paquet, puis vérification du paquet. |
 | `npm run setup:build` | Construction de l’assistant Windows ; Inno Setup doit être préparé au préalable. |
 | `npm run setup:acceptance` | Préparation du kit de recette Windows isolée ; cette commande n’exécute pas la recette. |
@@ -81,7 +104,7 @@ La configuration complète des recettes et leurs prérequis figurent dans [le gu
 - Les actions de capture, téléchargement ou insertion peuvent communiquer avec les sites choisis. L’installation des moteurs télécharge leurs distributions officielles.
 - Le compagnon travaille avec les droits de l’utilisateur. Il ne contourne ni les permissions Windows ni l’UAC.
 - Les insertions sont limitées à 20 fichiers et 20 Mio au total. Le suivi confirme le remplissage du champ, pas la réception des fichiers par le site ; certains sites commencent l’envoi dès ce remplissage.
-- Les tâches en cours ne reprennent pas automatiquement après redémarrage du compagnon. Une annulation ou une interruption peut demander une vérification manuelle des fichiers.
+- Le worker continue les tâches validées après fermeture de Chrome. Après arrêt du worker ou du PC, aucun rejeu automatique ; les étapes sûres se reprennent explicitement et les états ambigus demandent une vérification manuelle. Annuler ne défait pas les écritures terminées.
 - L’assistant Windows de développement est non signé. La validation sur une machine propre reste ouverte.
 
 ## Structure du dépôt
@@ -102,6 +125,7 @@ Le `.gitignore` exclut les dépendances, outils téléchargés, builds, profils 
 - [Guide d’installation et d’utilisation](GUIDE_UTILISATION.md)
 - [Fonctionnalités et périmètres](FEATURES.md)
 - [Parcours du panneau latéral](PANNEAU_LATERAL.md)
+- [Médias, recettes et tâches durables J5](J5_MEDIAS_TACHES.md)
 - [Direction visuelle Material 3](DESIGN.md)
 - [Glisser-déposer vers le web](GLISSER_DEPOSER_WEB.md)
 - [Recette Windows isolée](RECETTE_INSTALLATEUR.md)

@@ -1,0 +1,212 @@
+.conversion-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.conversion-fields {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+}
+.conversion-fields > legend.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.conversion-source {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  margin-bottom: 20px;
+}
+.conversion-source h2 {
+  margin: 0 0 6px;
+  font-size: 22px;
+  font-weight: 500;
+}
+.conversion-source p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+.conversion-symbol {
+  flex: 0 0 56px;
+  height: 56px;
+  display: grid;
+  place-items: center;
+  border-radius: 20px;
+  background: var(--md-sys-color-primary-container);
+  color: var(--md-sys-color-on-primary-container);
+}
+.conversion-kinds {
+  display: flex;
+  border: 1px solid var(--md-sys-color-outline);
+  border-radius: 28px;
+  overflow: hidden;
+  margin-bottom: 20px;
+}
+.conversion-kinds button {
+  flex: 1;
+  border: 0;
+  border-radius: 0;
+  justify-content: center;
+  min-width: 0;
+}
+.conversion-kinds button[aria-pressed="true"] {
+  background: var(--md-sys-color-secondary-container);
+  color: var(--md-sys-color-on-secondary-container);
+}
+.conversion-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  align-items: start;
+}
+.conversion-section {
+  min-width: 0;
+  padding: 20px;
+  border-radius: 20px;
+  background: var(--md-sys-color-surface-container);
+}
+.conversion-section h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 20px;
+  font-size: 15px;
+  font-weight: 600;
+}
+.conversion-section h3 > span {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  font-size: 12px;
+  background: var(--md-sys-color-secondary-container);
+  color: var(--md-sys-color-on-secondary-container);
+}
+.conversion-section small {
+  display: block;
+  margin-top: 8px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+.conversion-section .field input[type="range"] {
+  padding: 0;
+  accent-color: var(--accent);
+}
+.conversion-section .muted,
+.conversion-notice {
+  font-size: 12px;
+  line-height: 1.6;
+}
+.conversion-section .group-help {
+  margin-bottom: 20px;
+}
+.conversion-section summary {
+  cursor: pointer;
+  font-weight: 500;
+  padding: 8px 0;
+}
+.conversion-output {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: var(--panel);
+  border-radius: 12px;
+  font-size: 13px;
+}
+.conversion-output > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  min-width: 0;
+}
+.conversion-output > svg,
+.conversion-output > strong {
+  flex-shrink: 0;
+  color: var(--accent);
+}
+.conversion-notice {
+  background: var(--md-sys-color-surface-container-highest);
+  padding: 12px 16px;
+  border-radius: 12px;
+  margin-bottom: 16px;
+}
+.conversion-files {
+  list-style: none;
+  padding: 0;
+  max-height: 180px;
+  overflow: auto;
+}
+.conversion-files li {
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+  margin-top: 8px;
+}
+.conversion-files li > span:first-child {
+  overflow-wrap: anywhere;
+  min-width: 0;
+}
+.conversion-files li > span:last-child {
+  flex-shrink: 0;
+  color: var(--muted);
+}
+.conversion-advanced {
+  border-top: 1px solid var(--line);
+  padding-top: 8px;
+  margin-top: 16px;
+}
+.conversion-advanced[open] > summary {
+  margin-bottom: 12px;
+}
+.conversion-destination {
+  margin-top: 16px;
+}
+.conversion-preserve {
+  display: flex;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.6;
+  margin: 8px 0 0;
+}
+.conversion-preserve svg {
+  flex-shrink: 0;
+  color: var(--success);
+}
+@media (max-width: 680px) {
+  .conversion-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .conversion-content {
+    padding: 16px;
+  }
+  .conversion-section {
+    padding: 16px;
+  }
+  .conversion-source {
+    gap: 12px;
+  }
+  .conversion-source h2 {
+    font-size: 19px;
+  }
+  .conversion-symbol {
+    flex-basis: 44px;
+    height: 44px;
+    border-radius: 16px;
+  }
+  .conversion-form footer .primary {
+    width: 100%;
+    margin-left: 0;
+    justify-content: center;
+  }
+}

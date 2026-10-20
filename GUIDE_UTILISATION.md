@@ -1,8 +1,117 @@
 # Guide d’installation et d’utilisation — NextExplorer
 
+## Assistant simplifié — préversion 1.0.3
+
+Le parcours normal choisit le navigateur puis affiche les changements prévus.
+L’identité de l’extension est fournie par le paquet. **Afficher les réglages
+avancés** donne accès à l’identifiant et à la copie des moteurs pour une
+intervention particulière ; décocher cette option rétablit les valeurs du
+paquet. L’aperçu et la confirmation d’installation restent obligatoires.
+
+Ce parcours est livré dans la préversion publique 1.0.3, sous l’identité officielle
+`afjflepinklhgicoppoobiichmjodgcp`. La fiche Store doit être approuvée par Google ;
+le [guide public](distribution/INSTALLATION.md) décrit aussi le chargement manuel
+pendant l’examen et la conservation des réglages de l’ancienne copie.
+
+## Première connexion guidée
+
+Le même accueil est disponible dans le panneau latéral et la vue complète :
+
+1. **Télécharger le compagnon Windows** ouvre l’EXE correspondant à la version
+   de l’extension. Lancez-le puis suivez l’assistant d’installation.
+2. Revenez dans NextExplorer : après ce téléchargement, la connexion est
+   revérifiée au retour dans la fenêtre ou l’onglet. Le bouton **Vérifier la
+   connexion** permet aussi de relancer la recherche à tout moment.
+3. Une fois connecté, choisissez **Choisir un dossier**, parcourez les dossiers
+   puis confirmez **Choisir ce dossier**. **Utiliser mon dossier personnel**
+   ouvre directement votre dossier utilisateur. Vous pourrez en changer ensuite.
+
+Un profil qui possède déjà des dossiers ouverts conserve sa navigation. Le
+choix initial ne remplace pas vos onglets, vos favoris ou votre collecte.
+
+## Fonctions supplémentaires et moteurs
+
+Dans **Réglages**, chaque famille affiche **Prêt**, **À ajouter** ou **À vérifier**
+sans compagnon. Images/TIFF, métadonnées, vidéo/audio, archives avancées et
+recherche dans les PDF ont une explication concrète. La vidéo demande FFmpeg
+et FFprobe ensemble. Les moteurs et diagnostics techniques restent repliés.
+Le lien d’aide explique leur préparation avancée ; rien n’est installé sans
+action de l’utilisateur. Navigation, tags, console et aperçus courants restent
+utilisables avec le compagnon seul.
+L’annulation du sélecteur revient à l’accueil sans choisir de dossier.
+
+Si la connexion échoue, **Aide et diagnostic** contient les indications de
+réparation et les détails techniques. Le guide d’installation reste accessible.
+Après une mise à jour du compagnon, désactivez puis réactivez l’extension avant
+de vérifier la connexion. Aucun installateur n’est lancé automatiquement.
+
+Windows 11 x64 ; EXE non signé. Ce parcours n’est pas encore dans la préversion
+publique 1.0.1. L’installation sur Windows propre reste à valider.
+
+## Console intégrée — 19 octobre 2026
+
+**Apparence :** dans la console, ouvrez l’icône palette **Apparence du terminal**. Retrouvez **Ubuntu**, **Dracula**, **Nord**, **Solarized sombre/clair**, **LCD rétro** (gris-vert et encre sombre), les palettes simples et le mode **Personnalisé**. **Police du thème** choisit une police assortie ; vous pouvez aussi choisir Ubuntu Mono, JetBrains Mono, Cascadia Mono ou Consolas, la taille (10–24 px) et l’interligne. Réglages mémorisés, appliqués sans relancer la session ; polices ajoutées disponibles hors ligne. Ubuntu affiche un rappel : vous utilisez toujours **PowerShell, pas Bash**. Les programmes peuvent conserver leur propre coloration ; le contraste reste ajusté pour la lecture.
+
+**Mise à jour du compagnon :** le nouvel EXE remplace aussi une version encore fonctionnelle si son binaire ou sa politique diffère du paquet, en conservant les moteurs installés et l’ancienne copie. Après installation, désactivez puis réactivez l’extension dans `chrome://extensions` pour renouveler sa connexion native ; une actualisation de la page peut conserver l’ancien compagnon.
+
+Dans la vue complète, **Aperçu → Console** ouvre PowerShell dans le dossier actif. **Suivre le dossier** peut être désactivé ; un changement attend si une commande ou une saisie est en cours. Masquer le volet conserve la session, fermer la page l’arrête. Le volet reste redimensionnable et agrandissable. Les commandes ont vos droits Windows et ne sont pas annulables par NextExplorer. [Guide, commandes et limites](CONSOLE_INTEGREE.md).
+
+## Organisation et actions rapides — 18 octobre 2026
+
+- **Tags…** depuis le clic droit, la sélection ou l’aperçu : sept couleurs, renommage et plusieurs tags par fichier/dossier. Les tags de la barre latérale retrouvent leurs fichiers dans tous les dossiers sans indexer leur contenu.
+- **Personnaliser les dossiers…** : couleur et symbole/emoji, visibles dans NextExplorer et conservés dans ce profil. Dans le panneau : **Organiser ce dossier**.
+- **Actions rapides…** ou boutons sous l’aperçu : rotation, annotation d’images/PDF, création d’un PDF avec une sélection réordonnable, découpe audio/vidéo. Choisissez la destination et créez une copie ; les originaux restent conservés.
+- **Analyser l’espace disque** affiche la carte et la liste dans le volet d’aperçu. Naviguez sans perdre le résultat, puis actualisez la mesure si nécessaire.
+- **Ce PC** dans les emplacements ou en remontant depuis la racine d’un lecteur affiche les capacités et l’espace disponible. L’accueil et la barre latérale reprennent ces jauges.
+
+Consultez [les formats, plafonds, moteurs et commandes clavier](AMELIORATIONS_FINDER.md). Les actions médias requièrent leurs moteurs locaux ; les PDF protégés/signés ne sont pas modifiés. Le détourage automatique n’est pas inclus.
+
+
+## Nouveauté J5 — médias, préréglages et tâches durables
+
+**Regrouper les fichiers → Images similaires** rapproche les images sur analyse explicite, avec ImageMagick et limites visibles. Résultats indicatifs, aucune suppression automatique. **Espace** ouvre aussi les TIFF admissibles sous forme réduite et les médias compatibles par lecture locale progressive.
+
+Dans **Convertir les fichiers**, seules les images matricielles et les vidéos sont admises ; une sélection mixte permet de choisir le lot Images ou Vidéos et montre les fichiers exclus. Les réglages et préréglages s’adaptent : format/dimensions/qualité pour les images, qualité/résolution et options techniques avancées pour les vidéos. Choisissez le dossier par **Parcourir les dossiers**, puis **Créer N copies**. L’option **Puis créer une archive ZIP des copies** reste disponible. Dans **Préparer des images**, les contraintes du formulaire web gardent leur parcours distinct. Enregistrer un préréglage ne traite aucun fichier. **Créer une archive** propose ZIP/7z et les options de mot de passe selon le moteur.
+
+Dans **Activité**, les tâches autorisées continuent même si Chrome ferme. Après arrêt du worker ou du PC, une reprise explicite est proposée seulement si l’étape est sûre ; un état ambigu demande une vérification manuelle. Pause peut attendre le fichier courant et bloque la file ; annuler ne défait pas les écritures terminées.
+
+Voir [le guide J5](J5_MEDIAS_TACHES.md) pour les moteurs, limites et comportements après interruption. Après mise à jour du compagnon, terminer les anciennes tâches puis fermer l’extension une minute si un ancien worker est encore actif. J7 et l’installation Windows propre J1.7 restent ouverts.
+
+## Nouveauté J5/C2 — retrouver les copies identiques
+
+Dans **Regrouper les fichiers**, choisissez **Copies identiques**, puis la sélection, le dossier courant ou les références de l’espace suivi et **Regrouper**. Dépliez les groupes pour examiner les chemins et l’empreinte BLAKE3. Les fichiers non comparés ont leur propre motif ; aucune suppression n’est proposée. **Arrêter** bloque les demandes suivantes, fermer écarte le cache en mémoire. Compagnon à jour requis.
+
+Voir [le guide des copies identiques](C2_COPIES_IDENTIQUES.md) pour les limites 100 empreintes / 64 Mio / budget 256 Mio, les fichiers volumineux et le cache. Le mode Images similaires est décrit séparément dans le guide J5.
+
+## J4 — organisation et recherche locales, 17 octobre 2026
+
+**Prototype J4 validé localement : compilation, 176 tests TypeScript et recette J4 avec le compagnon réussis.** Recherche lexicale dans un dossier choisi et ses sous-dossiers, rapprochement de vocabulaire TF-IDF, règles de mots-clés, recherche commune fichiers/liens/espaces, tags multiples, tailles de dossiers et préférences exportables. Aucun modèle d’IA ajouté.
+
+- **Recherche locale** ou **Ctrl+Maj+F** : index de 1 000 entrées / 100 dossiers / profondeur 8, extraits TXT/Markdown bornés, origine déclarée contrôlée pour 20 fichiers. Réindexation après changement, résultats périmés masqués, arrêt et effacement. PDF textuel : connecteur **pdftotext** optionnel, moteur absent du paquet et extraction réelle non validée ici ; aucun OCR.
+- **Tags** : 32 tags colorés, 2 000 chemins, attribution/retrait par lots, filtre et tri ; les associations suivent les renommages et déplacements natifs réussis. Changements externes non réconciliés automatiquement.
+- **Réglages et moteurs** : thème système/clair/sombre, couleurs, navigation/sélection, miniatures/extensions, colonnes et unités, affichages/tri par dossier, démarrage et accueil configurables, raccourcis contrôlés, menus et export/import explicite des préférences/tags/règles/vues. L’index et les fichiers sont exclus de cet export.
+- **Tailles et grands dossiers** : totaux natifs disponibles dans les listes et leur tri ; calcul annulable via l’activité. Listes natives bornées avec avertissement et filtre par nom ; affichage Colonnes de dossiers en complément des huit modes précédents.
+
+Voir [le guide J4 et ses limites](J4_ORGANISATION_RECHERCHE.md). **Suite : J5/C2**, puis J7 et seulement ensuite A0/A1. La recette Windows propre J1.7 reste ouverte.
+
+## Historique avant J4 — palier C1, 17 octobre 2026
+
+**Palier C1 du prototype validé localement.** Compilation, 161 tests et recettes navigateur/compagnon réussis. La recherche textuelle C3 et le reste de J4 viennent ensuite ; J1.7 sur Windows propre reste ouvert.
+
+Dans **Regrouper les fichiers**, les sept choix sont **Format**, **Nom apparenté**, **Date de modification**, **Taille**, **Relations enregistrées**, **Destination proposée** et **Origine web**. Sélection, dossier courant ou références de l’espace suivi ; analyse explicite, non récursive et limites visibles.
+
+- **Taille :** fichiers vides, moins de 1 Mio, 1 à moins de 10 Mio, 10 à moins de 100 Mio et 100 Mio ou plus. Taille de l’instantané ; valeurs invalides séparées, aucune preuve de doublon.
+- **Familles manuelles :** sélectionnez de 2 à 20 fichiers puis **Familles enregistrées → Relier la sélection**, ou dépliez un groupe et choisissez **Enregistrer une famille**. Donnez un nom puis confirmez ; les métadonnées doivent toujours concorder avant stockage. 50 familles locales, noms distincts, données illisibles et modifications concurrentes refusées sans écraser les autres familles. **Retirer** enlève seulement le lien.
+- **Relations enregistrées :** liens manuels et sources/copies des nouvelles préparations, y compris hors du dossier choisi. Les nouvelles préparations conservent les sources au lancement et les premières copies vérifiées ; les anciennes sans sources ne sont pas rattachées par déduction. Il s’agit du lien de la préparation entière, sans correspondance source/copie individuelle inventée. Jusqu’à 200 fichiers contrôlés et 1 000 références candidates ; références modifiées/absentes et non vérifiées séparées. Relance explicite, arrêt et réponses tardives ignorées ; les changements du suivi entre vues effacent les résultats périmés.
+- **Créer une règle :** dans un groupe avec extension commune ou origine web commune contrôlée, ouvrez le brouillon H07 prérempli. Vérifiez nom, critères et dossier puis enregistrez. Aucun fichier déplacé, aucune règle enregistrée à l’ouverture ou après annulation. Règle manuelle par défaut ; l’automatisme garde son activation explicite et sa permission. Le brouillon manuel est utilisable sans permission Chrome downloads.
+
+Les familles et liens de préparations restent dans ce profil, synchronisés entre ses vues ; ils ne font pas partie de l’export d’un espace. Les références enregistrent chemins, noms, taille et date ; elles ne suivent pas automatiquement les déplacements/renommages et ne prouvent pas le contenu. Aucun document/image ouvert par Taille ou Relations, aucun nouveau moteur, permission ou dépendance. Le TIFF de recette de 24 Mio reste sans décodage Chrome. Les limites des transferts confirmés et des JSON de provenance voisins non transférés restent celles des lots précédents.
+
+**Rapprochements approximatifs :** Jaccard et Levenshtein mesurés sur 20 paires synthétiques ; tous les seuils essayés produisent des faux positifs. Ils ne sont pas proposés dans l’application. Voir [les résultats et la décision](EVALUATION_CLASSEMENT.md). Les noms normalisés exacts et les liens choisis restent disponibles ; aucune justesse sur un corpus personnel n’est annoncée.
+
 **Regrouper les fichiers (J4 / C0 et premiers lots C1) :** dans l’explorateur, choisissez **Outils → Groupes de fichiers**, ou lancez **Regrouper les fichiers** dans la palette (`Ctrl+K`). Dans le panneau, ouvrez **Options → Regrouper les fichiers…**. Choisissez la sélection, le dossier courant ou les références de l’espace suivi, puis **Regrouper**. Le mode **Format (extension)** reste proposé par défaut. Dépliez Documents, Images ou les autres groupes pour voir noms, extensions, tailles et chemins. L’icône de dossier revient à l’emplacement d’origine ; elle n’ouvre pas le fichier.
 
-**Nom apparenté** rapproche les fichiers portant exactement le même nom après normalisation de la casse, des accents et des séparateurs, sans leur extension. Par exemple `Été_Atlas-v1.PDF`, `ete atlas version 2.docx` et `ETE–ATLAS (1).TIFF` proposent la famille **ete atlas**. Seuls les suffixes explicites de version (`v2`, `version 2`, `rev2`, `revision 2`) ou de copie (`copie`, `(1)` à `(999)`) sont retirés ; les années entre parenthèses restent conservées. Les dates et les numéros ordinaires restent distincts, l’ordre des mots est conservé. Il faut au moins deux mots et un terme autre que les mots génériques connus ; les noms vagues et isolés vont dans **Sans rapprochement fiable**. Chaque famille explique son motif. Cela ne prouve ni un doublon ni un export : aucun contenu n’est comparé. Sans l’option origine, passer entre Format, Nom apparenté, Date de modification et Destination proposée réutilise le même instantané ; changer de source l’efface. Ce choix reste limité au dialogue ouvert.
+**Nom apparenté** rapproche les fichiers portant exactement le même nom après normalisation de la casse, des accents et des séparateurs, sans leur extension. Par exemple `Été_Atlas-v1.PDF`, `ete atlas version 2.docx` et `ETE–ATLAS (1).TIFF` proposent la famille **ete atlas**. Seuls les suffixes explicites de version (`v2`, `version 2`, `rev2`, `revision 2`) ou de copie (`copie`, `(1)` à `(999)`) sont retirés ; les années entre parenthèses restent conservées. Les dates et les numéros ordinaires restent distincts, l’ordre des mots est conservé. Il faut au moins deux mots et un terme autre que les mots génériques connus ; les noms vagues et isolés vont dans **Sans rapprochement fiable**. Chaque famille explique son motif. Cela ne prouve ni un doublon ni un export : aucun contenu n’est comparé. Sans l’option origine, passer entre Format, Nom apparenté, Date de modification, Taille et Destination proposée réutilise le même instantané ; changer de source l’efface. Ce choix reste limité au dialogue ouvert.
 
 **Date de modification** regroupe les fichiers par mois et année, du plus récent au plus ancien. Les dates du système de fichiers sont interprétées dans le fuseau horaire du navigateur et affichées sous chaque fichier. Les dates absentes ou invalides vont dans **Date indisponible**. Aucun contenu lu, aucune date de création ou de prise de vue déduite ; un mois commun ne prouve pas une relation entre fichiers. Comme Format/Nom, ce mode utilise l’instantané ; relancez sur le dossier pour voir les dates actualisées. Les références de sélection/espace ne sont pas revérifiées.
 
@@ -88,7 +197,7 @@ Depuis une page HTTP(S), le clic droit propose **Collecter cette page dans NextE
 
 L'interface suit une adaptation de Material 3 pour un explorateur compact : palette bleu ardoise, surfaces tonales, navigation en pilules, boutons arrondis et dialogues lisibles en clair/sombre. Les couleurs sont définies par rôles dans `src/style.css`. Roboto est utilisé si disponible, sinon Segoe UI ou la police système ; aucune police distante ni bibliothèque de composants ajoutée.
 
-La prochaine évolution est définie dans [la feuille de route hybride](FEUILLE_DE_ROUTE_HYBRIDE.md), [la matrice des usages locaux + web](MATRICE_FILES_ET_HYBRIDE.md), [les usages du panneau latéral](PANNEAU_LATERAL.md), [le plan d’installation des compagnons](INSTALLATION_COMPAGNONS.md) et [le plan de rentabilisation](PLAN_RENTABILISATION.md). Ligne directrice : fichiers locaux et navigateur ; J6 est retiré. Au 11 octobre, J3 est validé dans le prototype ; C0/C1 proposent des groupes par format, nom, mois, origine déclarée et destination par règle d’extension ou de site sur option explicite, avec transfert examiné puis confirmé. Le reste de C1, C3, J4/J5 et la recette du socle gratuit J7 viennent ensuite. J1.7 demeure obligatoire avant bêta. IA locale « Beast » et thème Incandescence restent en conception. Ces documents décrivent la cible ; les instructions et fonctionnalités ci-dessous correspondent au prototype actuel.
+La prochaine évolution est définie dans [la feuille de route hybride](FEUILLE_DE_ROUTE_HYBRIDE.md), [la matrice des usages locaux + web](MATRICE_FILES_ET_HYBRIDE.md), [les usages du panneau latéral](PANNEAU_LATERAL.md), [le plan d’installation des compagnons](INSTALLATION_COMPAGNONS.md) et [le plan de rentabilisation](PLAN_RENTABILISATION.md). Ligne directrice : fichiers locaux et navigateur ; J6 est retiré. Au 11 octobre, J3 est validé dans le prototype ; C0/C1 proposent des groupes par format, nom, mois, origine déclarée et destination par règle d’extension ou de site sur option explicite, avec transfert examiné puis confirmé. C3, les autres fonctions J4 et J5 et la recette du socle gratuit J7 viennent ensuite. J1.7 demeure obligatoire avant bêta. IA locale « Beast » et thème Incandescence restent en conception. Ces documents décrivent la cible ; les instructions et fonctionnalités ci-dessous correspondent au prototype actuel.
 
 Depuis un clone du dépôt, exécuter `npm ci` puis `npm run package` pour générer `dist/`, `native/native-host.exe` et le paquet. Les moteurs portables sont optionnels et s’installent séparément dans `native/tools/` ; ces fichiers générés ne sont pas versionnés.
 
@@ -98,9 +207,9 @@ Recette développeur sur Windows isolé : `npm run setup:acceptance` prépare le
 
 Lancer **`release/NextExplorer-Setup.exe`** : assistant français, sans console ni droits administrateur. Cet EXE de développement n’est pas signé.
 
-Choisir le navigateur, vérifier l’identifiant prérempli et les corrections prévues, puis cliquer sur **Installer**. Charger ensuite l’extension en mode développeur depuis `%LOCALAPPDATA%\Programs\NextExplorer\package\dist`. L’assistant ne l’ajoute pas silencieusement au navigateur. Si elle est déjà chargée ailleurs, la recharger depuis ce dossier stable, puis la désactiver et la réactiver.
+Choisir le navigateur puis vérifier les corrections prévues avant de cliquer sur **Installer**. En développement, l’identité est préconfigurée ; **Afficher les réglages avancés** donne accès aux champs techniques. La préversion publique 1.0.1 affiche encore l’identifiant prérempli. Charger ensuite l’extension en mode développeur depuis `%LOCALAPPDATA%\Programs\NextExplorer\package\dist`. L’assistant ne l’ajoute pas silencieusement au navigateur. Si elle est déjà chargée ailleurs, la recharger depuis ce dossier stable, puis la désactiver et la réactiver.
 
-Le menu Démarrer propose **NextExplorer → Installer ou réparer**. L’assistant conserve un compagnon déjà cohérent : il ne force pas sa mise à jour. Aucun moteur n’est téléchargé. Il préserve les enregistrements vers d’autres installations et bloque si le navigateur choisi pointe ailleurs. En cas de récupération ambiguë de moteurs, renseigner l’identifiant de la copie indiqué par l’aperçu.
+Le menu Démarrer propose **NextExplorer → Installer ou réparer**. L’assistant conserve un compagnon identique au paquet et le remplace si le binaire ou sa politique diffère. Aucun moteur n’est téléchargé. Il préserve les enregistrements vers d’autres installations et bloque si le navigateur choisi pointe ailleurs. En cas de récupération ambiguë de moteurs, ouvrir les réglages avancés et renseigner l’identifiant de la copie indiqué par l’aperçu.
 
 La désinstallation depuis les applications Windows retire le paquet, ses raccourcis et les enregistrements appartenant à l’installation. Les dossiers `versions`, les sauvegardes, les réglages et les documents personnels restent conservés. Retirer aussi l’extension du navigateur. L’installation et la désinstallation complètes de l’EXE restent à valider sur une machine propre ; les tests locaux couvrent les opérations sous-jacentes et les écrans jusqu’à l’aperçu.
 
@@ -136,7 +245,7 @@ Un état **Issue inconnue** signifie que le résumé final n'a pas été enregis
 
 Copie/déplacement : cochez **Fusionner les dossiers de même nom** pour réunir leur contenu. Le choix conserver les deux / ignorer / remplacer s'applique aux fichiers en conflit. Les éléments ignorés restent à la source lors d'un déplacement. L'option est désactivée si le compagnon installé ne l'annonce pas ; mettez à jour le compagnon avec le script ci-dessous. Un lot interrompu peut être partiellement effectué : pas encore d'annulation globale.
 
-Pour un premier essai de l'assistant sur le poste de développement : ouvrir `release/NextExplorer-Setup.exe`, choisir Chrome, conserver l'identifiant prérempli et consulter l'aperçu, puis annuler. Si une liaison vers une autre installation est signalée, conserver cette liaison et arrêter l'essai ; ne pas supprimer manuellement sa clé de registre. Le cycle complet installation/désinstallation se teste sur un Windows isolé selon RECETTE_INSTALLATEUR.md. Un compagnon déjà cohérent n'est pas mis à niveau par cet assistant : utiliser le parcours de développement ci-dessous pour essayer une nouvelle compilation native.
+Pour un premier essai de l'assistant sur le poste de développement : ouvrir `release/NextExplorer-Setup.exe`, choisir Chrome, conserver les réglages du paquet et consulter l'aperçu, puis annuler. Si une liaison vers une autre installation est signalée, conserver cette liaison et arrêter l'essai ; ne pas supprimer manuellement sa clé de registre. Le cycle complet installation/désinstallation se teste sur un Windows isolé selon RECETTE_INSTALLATEUR.md. Pour essayer directement une nouvelle compilation native, utiliser le parcours de développement ci-dessous.
 
 1. Dans PowerShell, depuis ce dossier :
 
@@ -155,7 +264,7 @@ Chaque installation prépare une nouvelle copie dans le sous-dossier `versions` 
 
 La connexion vérifie la compatibilité du protocole avant d’ouvrir les dossiers. Si le compagnon est ancien ou incompatible, un message indique la mise à jour requise : utilisez l’extension et le compagnon du même paquet, puis désactivez et réactivez l’extension. L’absence de moteurs multimédias optionnels ne bloque pas la connexion.
 
-À l’accueil, l’extension recherche automatiquement le compagnon jusqu’à quatre fois : réponse attendue pendant 5 secondes au maximum, puis pause de 2 secondes avant la tentative suivante. Après installation du compagnon, la connexion peut ainsi aboutir sans intervention. Si les tentatives sont épuisées, cliquez sur **Se connecter** pour relancer la recherche. Une incompatibilité arrête la recherche et affiche les instructions de mise à jour. Les opérations de fichiers ne sont jamais rejouées par cette recherche.
+À l’accueil, l’extension recherche automatiquement le compagnon jusqu’à quatre fois : réponse attendue pendant 5 secondes au maximum, puis pause de 2 secondes avant la tentative suivante. Après installation du compagnon, la connexion peut ainsi aboutir sans intervention. Si les tentatives sont épuisées, cliquez sur **Vérifier la connexion** pour relancer la recherche (**Se connecter** dans la préversion publique 1.0.1). Le parcours en développement revérifie aussi au retour après le clic de téléchargement. Une incompatibilité arrête la recherche et affiche les instructions de mise à jour. Les opérations de fichiers ne sont jamais rejouées par cette recherche.
 
 Le paquet `release/NextExplorer` contient également l’extension et le compagnon. Pour une installation depuis ce paquet, utiliser son propre script `scripts/install-host.ps1`. Le paquet léger utilise les moteurs présents dans PATH ; les moteurs portables se téléchargent avec son script `setup-engines.ps1`.
 
@@ -232,11 +341,11 @@ Si Go est absent : `powershell -ExecutionPolicy Bypass -File scripts/setup-go.ps
 
 Pour compiler l’assistant : préparer une fois Inno Setup avec `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/setup-inno.ps1`, puis lancer `npm run package` et `npm run setup:build`. Inno Setup 6.7.3 est téléchargé depuis sa distribution officielle, sa signature Authenticode et l’éditeur Pyrsys B.V. sont vérifiés, puis il est préparé en mode portable dans `.tools/inno`. Résultat : `release/NextExplorer-Setup.exe`. Conditions de l’outil : [THIRD_PARTY.md](THIRD_PARTY.md).
 
-`npm run test:setup` vérifie l’aperçu et son application avec fichiers réels, registre simulé et HELLO natif. `scripts/test-setup-ui.ps1 -Isolated` compile un paquet de test bloquant les écritures au registre et l’installation, ouvre les écrans jusqu’à l’aperçu et sauvegarde les captures dans `test-results/setup-*.png`. Il ne clique jamais sur Installer.
+`npm run test:setup` vérifie l’aperçu et son application avec fichiers réels, registre simulé et HELLO natif. `scripts/test-setup-ui.ps1 -Isolated` compile un paquet de test bloquant les écritures au registre et l’installation, vérifie les parcours normal/avancé et l’effacement des valeurs cachées au retour au parcours normal. Il sauvegarde les captures dans `test-results/setup-*.png` et ne clique jamais sur Installer. Les processus de recette portent un nom unique.
 
 `npm run dev` sert uniquement l’interface de développement sur 127.0.0.1. Une page web ordinaire affiche l’aide de connexion ; elle n’a pas accès au disque. `npm run test:browser` utilise Chrome sans fenêtre, un espace de fichiers temporaire et le véritable exécutable natif, avec un adaptateur remplaçant seulement le transport de l’API d’extension. Il ne modifie pas votre profil Chrome personnel ni le registre.
 
-Les tests Go couvrent le protocole binaire, l’origine appelante, les chemins, les conflits, les copies vérifiées, l’annulation, la restauration, les lots, les empreintes et les archives. Si les moteurs sont présents, ils testent aussi WebP, MP3, remux MKV et métadonnées photo / tags MP3. Les captures d’interface sont dans `test-results/`.
+Les tests Go couvrent le protocole binaire, l’origine appelante, les chemins, les conflits, les copies vérifiées, l’annulation, la restauration, les lots, les empreintes et les archives. Avec les moteurs, ils testent aussi WebP/JPEG, MP4/WebM sans agrandissement, remux MKV, refus des lots et des faux fichiers, métadonnées photo et tags MP3. La conversion audio seule est exclue ; l’édition des tags audio reste disponible. Les captures d’interface sont dans `test-results/`.
 
 `npm run test:extension` charge réellement le paquet dans un profil Chromium temporaire. Le navigateur de test doit être installé dans `.tools/browsers` avec Playwright. Après installation du compagnon, définir `NEXTEXPLORER_REQUIRE_NATIVE=1` exige aussi une liaison native fonctionnelle et vérifie des opérations de fichiers via l’extension. Ce test doit tourner sous le même utilisateur Windows que l’installateur ; un bac à sable utilisant un autre registre utilisateur ne voit pas le compagnon.
 
@@ -252,7 +361,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts/setup-engines.ps1
 
 | Moteur | Usage |
 | --- | --- |
-| FFmpeg / FFprobe | Conversions audio et vidéo, remux, normalisation, estimation du débit cible |
+| FFmpeg / FFprobe | Conversion vidéo, pistes audio des vidéos, remux, waveform et édition des tags audio |
 | ImageMagick | Images, redimensionnement et compression |
 | ExifTool | Lecture / modification EXIF et tags audio, variables du renommage |
 | 7-Zip 26.03 minimum | Inventaire et extraction 7z/RAR |
@@ -268,7 +377,7 @@ Les moteurs sont recherchés dans `native/tools`, puis dans PATH. Ils ont leurs 
 - Le compagnon garde les droits de l’utilisateur ; il ne contourne pas les ACL ni l’UAC. Les chemins absolus locaux et UNC sont acceptés, les chemins de périphériques et flux NTFS alternatifs sont refusés.
 - Les transferts récursifs refusent les liens symboliques et les destinations à l’intérieur des sources. Les remplacements de fichiers conservent une copie dans `.nextexplorer-trash` ; les dossiers existants ne sont pas fusionnés.
 - Les tâches vivent tant que le processus du compagnon reste actif. Une fermeture de Chrome ne permet pas de reprendre leur exécution après redémarrage. Les chemins de copies d’images déjà retrouvées sont conservés dans Préparations récentes et peuvent être revérifiés sans recréer les copies. Les transferts terminés restent acquis ; une annulation ne rétablit pas les fichiers déjà déplacés.
-- QuickLook affiche un préfixe du texte limité à 64 Ko et 1 000 lignes, avec coloration/Markdown dans un worker interrompu après 3 secondes si nécessaire. Les données binaires ne sont pas colorées. Les TIFF affichent immédiatement une proposition d'ouverture dans l'application locale ou de création d'une copie PNG avec ImageMagick, sans lire le TIFF dans Chrome. Les médias / PDF restent assemblés en mémoire jusqu'à 128 Mo ; les codecs dépendent de Chrome. La waveform audio est réservée aux fichiers de 8 Mo maximum. Pour les gros médias, utiliser l'ouverture dans l'application système.
+- QuickLook garde le texte à 64 Kio / 1 000 lignes et son worker à 3 s. J5 ajoute les images/TIFF réduits par le compagnon (256 Mio / 100 MP maximum), les médias compatibles par plages d’octets locales et la waveform des trente premières secondes avec FFmpeg. Le PDF reste borné ; les codecs dépendent de Chrome. Voir [les limites détaillées J5](J5_MEDIAS_TACHES.md#aperçus-et-gros-fichiers). L’ouverture système reste disponible pour les fichiers non admissibles.
 - Les sauvegardes `_original` d’ExifTool sont conservées. La disponibilité des RAW, AVIF, codecs GPU et autres formats dépend des délégués inclus dans les moteurs et du matériel. La taille cible vidéo est une estimation, pas une garantie stricte.
 
 La matrice détaillée et les écarts au document initial figurent dans [FEATURES.md](FEATURES.md). Les dépendances sont recensées dans [THIRD_PARTY.md](THIRD_PARTY.md).

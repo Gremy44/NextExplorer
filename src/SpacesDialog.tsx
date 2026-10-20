@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { DRIVES_PATH } from "./disk-space";
 import {
   Download,
   FolderOpen,
@@ -529,6 +530,7 @@ export function SpacesDialog({
                   ];
                   const missing: string[] = [];
                   for (const path of paths) {
+                    if (path === DRIVES_PATH) continue;
                     try {
                       const entry = await bridge.request<Entry>(
                         "FS_STAT",

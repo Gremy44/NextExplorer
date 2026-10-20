@@ -1,0 +1,28 @@
+name: Signaler un problème
+description: Installation, connexion ou utilisation de NextExplorer
+title: "[Problème] "
+body:
+  - type: markdown
+    attributes:
+      value: "Merci de tester avec des fichiers fictifs. Ne publiez ni documents personnels, ni secrets, ni chemins identifiants, ni journaux bruts."
+  - type: input
+    id: version
+    attributes:
+      label: Version de NextExplorer
+      placeholder: "1.0.1"
+    validations:
+      required: true
+  - type: input
+    id: system
+    attributes:
+      label: Versions de Windows et Chrome
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problème rencontré et étapes pour le reproduire
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Résultat attendu et message d’erreur éventuel

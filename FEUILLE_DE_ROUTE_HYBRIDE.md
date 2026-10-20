@@ -1,6 +1,182 @@
 # Feuille de route — fichiers locaux et usages dans le navigateur
 
-## État courant — J4 / C1, destinations selon l’origine web, 11 octobre 2026
+## Socle gratuit — préversion 1.0.3, 20 octobre 2026
+
+La [paire extension/compagnon 1.0.3](https://github.com/Gremy44/NextExplorer-Downloads/releases/tag/v1.0.3)
+est publiée avec guides, notices et SHA256. Les quatre téléchargements et
+17 documents/visuels ont été relus anonymement ; sources applicatives privées
+vérifiées avant/après. La 1.0.1 reste disponible sans remplacement de ses fichiers.
+
+1. **Connexion guidée : livrée.** Téléchargement versionné, vérification au retour,
+   choix visuel du premier dossier et reprise des profils existants.
+2. **Raccordement Store : réalisé et testé.** Brouillon officiel
+   `afjflepinklhgicoppoobiichmjodgcp`, clé publique vérifiée, sources/compagnon
+   concordants ; fiche, visuels et confidentialité renseignés depuis Chrome.
+   **Envoyé pour examen le 20 octobre**, publication automatique après approbation.
+   [Preuves et suivi](store/README.md). L’acceptation dépend de Google.
+3. **Moteurs facultatifs : parcours clarifié et livré.** Fonctions prêtes/manquantes,
+   FFmpeg/FFprobe associés, aide publique et diagnostic replié. Préparation avancée
+   explicitée ; aucun téléchargement automatique de moteur.
+4. **Recette Windows propre : à exécuter.** EXE compilé, backend/contrôleur et UI
+   testés en isolation ; kit exact 1.0.3 préparé avec SHA256. Windows 11 Famille
+   sans outil de VM détecté sur ce poste : ces contrôles ne valent pas J1.7.
+
+Validation : 240 tests, typage, paquet Windows/Store, véritable ID Store avec
+Native Messaging, connexion guidée et console réelles, responsive 320/390/1440 px,
+maintenance et contrôleur de recette. Preuves `base-final-*.log` et
+`base-final-public-anonymous.json` dans `test-results`.
+
+L’installation Chrome existante et son stockage restent intacts. Changer
+l’ancienne identité nécessite un export des réglages/espaces, sans migration
+automatique. EXE non signé selon le choix du propriétaire. Aucun ajout d’IA,
+de fonction payante ni de service cloud ; pilote utilisateur après J1.7.
+
+## Historique des lots précédents
+
+## Installateur — point 1/4 : première connexion guidée, 19 octobre 2026
+
+**Point 1 implémenté en développement.** Accueil partagé entre panneau et vue
+complète : téléchargement de l’EXE de la version de l’extension, vérification
+manuelle et au retour après ce clic, puis choix visuel du premier dossier ou
+du dossier personnel. Les dossiers déjà ouverts sont conservés ; aide technique
+repliée, messages de connexion lisibles et affichage adapté aux petites largeurs.
+La fin de l’assistant renvoie vers la vérification puis le choix du dossier.
+
+Validation : compilation, 234 tests TypeScript et recette de l’extension avec
+Native Messaging réels réussis. Absence du compagnon, vérification manuelle,
+retour automatique, annulation, dossier choisi/personnel et reprise contrôlés ;
+captures 320/390/1440 px inspectées. Non-régression console et isolation des
+sessions validées. La recette de l’assistant isolé reste sans clic Installer.
+Le parcours navigateur complet passe aussi : exploration, opérations sur fichiers,
+aperçus, panneau, transferts, regroupements C0/C1 et copies identiques C2.
+Preuves : `connection-check.log`, `connection-build.log`,
+`connection-extension.log`, `connection-browser.log`, `connection-installer-ui.log` et
+`connection-*.png` dans `test-results`.
+
+Ordre des quatre points retenu :
+
+1. Première connexion guidée — implémentée ; validation détaillée ci-dessus.
+2. Identité et raccordement Chrome Web Store — en cours : candidat 1.0.2 prêt,
+   identité du brouillon attendue.
+3. Parcours des moteurs facultatifs — à faire.
+4. Installation, mise à jour, réparation et désinstallation sur Windows propre
+   (J1.7), puis pilote utilisateur — à faire.
+
+Les changements restent locaux ; la préversion publique 1.0.1 est inchangée.
+Aucune soumission Store, nouvelle permission ou IA ajoutée.
+
+## J7.2 — premier lot : assistant préconfiguré, 19 octobre 2026
+
+Dans le code en développement, l’installation normale utilise l’identité du
+paquet et passe du navigateur à l’aperçu. Identifiant et copie de récupération
+des moteurs restent accessibles via une case **Réglages avancés**, décochée.
+Revenir au parcours normal efface les anciennes valeurs avancées ; validations
+d’identité, aperçu préalable et protection des autres installations conservés.
+
+Recette visuelle du véritable assistant compilé dans un paquet isolé : deux
+parcours, retour arrière et abandon des valeurs cachées vérifiés, sans cliquer
+sur Installer ni écrire au registre. Backend de maintenance et contrôleur de
+recette validés avec registre simulé. Aucune nouvelle release publiée.
+
+**J7.2 reste ouvert pour les moteurs facultatifs et le raccordement au Store.**
+La première connexion et le texte de fin de l’assistant sont maintenant
+implémentés dans le point 1 ci-dessus. L’ID du brouillon Store reste à récupérer
+pour terminer J7.1. **J1.7 sur Windows propre reste à exécuter**, puis pilote
+utilisateur.
+
+## Distribution GitHub gratuite — préversion 1.0.1 publiée le 19 octobre 2026
+
+Stratégie validée : code applicatif privé, dépôt public pour téléchargements, documentation et retours ; licence d’utilisation gratuite personnelle/professionnelle, futur Pro distinct. Aucun service payant ni signature payante. [Dépôt public](https://github.com/Gremy44/NextExplorer-Downloads) et [préversion technique 1.0.1](https://github.com/Gremy44/NextExplorer-Downloads/releases/tag/v1.0.1) publiés.
+
+Paquet public séparé du kit de développement : cartes de sources et documents internes exclus, notices JavaScript/Go/polices complétées, quatre fichiers avec SHA256. Licence, confidentialité, guide, captures synthétiques et formulaire de retour publics ; source privée vérifiée avant/après. Les quatre téléchargements ont été relus anonymement et leurs empreintes recoupées. Typage, 233 tests, recette Chromium/compagnon, contrôles du Store et refus d’injection de carte de sources/document altéré réussis.
+
+**Cette préversion pour fichiers fictifs ne clôture pas J7.** ID Store, installation simplifiée J7.2, recette Windows propre J1.7 et bêta utilisateur restent ouverts. EXE non signé annoncé ; aucune IA ni fonction Pro ajoutée. Preuves : `public-distribution-anonymous.json`, `verify-public-distribution.log`, `extension-public-distribution.log` dans `test-results`.
+
+## J7.1 — préparation du dossier Store, 19 octobre 2026
+
+Compte développeur existant confirmé par le propriétaire. [Dossier de soumission](store/README.md) préparé localement : ZIP de l’extension seul, ressources et licences embarquées, empreinte/inventaire, fiche française, confidentialité à compléter, justification des permissions, instructions et visuels synthétiques. Version du manifeste construit et de l’installateur issue de `package.json` ; remplacement d’un paquet Store différent sous la même version refusé.
+
+Typage et 233 tests, contrôles de l’archive et parcours réel depuis le ZIP décompressé avec compagnon installé validés. La copie de recette utilise la clé de développement, sans modifier le ZIP ni l’installation native. Aucun envoi au Store. **J7.1 reste ouvert** pour l’ID/clé Store, le nom d’éditeur/contact et les URLs ; J7.2 prépare ensuite le premier parcours d’installation. J1.7 sur Windows propre reste requis avant bêta. Aucune IA ajoutée.
+
+## Console intégrée — 19 octobre 2026
+
+**Ajout LCD rétro :** thème de console gris-vert/encre sombre, inspiré des écrans à cristaux liquides, avec palette ANSI complète, sélection inversée et Cascadia Mono. Aucun moteur ni téléchargement supplémentaire. Typage, 233 tests et recette de l’extension avec compagnon installé validés (`check-console-lcd.log`, `extension-console-lcd.log`).
+
+**Apparence de la console :** presets Ubuntu, Dracula, Nord, Solarized sombre/clair avec 16 couleurs ANSI ; anciennes palettes et couleurs personnalisées conservées. Police du thème ou indépendante, taille et interligne réglables ; trois polices embarquées hors ligne avec licences. Ubuntu indique explicitement que la console reste PowerShell, pas Bash. Choix local mémorisé sans relance de session. 233 tests et parcours de l’extension avec compagnon installé validés, dont persistance, clavier et 320/390 px. Ajout limité à l’interface ; J7/J1.7 restent distincts.
+
+**Correctif installateur :** une installation structurellement valide conservait l’ancien compagnon malgré la copie du nouveau paquet. L’assistant compare maintenant les empreintes du binaire actif et de sa politique avec le paquet avant de décider d’une mise à jour. Moteurs, ancienne copie, sauvegarde et protections contre un aperçu périmé conservés. Tests du backend avec différence de binaire/politique, retour arrière et refus d’un paquet modifié ; désactivation/réactivation de l’extension nécessaire pour remplacer sa connexion existante. J1.7 sur Windows propre reste ouvert.
+
+Ajout demandé avant J7 : terminal PowerShell dans le volet aperçu/espace disque, une session par page complète, suivi du dossier actif désactivable et différé pendant les commandes/saisies, session conservée lors du masquage. ConPTY et xterm.js, sans serveur ni moteur supplémentaire. Commandes avec les droits Windows habituels, hors journal/annulation. [Guide et vérification](CONSOLE_INTEGREE.md). La suite reste la distribution gratuite J7 et la recette Windows propre J1.7, puis A0/A1.
+
+Validation locale : 227 tests TypeScript, suite Go complète et parcours de l’extension/compagnon réels réussis, avec isolation des pages, arrêt des processus, saisie préservée et affichage clair/sombre à 320/390/900/1440 px. Non-régression espace disque validée ; paquet, installateur et kit actualisés. Cela ne clôture pas J1.7.
+
+## Distribution gratuite — stratégie retenue le 18 octobre 2026
+
+[Plan de distribution](STRATEGIE_DISTRIBUTION.md) retenu par l’utilisateur pour les prochaines sessions : une fiche Chrome Web Store, compagnon Windows séparé et premier parcours d’installation simplifié. J7 se concentre sur cinq lots : paquet/identité Store, première installation et moteurs, J1.7/maintenance, bêta privée de 5 à 10 testeurs, puis ouverture publique. Même installation pour le futur Pro ; paiement externe seulement après A0/A1. Objectif : terminer la mise en place du gratuit sans attendre les 100 formats ni l’IA, avec compte/ID définitif, installation propre et mises à jour maîtrisées. Reprise par la préparation du paquet Store et du dossier de soumission. Aucun compte créé, achat ou envoi au Store effectué.
+
+## Améliorations avant J7 — 18 octobre 2026
+
+**Historique des activités :** icône distincte pour les dix types de tâches, sur les activités en cours comme sur les entrées déjà enregistrées ; pictogramme générique pour un ancien type inconnu. Libellés et états conservés, couleurs sémantiques Material 3. Compilation, 224 tests et revue Chrome clair/sombre à 320/390/900/1440 px réussis. [Guide](AMELIORATIONS_FINDER.md#ajuster-linterface).
+
+**Étude des formats d’aperçu :** [matrice des 100 entrées](APERCUS_100_FORMATS.md). 40 possèdent un parcours d’aperçu au moins partiel, 6 un branchement incomplet et 54 aucun aperçu du contenu. Priorités proposées : raccorder les moteurs existants, étendre les lectures légères, puis documents/tableurs ; rendu bureautique fidèle et CAD à traiter séparément. Objectif : aperçu local, sans édition ni modification de l’original. Aucun nouveau lecteur livré par cette étude ; les lots restent à choisir avant développement.
+
+**Revue ergonomique, premier lot :** espace disque redimensionnable au-delà de 640 px selon la fenêtre, mode agrandi, infobulles au survol/clavier et couleurs contrastées. [Inventaire des 47 parcours et priorités](REVUE_ERGONOMIE_OUTILS.md) pour recueillir les retours outil par outil. 224 tests et parcours Chrome/compagnon dédié réussis ; les autres outils attendent la revue utilisateur. Ce lot ne clôture pas J1.7 et ne change pas la suite J7 puis A0/A1.
+
+Tags inspirés du Finder (palette, renommage, attribution multiple et références tous dossiers), couleur/symbole des dossiers, actions rapides contextuelles, analyse d’espace persistante dans l’aperçu et capacités des lecteurs dans **Ce PC**. [Guide du lot](AMELIORATIONS_FINDER.md). Les actions créent des copies ; les ressources PDF sont embarquées et chargées à la demande. Installateur Windows et kit reconstruits avec ce lot après validation ; cela ne clôture pas l’installation sur Windows propre J1.7. La suite reste J7, puis A0/A1 ; aucune IA ajoutée.
+
+## J5 — médias, recettes et tâches durables, 17 octobre 2026
+
+**Révision du convertisseur :** outil réservé aux images et aux vidéos, réglages et préréglages contextuels, lots mixtes séparés explicitement, exclusions visibles et dossier de sortie visuel. Codecs/son/remux réservés à la vidéo et aux réglages avancés ; qualité d’image seulement pour les formats concernés. Validation native de tous les lots, 204 tests TypeScript et suite Go réussis ; recette Chrome avec conversion WebM réelle, copies JPEG/ZIP, originaux conservés et thèmes/320/390/1024 px validée. Voir [le parcours et les limites](J5_MEDIAS_TACHES.md#convertisseur-images-et-vidéos--révision-du-17-octobre).
+
+**J5 terminé dans le périmètre du prototype.** C2 ajoute **Images similaires**, avec échantillonnage natif borné et rapprochement indicatif sans suppression. Aperçus TIFF réduits, audio/vidéo par plages d’octets, préréglages personnels et recette conversion → ZIP. Archives ZIP/7z avec options de compression/chiffrement et extraction contrôlée ZIP/7z/RAR.
+
+Le worker indépendant conserve la file et les résultats quand Chrome ferme. Après arrêt du worker ou du PC, reprise explicite entre étapes sûres ; les publications ambiguës restent bloquées pour examen manuel, sans rejeu. Les tags rattrapent les déplacements natifs réalisés hors navigateur depuis un historique local borné.
+
+Compilation et 198 tests TypeScript, suite Go, recettes du worker/J5, navigateur complet et extension complète avec compagnon réel réussis. TIFF 28 Mio, vidéo 512 Mio avec recherche temporelle sans lecture brute dans l’interface, variantes, préréglages, recette ZIP, fermeture/réouverture, tags hors navigateur et annulation vérifiés. Non-régression J3/J4 et H07 toutes vues fermées validée. [Guide J5, plafonds et limites](J5_MEDIAS_TACHES.md). Paquet, installateur et kit Windows reconstruits ; kit préparé uniquement, J1.7 non exécuté. Preuves dans la recette hybride.
+
+**Suite : J7, recette et distribution du socle local gratuit**, avec J1.7 sur Windows propre toujours ouvert avant bêta. A0/A1 et Beast viennent ensuite ; aucune IA ajoutée.
+
+## Historique J5 / C2 — copies identiques, premier lot du 17 octobre 2026
+
+**Premier lot C2 validé dans l’extension réelle ; J5 reste en cours.** Dans **Regrouper les fichiers → Copies identiques**, comparaison de la sélection, du dossier ou des références de l’espace suivi par taille et empreinte BLAKE3 complète. Fichiers vides inclus, TIFF comparables sans décodage Chrome, références modifiées et limites séparées. Aucune suppression ni déplacement automatique.
+
+200 références contrôlées, 100 empreintes au maximum, 64 Mio par fichier et budget de nouvelles lectures de 256 Mio ; progression, arrêt et réponses tardives ignorées. Cache de 100 empreintes en mémoire, revérifié par métadonnées précises avant réutilisation et effacé après notification du périmètre. Compagnon mis à jour, aucune dépendance ni permission supplémentaire. Compilation et 185 tests TypeScript, suite Go et recette Chromium/compagnon réussis ; [usage, preuves et limites](C2_COPIES_IDENTIQUES.md).
+
+La suite de ce premier lot est désormais implémentée dans le lot J5 décrit en tête de document. J7, J1.7 sur Windows propre et l’IA restent distincts.
+
+
+## J4 — organisation et recherche locales, 17 octobre 2026
+
+**Prototype J4 validé localement : compilation, 176 tests TypeScript et recette J4 avec le compagnon réussis.** Recherche lexicale dans un dossier choisi et ses sous-dossiers, rapprochement de vocabulaire TF-IDF, règles de mots-clés, recherche commune fichiers/liens/espaces, tags multiples, tailles de dossiers et préférences exportables. Aucun modèle d’IA ajouté.
+
+- **Recherche locale** ou **Ctrl+Maj+F** : index de 1 000 entrées / 100 dossiers / profondeur 8, extraits TXT/Markdown bornés, origine déclarée contrôlée pour 20 fichiers. Réindexation après changement, résultats périmés masqués, arrêt et effacement. PDF textuel : connecteur **pdftotext** optionnel, moteur absent du paquet et extraction réelle non validée ici ; aucun OCR.
+- **Tags** : 32 tags colorés, 2 000 chemins, attribution/retrait par lots, filtre et tri ; les associations suivent les renommages et déplacements natifs réussis. Changements externes non réconciliés automatiquement.
+- **Réglages et moteurs** : thème système/clair/sombre, couleurs, navigation/sélection, miniatures/extensions, colonnes et unités, affichages/tri par dossier, démarrage et accueil configurables, raccourcis contrôlés, menus et export/import explicite des préférences/tags/règles/vues. L’index et les fichiers sont exclus de cet export.
+- **Tailles et grands dossiers** : totaux natifs disponibles dans les listes et leur tri ; calcul annulable via l’activité. Listes natives bornées avec avertissement et filtre par nom ; affichage Colonnes de dossiers en complément des huit modes précédents.
+
+Voir [le guide J4 et ses limites](J4_ORGANISATION_RECHERCHE.md). **Suite : J5/C2**, puis J7 et seulement ensuite A0/A1. La recette Windows propre J1.7 reste ouverte.
+
+## Historique avant J4 — palier C1, organisation réutilisable, 17 octobre 2026
+
+**Palier C1 du prototype validé localement.** Compilation, 161 tests et recettes navigateur/compagnon réussis. La recherche textuelle C3 et le reste de J4 viennent ensuite ; J1.7 sur Windows propre reste ouvert.
+
+Dans **Regrouper les fichiers**, les sept choix sont **Format**, **Nom apparenté**, **Date de modification**, **Taille**, **Relations enregistrées**, **Destination proposée** et **Origine web**. Sélection, dossier courant ou références de l’espace suivi ; analyse explicite, non récursive et limites visibles.
+
+- **Taille :** fichiers vides, moins de 1 Mio, 1 à moins de 10 Mio, 10 à moins de 100 Mio et 100 Mio ou plus. Taille de l’instantané ; valeurs invalides séparées, aucune preuve de doublon.
+- **Familles manuelles :** sélectionnez de 2 à 20 fichiers puis **Familles enregistrées → Relier la sélection**, ou dépliez un groupe et choisissez **Enregistrer une famille**. Donnez un nom puis confirmez ; les métadonnées doivent toujours concorder avant stockage. 50 familles locales, noms distincts, données illisibles et modifications concurrentes refusées sans écraser les autres familles. **Retirer** enlève seulement le lien.
+- **Relations enregistrées :** liens manuels et sources/copies des nouvelles préparations, y compris hors du dossier choisi. Les nouvelles préparations conservent les sources au lancement et les premières copies vérifiées ; les anciennes sans sources ne sont pas rattachées par déduction. Il s’agit du lien de la préparation entière, sans correspondance source/copie individuelle inventée. Jusqu’à 200 fichiers contrôlés et 1 000 références candidates ; références modifiées/absentes et non vérifiées séparées. Relance explicite, arrêt et réponses tardives ignorées ; les changements du suivi entre vues effacent les résultats périmés.
+- **Créer une règle :** dans un groupe avec extension commune ou origine web commune contrôlée, ouvrez le brouillon H07 prérempli. Vérifiez nom, critères et dossier puis enregistrez. Aucun fichier déplacé, aucune règle enregistrée à l’ouverture ou après annulation. Règle manuelle par défaut ; l’automatisme garde son activation explicite et sa permission. Le brouillon manuel est utilisable sans permission Chrome downloads.
+
+Les familles et liens de préparations restent dans ce profil, synchronisés entre ses vues ; ils ne font pas partie de l’export d’un espace. Les références enregistrent chemins, noms, taille et date ; elles ne suivent pas automatiquement les déplacements/renommages et ne prouvent pas le contenu. Aucun document/image ouvert par Taille ou Relations, aucun nouveau moteur, permission ou dépendance. Le TIFF de recette de 24 Mio reste sans décodage Chrome. Les limites des transferts confirmés et des JSON de provenance voisins non transférés restent celles des lots précédents.
+
+**Rapprochements approximatifs :** Jaccard et Levenshtein mesurés sur 20 paires synthétiques ; tous les seuils essayés produisent des faux positifs. Ils ne sont pas proposés dans l’application. Voir [les résultats et la décision](EVALUATION_CLASSEMENT.md). Les noms normalisés exacts et les liens choisis restent disponibles ; aucune justesse sur un corpus personnel n’est annoncée.
+
+**Validation C1 du 17 octobre :** compilation et 161 tests TypeScript réussis ; parcours navigateur complet et recette complète Chromium/compagnon réels, incluant J3 et H07 automatique toutes vues fermées. Familles créées après contrôle, fichier changé bloquant le stockage, relations périmées séparées, copie JPEG réelle reliée à son original hors dossier, brouillon manuel annulé/enregistré sans transfert, synchronisation/retrait entre vues, limites 200/1 000/1 003 et arrêt sans résultat tardif. Clavier, 320/390/1024 px, thèmes inspectés et SHA256 des originaux conservés. Dernier build revérifié par recette native ciblée après ajustement des libellés et du focus. Logs `check-c1-pallier-final.log`, `families-focused-final.log`, `browser-c1-pallier-final.log` et `extension-c1-pallier.log` ; [procédure](RECETTE_HYBRIDE.md#complément-j4--c1--organisation-réutilisable) et [mesure des noms approchants](EVALUATION_CLASSEMENT.md). Paquet, installateur et kit Windows reconstruits ; kit préparé uniquement, J1.7 non exécuté.
+
+
+**Suite de ce palier C1 à l’époque : C3 et les autres éléments J4**, désormais implémentés dans le lot décrit en tête du document ; prochaine étape actuelle : J5/C2 puis J7. J1.7 reste ouvert et obligatoire avant bêta ; aucune IA lancée.
+
+## Lots C1 précédents — 11 octobre 2026
 
 **Destinations selon l’origine web (cinquième lot C1, 11 octobre 2026) :** dans **Destination proposée**, cochez **Tenir compte des origines web (.source.json)** puis **Regrouper**. Option décochée à l’ouverture, compagnon requis. Jusqu’à 20 fichiers contrôlés ; seuls les JSON voisins réguliers de 64 Kio maximum sont lus. Les règles actives H07 utilisent le domaine exact de l’origine déclarée et l’extension, avec leur priorité et leurs conflits habituels ; protocole et port ne distinguent pas ces règles. La règle retenue et l’adresse épurée sont visibles. Provenances absentes, invalides, trop lourdes ou fichiers non analysés restent sans destination dans ce mode ; désactivez l’option pour les règles d’extension seules. Aucun site visité, document/image lu ou fichier déplacé au regroupement.
 
@@ -26,7 +202,7 @@ Dans un groupe de **20 fichiers maximum**, **Examiner le transfert** ouvre la co
 
 Analyse à la demande, non récursive, jusqu’à 1 000 entrées ; le dossier ignore le filtre de recherche et conserve le choix des fichiers cachés. Une vue partielle est annoncée, les dossiers/liens sont exclus et les réponses reçues après arrêt/fermeture sont ignorées. Les groupes restent des instantanés : Format/Nom/Date/Destination sans l’option origine ne revérifient pas les références d’espace ; Origine et Destination avec cette option contrôlent leurs métadonnées sans les actualiser et exclut les `.source.json`. Destination les exclut également ; les fichiers sont revérifiés à la confirmation du transfert uniquement. Les catégories par extension ne prouvent pas le format réel. Le compagnon existant énumère encore tout le dossier pour construire son instantané ; ce plafond ne borne pas ce travail natif.
 
-**J4 continue :** compléter C1 avec les autres métadonnées, relations d’exports connues et liens manuels, nouvelles règles proposées, extension des aperçus/revalidations. Le suivi actuel des préparations ne conserve pas les sources : il ne permet pas de reconstruire une filiation source/copie. Les rapprochements approximatifs demandent une mesure des faux positifs. Puis C3 (extraction et recherche textuelle), tags et autres compléments d’organisation. Les corpus synthétiques C0/C1 comprennent des noms ambigus, fichiers numérotés, versions/copies, provenances valides/invalides, dossiers mixtes, un fichier de 24 Mio nommé TIFF et 1 003 entrées pour le plafond ; ce n’est ni une mesure d’adoption ni une évaluation sémantique. J1.7 reste une validation séparée, obligatoire avant bêta sur des fichiers personnels ; les recettes fonctionnelles utilisent des fichiers isolés.
+**État historique au 11 octobre :** compléter C1 avec les autres métadonnées, relations d’exports connues et liens manuels, nouvelles règles proposées, extension des aperçus/revalidations. Le suivi actuel des préparations ne conserve pas les sources : il ne permet pas de reconstruire une filiation source/copie. Les rapprochements approximatifs demandent une mesure des faux positifs. Puis C3 (extraction et recherche textuelle), tags et autres compléments d’organisation. Les corpus synthétiques C0/C1 comprennent des noms ambigus, fichiers numérotés, versions/copies, provenances valides/invalides, dossiers mixtes, un fichier de 24 Mio nommé TIFF et 1 003 entrées pour le plafond ; ce n’est ni une mesure d’adoption ni une évaluation sémantique. J1.7 reste une validation séparée, obligatoire avant bêta sur des fichiers personnels ; les recettes fonctionnelles utilisent des fichiers isolés.
 
 **Validation C0 :** 131 tests TypeScript et compilation, parcours navigateur complet, recette complète de l’extension/compagnon réels et contrôle ciblé du dernier build réussis. Sélection/dossier/espace, catégories persistées, conflit entre vues refusé puis nouveau brouillon utilisable, absence de `FS_READ`, plafond 1 000/1 003, fichiers intacts et retour au dossier déjà ouvert contrôlés. Thèmes clair/sombre inspectés, contraste du bouton principal et clavier vérifiés, formulaire contenu à 320/390/1024 px. Regroupement du corpus mixte en environ 2,1 s dans la recette ciblée locale ; aucune comparaison de parcours humains. Logs `browser-c0-final.log`, `extension-c0-final.log` et `c0-focused-final.log` dans `test-results/` ; captures finales inspectées. Les parcours J3 et le rangement automatique toutes vues fermées restent réussis. Preuves et limites dans le [complément C0 de la recette](RECETTE_HYBRIDE.md#complément-j4--c0--groupes-virtuels).
 
@@ -137,9 +313,9 @@ Priorité utilisateur : **classer documents et images**, puis les retrouver par 
 | Lot | Travail à construire | Condition de sortie |
 | --- | --- | --- |
 | **C0 — cadrage et groupes en lecture seule** | **Premier lot livré le 11 octobre :** groupes par extension, catégories choisies par l’utilisateur et périmètre sélection/dossier/références de l’espace suivi. Corpus français synthétique et mesure du temps de regroupement dans la recette. | Documents/images, noms ambigus, dossiers mixtes et fichier nommé TIFF de 24 Mio ; aucun déplacement ni lecture du contenu. Analyse non récursive, 1 000 entrées et omissions visibles. Observation de parcours réels et mesures auprès d’utilisateurs restent à mener ; J1.7 reste ouvert. |
-| **C1 — classement par indices explicites** | **Lots dans J4 :** familles par égalité des noms normalisés, mois de modification et sites d’origine déclarés via `.source.json`, motifs et cas incertains séparés, sans déplacement. Origine : 20 fichiers, JSON de 64 Kio, métadonnées contrôlées. **Reste :** autres métadonnées, mesure des rapprochements approximatifs par tokens/Jaccard ou Levenshtein ; relations d’exports connues et liens manuels ; propositions de dossiers et règles réutilisant H07/J2. | Motif lisible pour chaque proposition, catégories modifiables, cas incertains laissés sans classement. Provenance déclarative, pas d’authenticité prouvée. Aperçu et revalidation avant toute application choisie ; aucune nouvelle règle automatique activée implicitement. C1 reste partiel. |
-| **C2 — copies et variantes** | **Dans J5, après la fondation J4.** Réutiliser les hashes de contenu existants pour les copies identiques ; comparer des miniatures bornées par hash perceptuel pour les variantes d'images. Caches invalidés après changement, analyse progressive et annulable. | Copies identiques séparées des ressemblances ; aucune suppression automatique. Pas de décodage intégral de gros TIFF dans Chrome ; extraction native isolée avec plafonds de temps/mémoire, annulation et fichier non traité expliqué. |
-| **C3 — contenu textuel classique** | **Dans J4, avec l'extraction et l'index.** Extraction locale bornée TXT/Markdown puis PDF avec texte et autres formats effectivement supportés ; règles de mots-clés, TF-IDF/cosinus pour rapprocher des textes et recherche lexicale dans l'espace choisi. Construire la base d'index J4/H10 progressivement. | Sources, limites/troncatures et formats visibles ; ajout/modification/suppression correctement répercutés. Similarité de vocabulaire présentée comme telle. Scans sans texte signalés ; OCR et apprentissage automatique hors de ce lot sans IA. |
+| **C1 — classement par indices explicites** | **Palier du prototype validé localement le 17 octobre :** noms normalisés, dates, tailles et origine déclarée ; familles manuelles, liens des nouvelles préparations, dossiers proposés et brouillons H07 réutilisables. Évaluation Jaccard/Levenshtein documentée ; approximation non proposée en raison des faux positifs. | Motifs visibles, catégories modifiables, références périmées/non vérifiées séparées. Stockage de liens sans déplacer, nouvelle règle après confirmation uniquement, transferts avec aperçu et revalidation. Métadonnées déclaratives sans preuve du contenu ; recettes utilisateurs réels et J1.7 distinctes. |
+| **C2 — copies et variantes** | **Premier lot livré le 17 octobre : copies identiques BLAKE3**, sélection/dossier/espace, cache vérifié et analyse bornée/annulable. [Limites et preuves](C2_COPIES_IDENTIQUES.md). Reste à développer : miniatures natives isolées et hash perceptuel pour les variantes d’images. | Copies identiques séparées des ressemblances ; aucune suppression automatique. Pas de décodage intégral de gros TIFF dans Chrome ; l’extraction visuelle devra avoir ses plafonds de temps/mémoire, son arrêt et un motif par fichier non traité. |
+| **C3 — contenu textuel classique** | **Implémenté le 17 octobre dans le prototype J4.** TXT/Markdown et sources texte bornés, règles de mots-clés, TF-IDF/cosinus, index choisi et recherche H10. Connecteur PDF optionnel sans moteur fourni ni qualification PDF réelle sur ce poste ; OCR absent. [Périmètre livré](J4_ORGANISATION_RECHERCHE.md). | Sources, limites/troncatures et formats visibles ; ajout/modification/suppression correctement répercutés. Similarité de vocabulaire présentée comme telle. Scans sans texte signalés ; OCR et apprentissage automatique hors de ce lot sans IA. |
 | **A0 — choisir l'IA sur des mesures** | **Après J7, recette du socle gratuit.** Comparer le socle classique avec un petit moteur d'embeddings pour le classement et la recherche. EmbeddingGemma 2 est un candidat à tester, pas une dépendance acquise. Choisir un seul moteur initial selon qualité française, texte/images, taille et ressources. | Gain sur les mêmes tâches, essai sur PC moins puissant, téléchargement explicite, cache/version, hors ligne et annulation vérifiés. Taille réelle du paquet, RAM/VRAM, temps et limitations documentés ; pas de promesse de toutes les capacités IA avec un modèle. |
 | **A1 — premier pack local utile** | Classement assisté selon le contenu et catégories/exemples choisis ; recherche par sens dans l'espace autorisé. IA01/IA04 et partie recherche visuelle d'IA08 selon les résultats A0. | Suggestions corrigeables avec origine du résultat ; pas de justification inventée ni de déplacement déduit du score seul. Documents et images évalués séparément ; index versionné, données effaçables, revalidation J2 avant action. |
 | **B0 — activation et apparence** | Entrée « Unleash the Beast / Activer l'IA locale », bénéfices, compatibilité, téléchargement, premier résultat et désactivation. Introduire le thème Incandescence dans les rôles Material 3 existants. | Actions explicites ; thème gratuit et sélectionnable indépendamment de la licence et du moteur ; contraste, clavier, mouvement réduit et panneau étroit vérifiés. Aucun achat proposé pour une capacité incompatible. |
@@ -149,7 +325,7 @@ Priorité utilisateur : **classer documents et images**, puis les retrouver par 
 
 Le [plan de rentabilisation](PLAN_RENTABILISATION.md) décrit le socle gratuit, l'offre Pro candidate, les coûts et les critères commerciaux. A2–A4 restent des extensions ultérieures : consignes web, résumés, OCR, légendes et recettes naturelles nécessitent leurs propres moteurs et validations. Aucune obligation d'ajouter un serveur local permanent ou plusieurs backends ; A0 tranche d'abord la solution la plus légère utile.
 
-**État au 11 octobre : C0 fonctionnel ; C1 livré partiellement par noms, mois de modification et origines web déclarées. Le reste de C1 demeure à développer. C2/C3, A0/A1 et B0–B3 restent en conception, non commencés.** J3 est validé dans le périmètre du prototype ; la suite est de compléter C1 dans J4. Aucun modèle téléchargé ni IA activée. Un seul lot utilisateur à la fois, avec la recette d’installation J1.7 comme fondation séparée.
+**Historique au 11 octobre : C0 fonctionnel ; C1 livré partiellement par noms, mois de modification et origines web déclarées. Le reste de C1 demeure à développer. C2/C3, A0/A1 et B0–B3 restent en conception, non commencés.** J3 est validé dans le périmètre du prototype ; la suite est de compléter C1 dans J4. Aucun modèle téléchargé ni IA activée. Un seul lot utilisateur à la fois, avec la recette d’installation J1.7 comme fondation séparée.
 
 ## Ordre d'avancement
 
@@ -159,8 +335,8 @@ Le [plan de rentabilisation](PLAN_RENTABILISATION.md) décrit le socle gratuit, 
 | **J1 — Installation et protocole fiables** | Installateur unique, chemins stables, handshake de versions/capacités, composants vérifiés, écran d'accueil et réparation. Préparer la boutique, les identifiants, la signature et la désinstallation. | Parcours sur machine propre, sans console ; publication/signature distinguées des tests locaux. Les dépendances optionnelles ne bloquent pas l'exploration. |
 | **J2 — Opérations de fichiers solides** | Onglets/double panneau utilisables, collisions/fusion, journal de base, corbeille, annulation au périmètre explicite, extraction ZIP/7z/RAR en lecture selon moteur, erreurs et reconnexion. Commencer la persistance des jobs et le modèle des espaces. | Deux dossiers et une archive peuvent être manipulés sans surprise ; tests de fichiers existants, interruptions, chemins dangereux et droits refusés. |
 | **J3 — Première version hybride complète** | H01–H09 et H12 : panier clair, captures vers un dossier, origine des ressources, téléchargements classés, préparation et insertion dans des formulaires, espace réunissant pages et dossiers. S'appuie sur J1/J2 ; reprend les fonctions existantes. | Deux scénarios grand public fonctionnent de bout en bout sur des sites témoins ; destination et fichiers explicités, aucune soumission automatique. Première bêta ciblée possible. |
-| **J4 — Organisation et recherche locales** | Recherche indexée et filtres, taille des dossiers, tags, vues/colonnes, regroupements, accueil configurable, raccourcis, préférences de navigation/apparence et recherche hybride H10. Inclut C0/C1/C3. | Résultats cohérents après modifications ; limites de l'index visibles ; préférences et tags conservés/exportables ; mesures de réactivité sur gros dossiers. |
-| **J5 — Médias, automatisation et tâches durables** | Gros aperçus, conversions avec préréglages, recettes explicites, archives avancées, hashes, reprise durable et worker indépendant pour les opérations locales. Inclut C2, copies et variantes visuelles bornées. | Fermeture/réouverture n'entraîne aucun rejeu d'opération ; consommation mémoire bornée ; fonctions qui continuent ou se suspendent clairement indiquées. |
+| **J4 — Organisation et recherche locales** | Recherche indexée et filtres, taille des dossiers, tags, vues/colonnes, regroupements, accueil configurable, raccourcis, préférences de navigation/apparence et recherche hybride H10. Inclut C0/C1/C3. | Prototype livré le 17 octobre : résultats invalidés/reconstruits après changements, plafonds visibles, tags/préférences/règles/vues exportables. Recette et limites dans le guide J4 ; formats optionnels et distribution à qualifier en J7. |
+| **J5 — Médias, automatisation et tâches durables** | Prototype implémenté : aperçus natifs bornés, flux médias locaux, préréglages/recette ZIP, archives ZIP/7z chiffrées, hashes et variantes visuelles C2, file durable et worker indépendant. | Fermeture/réouverture sans rejeu vérifiée ; reprise explicite aux étapes sûres, états ambigus bloqués. Plafonds et fonctions qui continuent/s’arrêtent documentés dans le [guide J5](J5_MEDIAS_TACHES.md). Qualification globale en J7 et Windows propre J1.7 à faire. |
 | **J7 — Recette du périmètre local et distribution** | Rejouer les recettes F/H retenues dans le paquet final ; accessibilité, charge, compatibilité navigateurs, update/rollback, notices, aide et, pour Pro, parcours d'achat. | Matrice locale à jour, limites publiées, installation autonome et essais utilisateurs réussis. Aucune recette cloud, FTP ou parité complète avec Files exigée. |
 
 J1 et J2 précèdent toute bêta exposant des fichiers personnels. La préparation des recettes web et du contenu de boutique peut avancer pendant ces jalons. Clôturer J3, puis J4 (C0/C1/C3) et J5 (C2). J6 étant retiré, J7 valide ensuite le socle gratuit avant A0/A1 et Beast. Une recette complémentaire J7 couvre les ajouts Pro et le paiement lors de B2. Les identifiants existants sont conservés pour le suivi.
@@ -272,7 +448,7 @@ Le parcours Chrome avec compagnon réel a également été validé pour la J2.5 
 5. **Transport contraint.** L'interface orchestre ; le natif exécute les opérations lourdes. Débit, taille des blocs, annulation et reconnexion doivent être conçus avant de lever les plafonds actuels.
 6. **Autorité explicite.** Le site ne peut pas commander le disque : opérations validées dans l'extension, messages contrôlés, permissions demandées au besoin, chemins et destination affichés pour les envois. Ne jamais convertir un simple message de page en commande native arbitraire.
 
-Le worker autonome de J5 reste une évolution de l'architecture actuelle. Les traitements lourds locaux utilisent le compagnon ; les nouveaux composants ne se justifient que par un usage local retenu et mesuré. Le glisser-déposer Windows existant fait partie des parcours hybrides ; le programme de nouveaux ponts système et d'intégrations tierces de J6 est retiré.
+Le worker autonome J5 est désormais implémenté pour les tâches locales autorisées, avec transport nommé réservé à l’utilisateur Windows et états durables bornés. Les aperçus gardent un processus lié au navigateur ; seuls les flux médias utilisent une adresse temporaire sur la boucle locale. Le glisser-déposer Windows existant fait partie des parcours hybrides ; les projets cloud, FTP et nouvelles intégrations tierces de J6 restent retirés.
 
 ## Définition de terminé et suivi
 

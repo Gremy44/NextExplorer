@@ -17,9 +17,15 @@ import {
   Square,
   TableProperties,
   type LucideIcon,
+  Columns3,
+  Tags,
+  FileType,
 } from "lucide-react";
 import { CardPreview, FileIcon } from "./Preview";
 import { size, type Entry } from "./types";
+import { useOrganization } from "./OrganizationContext";
+import { displaySize } from "./preferences";
+import { fileKey } from "./file-families";
 
 export const fileViews = [
   {
@@ -94,6 +100,15 @@ export const fileViews = [
     width: 0,
     height: 104,
   },
+  {
+    value: "columns",
+    label: "Colonnes de dossiers",
+    icon: Columns3,
+    layout: "compact",
+    iconSize: 18,
+    width: 0,
+    height: 40,
+  },
 ] as const;
 export type ViewMode = (typeof fileViews)[number]["value"];
 export const fileView = (mode: ViewMode) =>
@@ -109,6 +124,8 @@ export function restoreViewMode(
   );
 }
 const fileSorts = [
+  { value: "type:asc", label: "Type de fichier", icon: FileType },
+  { value: "tags:asc", label: "Tags A–Z", icon: Tags },
   { value: "name:asc", label: "Nom A–Z", icon: ArrowDownAZ },
   { value: "name:desc", label: "Nom Z–A", icon: ArrowUpAZ },
   { value: "mtime:desc", label: "Plus récents", icon: CalendarArrowDown },
@@ -138,6 +155,12 @@ function FileOptionsMenu({
   useEffect(() => {
     if (!open) return;
     const close = (event: Event) => {
+      if (
+        event.type === "scroll" &&
+        event.target instanceof Node &&
+        !event.target.contains(trigger.current)
+      )
+        return;
       if (
         !(event.target instanceof Node) ||
         !menu.current?.contains(event.target)
@@ -315,11 +338,41 @@ export function FileEntryContent({
   entry,
   mode,
   interactive = true,
+  customDetails = false,
+  detailColumns,
 }: {
   entry: Entry;
   mode: ViewMode;
   interactive?: boolean;
+  customDetails?: boolean;
+  detailColumns?: string[];
 }) {
+  const { preferences, tags, sizes } = useOrganization();
+  const columns = detailColumns || preferences.columns;
+  const bytes = (n: number) => displaySize(n, preferences.units);
+  const folderSize = sizes[fileKey(entry.path)];
+  const fileSize =
+    entry.type === "directory"
+      ? folderSize
+        ? `${folderSize.partial ? "≥ " : ""}${bytes(folderSize.size)}`
+        : "—"
+      : bytes(entry.size);
+  const name =
+    preferences.extensions || entry.type !== "file" || !entry.ext
+      ? entry.name
+      : entry.name.slice(0, -entry.ext.length);
+  const labels = (tags.files[fileKey(entry.path)] || [])
+    .map((id) => tags.labels.find((tag) => tag.id === id))
+    .filter((tag) => !!tag);
+  const chips = (
+    <span className="tag-chips">
+      {labels.map((tag) => (
+        <small key={tag.id} className={`tag-chip tag-${tag.color}`}>
+          {tag.name}
+        </small>
+      ))}
+    </span>
+  );
   const view = fileView(mode);
   const date = new Date(entry.mtime * 1000).toLocaleDateString("fr-FR", {
     day: "2-digit",
@@ -335,23 +388,35 @@ export function FileEntryContent({
           ? entry.ext.slice(1).toUpperCase()
           : "Fichier";
   const description =
-    entry.type === "directory" ? format : `${format} · ${size(entry.size)}`;
+    entry.type === "directory"
+      ? `${format}${folderSize ? " · " + fileSize : ""}`
+      : `${format} · ${fileSize}`;
   if (view.layout === "details" || view.layout === "compact")
     return (
       <>
         <span className="file-name">
           <FileIcon entry={entry} size={view.iconSize} />
-          <span>{entry.name}</span>
+          <span>{name}</span>
+          {!customDetails && chips}
           {entry.type === "symlink" && <small>lien</small>}
         </span>
         {view.layout === "details" && (
           <>
-            <time dateTime={new Date(entry.mtime * 1000).toISOString()}>
-              {date}
-            </time>
-            <span className="file-size">
-              {entry.type === "directory" ? "—" : size(entry.size)}
-            </span>
+            {(!customDetails || columns.includes("mtime")) && (
+              <time
+                className="detail-date"
+                dateTime={new Date(entry.mtime * 1000).toISOString()}
+              >
+                {date}
+              </time>
+            )}
+            {(!customDetails || columns.includes("size")) && (
+              <span className="file-size detail-size">{fileSize}</span>
+            )}
+            {customDetails && columns.includes("type") && (
+              <span className="detail-type">{format}</span>
+            )}
+            {customDetails && columns.includes("tags") && chips}
           </>
         )}
       </>
@@ -359,7 +424,8 @@ export function FileEntryContent({
   return (
     <>
       <span className="file-item-visual">
-        {view.layout === "icons" || view.layout === "content" ? (
+        {preferences.thumbnails &&
+        (view.layout === "icons" || view.layout === "content") ? (
           <CardPreview
             entry={entry}
             iconSize={view.iconSize}
@@ -370,7 +436,8 @@ export function FileEntryContent({
         )}
       </span>
       <span className="file-item-info">
-        <span className="file-item-name">{entry.name}</span>
+        <span className="file-item-name">{name}</span>
+        {chips}
         <small>{description}</small>
         {view.layout === "content" && (
           <time dateTime={new Date(entry.mtime * 1000).toISOString()}>

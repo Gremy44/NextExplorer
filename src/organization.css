@@ -1,0 +1,300 @@
+.app button[hidden] {
+  display: none;
+}
+.organization-dialog {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+  min-width: 0;
+}
+.organization-dialog > * {
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+.organization-dialog input,
+.organization-dialog select,
+.organization-dialog textarea {
+  min-width: 0;
+}
+.modal:has(.organization-dialog) > header strong {
+  white-space: normal;
+}
+.organization-dialog fieldset {
+  border: 1px solid var(--line);
+  border-radius: var(--md-sys-shape-corner-medium);
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+  min-width: 0;
+}
+.organization-dialog legend {
+  font-weight: 600;
+  padding: 0 8px;
+}
+.organization-dialog > p {
+  margin: 0;
+}
+.organization-dialog small {
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+.organization-dialog button,
+.organization-dialog a {
+  min-height: 44px;
+  min-width: 0;
+  max-width: 100%;
+  white-space: normal;
+}
+.organization-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.organization-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: end;
+}
+.organization-filters > label {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+  flex: 1 1 140px;
+}
+.organization-filters input,
+.organization-filters select {
+  max-width: 100%;
+  width: 100%;
+}
+.organization-record {
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--md-sys-shape-corner-medium);
+  background: var(--panel);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 8px;
+  overflow-wrap: anywhere;
+}
+.organization-record > button {
+  justify-content: start;
+  text-align: left;
+}
+.organization-record > button span {
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+}
+.organization-record p {
+  margin: 0;
+  white-space: pre-wrap;
+}
+.organization-check {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 44px;
+}
+.organization-check input {
+  flex: 0 0 auto;
+  width: 20px;
+  height: 20px;
+}
+.organization-dialog details > summary {
+  cursor: pointer;
+  min-height: 44px;
+  padding: 12px;
+  border-radius: var(--md-sys-shape-corner-small);
+  background: var(--panel);
+}
+.organization-dialog details[open] {
+  display: grid;
+  gap: 12px;
+}
+.organization-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  overflow-wrap: anywhere;
+  color: var(--accent);
+}
+.organization-link span {
+  display: grid;
+  min-width: 0;
+}
+.organization-pane-filters {
+  padding: 0 16px 12px;
+  border-bottom: 1px solid var(--line);
+  max-height: 35%;
+  overflow-y: auto;
+  flex-shrink: 0;
+}
+.organization-pane-filters[hidden] {
+  display: none;
+}
+.organization-filter-toggle {
+  flex: 0 0 auto;
+  position: relative;
+}
+.organization-filter-count {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  border-radius: var(--md-sys-shape-corner-full);
+  background: var(--md-sys-color-primary);
+  color: var(--md-sys-color-on-primary);
+  font-size: 11px;
+  line-height: 18px;
+}
+.organization-pane-filters .organization-actions {
+  margin-top: 8px;
+}
+.tag-chips {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  min-width: 0;
+}
+.tag-chip {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  padding: 3px 8px;
+  border-radius: var(--md-sys-shape-corner-full);
+  font-size: 11px;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.tag-primary {
+  color: var(--md-sys-color-on-primary-container);
+  background: var(--md-sys-color-primary-container);
+}
+.tag-tertiary {
+  color: var(--bg);
+  background: var(--md-sys-color-tertiary);
+}
+.tag-error {
+  color: var(--md-sys-color-on-error);
+  background: var(--md-sys-color-error);
+}
+.tag-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: var(--md-sys-shape-corner-full);
+}
+.file-item:has(.file-checkbox) {
+  position: relative;
+  padding-left: 34px;
+}
+.file-checkbox {
+  position: absolute;
+  left: 8px;
+  width: 18px;
+  height: 18px;
+  z-index: 1;
+}
+.file-row:has(.file-checkbox) {
+  padding-left: 34px;
+}
+.pane .file-row > .tag-chips {
+  max-height: 32px;
+  overflow: hidden;
+}
+.directory-columns {
+  display: flex;
+  flex: 0 0 auto;
+  max-height: 240px;
+  overflow: auto;
+  border-block: 1px solid var(--line);
+  background: var(--panel);
+}
+.directory-columns > section {
+  flex: 1 0 180px;
+  max-width: 320px;
+  min-width: 0;
+  overflow: auto;
+  border-right: 1px solid var(--line);
+  padding: 4px;
+}
+.directory-columns button {
+  width: 100%;
+  justify-content: flex-start;
+  min-height: 40px;
+  text-align: left;
+  overflow-wrap: anywhere;
+}
+.directory-columns small {
+  display: block;
+  padding: 8px;
+}
+.tab-actions {
+  position: relative;
+  flex: 0 0 auto;
+}
+.tab-actions > summary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--md-sys-shape-corner-full);
+  cursor: pointer;
+}
+.tab-actions > div {
+  position: absolute;
+  top: 44px;
+  right: 0;
+  z-index: 50;
+  min-width: 210px;
+  padding: 8px;
+  background: var(--raised);
+  border: 1px solid var(--line);
+  border-radius: var(--md-sys-shape-corner-medium);
+}
+.tab-actions button {
+  width: 100%;
+  min-height: 44px;
+  justify-content: start;
+}
+:root[data-accent="green"] {
+  --md-sys-color-primary: #9fd5b3;
+  --md-sys-color-on-primary: #003821;
+  --md-sys-color-primary-container: #1d5137;
+  --md-sys-color-on-primary-container: #baf1ce;
+}
+:root[data-theme="light"][data-accent="green"] {
+  --md-sys-color-primary: #336a49;
+  --md-sys-color-on-primary: #ffffff;
+  --md-sys-color-primary-container: #b6f1c8;
+  --md-sys-color-on-primary-container: #00210d;
+}
+:root[data-accent="purple"] {
+  --md-sys-color-primary: #d0bcff;
+  --md-sys-color-on-primary: #381e72;
+  --md-sys-color-primary-container: #4f378b;
+  --md-sys-color-on-primary-container: #eaddff;
+}
+:root[data-theme="light"][data-accent="purple"] {
+  --md-sys-color-primary: #6750a4;
+  --md-sys-color-on-primary: #ffffff;
+  --md-sys-color-primary-container: #eaddff;
+  --md-sys-color-on-primary-container: #21005d;
+}
+@media (max-width: 600px) {
+  .organization-dialog {
+    gap: 12px;
+  }
+  .organization-actions > button {
+    flex: 1 1 130px;
+  }
+  .organization-dialog fieldset {
+    padding: 12px;
+  }
+}

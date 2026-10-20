@@ -13,7 +13,6 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
-	"strconv"
 	"strings"
 	"time"
 )
@@ -36,7 +35,7 @@ func toolPath(name string) (string, error) {
 }
 func toolCapabilities() M {
 	m := M{}
-	for _, n := range []string{"ffmpeg", "ffprobe", "magick", "exiftool", "7z", "yt-dlp", "git", "code"} {
+	for _, n := range []string{"ffmpeg", "ffprobe", "magick", "exiftool", "7z", "yt-dlp", "git", "code", "pdftotext"} {
 		_, e := toolPath(n)
 		m[n] = e == nil
 	}
@@ -57,6 +56,9 @@ func commandOutput(ctx context.Context, name string, args []string, dir string) 
 	if e != nil {
 		return "", e
 	}
+	if name == "magick" {
+		args = append([]string{"-limit", "memory", "128MiB", "-limit", "map", "256MiB", "-limit", "disk", "256MiB", "-limit", "thread", "2", "-limit", "time", "300"}, args...)
+	}
 	c := exec.CommandContext(ctx, p, args...)
 	c.Dir = dir
 	if name == "magick" {
@@ -71,7 +73,12 @@ func commandOutput(ctx context.Context, name string, args []string, dir string) 
 	var errors limitedBuffer
 	c.Stdout = &out
 	c.Stderr = &errors
-	if e = c.Run(); e != nil {
+	if name == "magick" {
+		e = runImageCommand(c)
+	} else {
+		e = c.Run()
+	}
+	if e != nil {
 		return "", fmt.Errorf("%s : %s %s (%v)", name, out.String(), errors.String(), e)
 	}
 	return out.String(), nil
@@ -150,113 +157,41 @@ func (j *Job) editMetadata(p Payload) (any, error) {
 	}
 	return done, nil
 }
-func (j *Job) convert(p Payload) (any, error) {
-	formats := map[string]bool{}
-	for _, x := range strings.Fields("png jpg jpeg webp avif gif bmp tiff svg mp3 flac aac wav ogg m4a opus mp4 mkv webm mov avi") {
-		formats[x] = true
+func (j *Job) recipe(p Payload) (any, error) {
+	if !p.Archive || len(p.Paths) == 0 || len(p.Paths) > 200 {
+		return nil, fmt.Errorf("recette : conversion de 1 à 200 fichiers puis archive requise")
 	}
-	if !formats[p.Format] {
-		return nil, fmt.Errorf("format non autorisé")
+	if err := validName(p.Name); err != nil {
+		return nil, err
 	}
-	dir, e := validPath(p.Destination)
-	if e != nil {
-		return nil, e
+	if !strings.HasSuffix(strings.ToLower(p.Name), ".zip") {
+		return nil, fmt.Errorf("le nom de l’archive de la recette doit se terminer par .zip")
 	}
-	done := []string{}
-	j.mu.Lock()
-	j.Total = int64(len(p.Paths))
-	j.mu.Unlock()
-	for _, path := range p.Paths {
-		if e = j.check(); e != nil {
-			return done, e
-		}
-		src, e := validPath(path)
-		if e != nil {
-			return done, e
-		}
-		target := filepath.Join(dir, strings.TrimSuffix(filepath.Base(src), filepath.Ext(src))+"."+p.Format)
-		if _, err := os.Lstat(target); !os.IsNotExist(err) {
-			target = uniquePath(target)
-		}
-		temp, e := os.CreateTemp(dir, ".nextexplorer-convert-*."+p.Format)
-		if e != nil {
-			return done, e
-		}
-		tmp := temp.Name()
-		temp.Close()
-		name := "ffmpeg"
-		args := []string{"-nostdin", "-hide_banner", "-loglevel", "error", "-y", "-i", src}
-		image := strings.Contains("|png|jpg|jpeg|webp|avif|gif|bmp|tiff|svg|", "|"+p.Format+"|") && !strings.Contains("|.mp4|.mkv|.mov|.avi|.webm|", "|"+strings.ToLower(filepath.Ext(src))+"|")
-		if image {
-			name = "magick"
-			args = []string{src}
-			if p.Width > 0 {
-				args = append(args, "-resize", fmt.Sprintf("%dx>", min(p.Width, 20000)))
-			}
-			if p.Strip {
-				args = append(args, "-strip")
-			}
-			args = append(args, "-quality", strconv.Itoa(max(1, min(p.Quality, 100))))
-		} else {
-			if p.Mode == "remux" {
-				args = append(args, "-c", "copy")
-			} else {
-				audio := strings.Contains("|mp3|flac|aac|wav|ogg|m4a|opus|", "|"+p.Format+"|")
-				if audio {
-					args = append(args, "-vn")
-					if p.Bitrate > 0 && p.Format != "flac" && p.Format != "wav" {
-						args = append(args, "-b:a", fmt.Sprintf("%dk", max(32, min(p.Bitrate, 512))))
-					}
-					if p.Normalize {
-						args = append(args, "-af", "loudnorm")
-					}
-				} else {
-					if p.Width > 0 {
-						args = append(args, "-vf", fmt.Sprintf("scale=%d:-2", min(p.Width, 7680)))
-					}
-					codecs := map[string]bool{"libx264": true, "libx265": true, "libsvtav1": true, "libvpx-vp9": true, "h264_nvenc": true, "h264_qsv": true, "h264_vaapi": true}
-					if p.Codec != "" {
-						if !codecs[p.Codec] {
-							os.Remove(tmp)
-							return done, fmt.Errorf("codec invalide")
-						}
-						args = append(args, "-c:v", p.Codec)
-					}
-					if p.TargetMB > 0 {
-						out, err := commandOutput(j.ctx, "ffprobe", []string{"-v", "error", "-show_entries", "format=duration", "-of", "default=noprint_wrappers=1:nokey=1", src}, "")
-						duration, pe := strconv.ParseFloat(strings.TrimSpace(out), 64)
-						if err != nil || pe != nil || duration <= 0 {
-							os.Remove(tmp)
-							return done, fmt.Errorf("durée indisponible pour le débit cible")
-						}
-						rate := int(float64(p.TargetMB)*8*1024*1024/duration*.94) - 128000
-						args = append(args, "-b:v", strconv.Itoa(max(rate, 32000)), "-b:a", "128k")
-					}
-				}
-			}
-			if p.Strip {
-				args = append(args, "-map_metadata", "-1")
-			}
-		}
-		args = append(args, tmp)
-		_, e = commandOutput(j.ctx, name, args, "")
-		if e == nil {
-			if _, err := os.Lstat(target); !os.IsNotExist(err) {
-				e = fmt.Errorf("destination apparue pendant la conversion")
-			} else {
-				e = publishFile(tmp, target)
-			}
-		}
-		os.Remove(tmp)
-		if e != nil {
-			return done, e
-		}
-		done = append(done, target)
-		j.progress(1)
+	if _, err := os.Lstat(filepath.Join(p.Destination, p.Name)); !os.IsNotExist(err) {
+		return nil, fmt.Errorf("archive de destination déjà présente")
 	}
-	return done, nil
+	converted, err := j.convert(p)
+	if err != nil {
+		return converted, err
+	}
+	if err = j.check(); err != nil {
+		return converted, err
+	}
+	if err = j.checkpoint(len(p.Paths), true, j.completed); err != nil {
+		return converted, err
+	}
+	archive := p
+	archive.Paths = converted.([]string)
+	result, err := j.zip(archive)
+	return M{"copies": converted, "archive": result}, err
 }
 func (j *Job) zip(p Payload) (any, error) {
+	if p.ArchiveFormat == "7z" || p.Password != "" {
+		return j.advancedArchive(p)
+	}
+	if p.ArchiveFormat != "" && p.ArchiveFormat != "zip" {
+		return nil, fmt.Errorf("format d’archive non pris en charge")
+	}
 	dest, e := validPath(p.Destination)
 	if e != nil {
 		return nil, e
@@ -286,13 +221,15 @@ func (j *Job) zip(p Payload) (any, error) {
 	defer f.Close()
 	w := zip.NewWriter(f)
 	names := map[string]bool{}
+	count := 0
+	var bytes int64
 	for _, path := range p.Paths {
 		base := filepath.Base(path)
-		if names[base] {
+		if names[strings.ToLower(base)] {
 			w.Close()
 			return nil, fmt.Errorf("deux sources portent le même nom")
 		}
-		names[base] = true
+		names[strings.ToLower(base)] = true
 		e = filepath.WalkDir(path, func(a string, d os.DirEntry, err error) error {
 			if err != nil {
 				return err
@@ -307,6 +244,16 @@ func (j *Job) zip(p Payload) (any, error) {
 			if e != nil {
 				return e
 			}
+			count++
+			if !s.IsDir() {
+				bytes += s.Size()
+			}
+			if !s.IsDir() && !s.Mode().IsRegular() {
+				return fmt.Errorf("fichier spécial refusé dans l’archive")
+			}
+			if count > 3000 || (!d.IsDir() && s.Size() > int64(extractMaxFile)) || bytes > int64(extractMaxBytes) {
+				return fmt.Errorf("archive limitée à 3 000 entrées, 256 Mio par fichier et 1 Gio au total")
+			}
 			header, e := zip.FileInfoHeader(s)
 			if e != nil {
 				return e
@@ -316,7 +263,11 @@ func (j *Job) zip(p Payload) (any, error) {
 			if d.IsDir() {
 				header.Name += "/"
 			} else {
-				header.Method = zip.Deflate
+				if p.Store {
+					header.Method = zip.Store
+				} else {
+					header.Method = zip.Deflate
+				}
 			}
 			out, e := w.CreateHeader(header)
 			if e != nil || d.IsDir() {
@@ -327,7 +278,17 @@ func (j *Job) zip(p Payload) (any, error) {
 				return e
 			}
 			defer in.Close()
+			opened, err := in.Stat()
+			if err != nil || !os.SameFile(s, opened) || s.Size() != opened.Size() || !s.ModTime().Equal(opened.ModTime()) {
+				return fmt.Errorf("source d’archive remplacée avant lecture")
+			}
 			_, e = io.Copy(out, &checkedReader{j: j, r: in})
+			if e == nil {
+				after, err := os.Lstat(a)
+				if err != nil || !os.SameFile(s, after) || s.Size() != after.Size() || !s.ModTime().Equal(after.ModTime()) {
+					return fmt.Errorf("source d’archive modifiée pendant lecture")
+				}
+			}
 			return e
 		})
 		if e != nil {

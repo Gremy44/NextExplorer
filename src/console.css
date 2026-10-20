@@ -1,0 +1,168 @@
+@font-face {
+  font-family: "NextExplorer Ubuntu Mono";
+  src: url("/fonts/UbuntuMono-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: "NextExplorer Ubuntu Mono";
+  src: url("/fonts/UbuntuMono-Bold.ttf") format("truetype");
+  font-weight: 700;
+  font-display: swap;
+}
+@font-face {
+  font-family: "NextExplorer JetBrains Mono";
+  src: url("/fonts/JetBrainsMono.ttf") format("truetype");
+  font-weight: 100 800;
+  font-display: swap;
+}
+@font-face {
+  font-family: "NextExplorer Cascadia Mono";
+  src: url("/fonts/CascadiaMono.ttf") format("truetype");
+  font-weight: 200 700;
+  font-display: swap;
+}
+.console-pane {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+}
+.console-toolbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 12px 16px 4px;
+}
+.console-toolbar > strong {
+  flex: 1;
+  font-size: 13px;
+}
+.console-toolbar button {
+  min-height: 32px;
+  padding: 6px 8px;
+  font-size: 12px;
+}
+.console-actions {
+  display: flex;
+  gap: 4px;
+}
+.console-colors-popover {
+  position: fixed;
+  margin: 0;
+  max-width: calc(100vw - 16px);
+  max-height: calc(100vh - 16px);
+  overflow: auto;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--md-sys-shape-corner-medium);
+  background: var(--raised);
+  color: var(--text);
+}
+.console-colors-popover label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 16px;
+  font-size: 12px;
+}
+.console-colors-popover select {
+  width: 100%;
+}
+.console-color-fields,
+.console-font-fields {
+  display: flex;
+  gap: 16px;
+}
+.console-color-fields label,
+.console-font-fields label {
+  flex: 1;
+  min-width: 0;
+}
+.console-color-fields input {
+  width: 100%;
+  min-height: 40px;
+  padding: 4px;
+  cursor: pointer;
+}
+.console-colors-popover p {
+  margin: 16px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+.console-path,
+.console-status,
+.console-hint,
+.console-error {
+  margin: 4px 16px;
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+.console-appearance-note {
+  margin: 4px 16px;
+  padding: 8px;
+  border-radius: var(--md-sys-shape-corner-small);
+  background: var(--md-sys-color-secondary-container);
+  color: var(--md-sys-color-on-secondary-container);
+  font-size: 12px;
+}
+.console-path {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.console-status,
+.console-hint {
+  color: var(--muted);
+}
+.console-status {
+  max-height: 3em;
+  overflow: auto;
+}
+.console-terminal {
+  flex: 1;
+  min-height: 2em;
+  min-width: 0;
+  overflow: hidden;
+  padding: 8px;
+}
+.console-terminal .xterm {
+  height: 100%;
+}
+.console-terminal .xterm-viewport {
+  border-radius: 0;
+}
+.console-hint {
+  padding-bottom: 8px;
+}
+.details-content.console-content {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow: hidden;
+}
+.details-console {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+}
+.details-console[hidden],
+.details-pane[hidden] {
+  display: none;
+}
+.details-tabs {
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+.details-tabs button {
+  flex: 1 1 auto;
+}
+.details-pane.compact:has(> .console-content) {
+  flex-basis: 70%;
+}
+.details-pane.compact:not(.expanded) .console-hint {
+  display: none;
+}

@@ -120,7 +120,11 @@ export async function runFileDestinationJourney({
   }
   async function groups() {
     await page.goto(`${baseURL}?path=${encodeURIComponent(folder)}`);
-    await page.getByRole("option").first().waitFor();
+    await page
+      .getByRole("listbox", { name: "Fichiers", exact: true })
+      .getByRole("option")
+      .first()
+      .waitFor();
     const dialog = await openGroups(page);
     await dialog
       .getByLabel("Regrouper par", { exact: true })
@@ -433,7 +437,11 @@ export async function runFileDestinationJourney({
 
     await page.keyboard.press("Escape");
     await page.goto(`${baseURL}?path=${encodeURIComponent(large)}`);
-    await page.getByRole("option").first().waitFor();
+    await page
+      .getByRole("listbox", { name: "Fichiers", exact: true })
+      .getByRole("option")
+      .first()
+      .waitFor();
     dialog = await openGroups(page);
     await dialog
       .getByLabel("Regrouper par", { exact: true })

@@ -5,6 +5,7 @@ import {
   fileExtension,
   GROUP_ENTRY_LIMIT,
   groupFiles,
+  groupFileSizes,
   groupModifiedDates,
   groupRelatedNames,
   listGroupFolder,
@@ -22,6 +23,34 @@ const file = (name: string, type: Entry["type"] = "file"): Entry => ({
 });
 
 describe("groupes virtuels", () => {
+  it("classe les tailles aux bornes exactes et sépare les données invalides sans ouvrir de fichier", () => {
+    const bytes = [
+      0,
+      1,
+      1048575,
+      1048576,
+      10485759,
+      10485760,
+      104857599,
+      104857600,
+      Number.MAX_SAFE_INTEGER,
+      -1,
+      NaN,
+      Infinity,
+    ];
+    const result = groupFileSizes([
+      ...bytes.map((size, i) => ({ ...file(`${i}.bin`), size })),
+      file("Dossier", "directory"),
+    ]);
+    expect(result.groups.map((group) => group.entries.length)).toEqual([
+      1, 2, 2, 2, 2, 3,
+    ]);
+    expect(result.excluded).toBe(1);
+    expect(
+      groupFileSizes(Array.from({ length: 1003 }, (_, i) => file(`${i}.txt`)))
+        .omitted,
+    ).toBe(3);
+  });
   it("regroupe les mois de modification locaux par année, du plus récent au plus ancien", () => {
     const modified = (
       name: string,

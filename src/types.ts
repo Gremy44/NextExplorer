@@ -5,8 +5,10 @@ export type Entry = {
   size: number;
   mtime: number;
   ext: string;
+  stamp?: string;
 };
 export type Listing = {
+  truncated?: boolean;
   currentPath: string;
   parentPath: string | null;
   entries: Entry[];
@@ -38,7 +40,16 @@ export function collectedLink(address: string, title: string): CollectedLink {
   };
 }
 export type Hello = {
+  workerError?: string;
   features?: {
+    consoleVersion?: number;
+    diskVolumes?: boolean;
+    quickActions?: boolean;
+    contextualConversion?: boolean;
+    imageSamples?: boolean;
+    durableJobs?: boolean;
+    mediaStream?: boolean;
+    checkedHash?: boolean;
     nativeDrag?: boolean;
     nativeDragVersion?: number;
     transferMerge?: boolean;
@@ -57,6 +68,9 @@ export type Hello = {
   tools: Record<string, boolean>;
 };
 export type Job = {
+  durable?: boolean;
+  recoverable?: boolean;
+  needsPassword?: boolean;
   archived?: boolean;
   startedAt?: string;
   journalError?: string;
@@ -113,7 +127,9 @@ export const size = (n: number) =>
         ? `${(n / 1048576).toFixed(1)} Mo`
         : `${(n / 1073741824).toFixed(2)} Go`;
 export const basename = (p: string) =>
-  p.split(/[\\/]/).filter(Boolean).pop() || p;
+  p === "nextexplorer:drives"
+    ? "Ce PC"
+    : p.split(/[\\/]/).filter(Boolean).pop() || p;
 export const join = (p: string, n: string) =>
   p.replace(/[\\/]$/, "") + (p.includes("\\") ? "\\" : "/") + n;
 export function pathBreadcrumbs(path: string) {

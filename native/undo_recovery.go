@@ -333,5 +333,5 @@ func (h *Host) resumeUndo(id string) (any, error) {
 			return nil, fmt.Errorf("confirmation de récupération non enregistrée : %w", err)
 		}
 	}
-	return executeUndoPlan(report, plan, dir, report.Completed)
+	return h.executeUndoPlan(report, plan, dir, report.Completed)
 }

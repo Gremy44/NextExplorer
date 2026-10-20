@@ -177,7 +177,11 @@ export async function runHybridJourneys({
           ),
         project,
       );
-      assert.deepEqual(space.entries, stash);
+      // Spaces retain their versioned metadata schema; native stamps belong to live snapshots.
+      assert.deepEqual(
+        space.entries,
+        stash.map(({ stamp, ...entry }) => entry),
+      );
       assert.ok(
         space.browser.tabs.some((tab) => tab.url === `${origin}/${scenario}`),
       );

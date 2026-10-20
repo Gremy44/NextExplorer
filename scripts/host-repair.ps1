@@ -2,7 +2,8 @@
 function Get-NextExplorerRepairPlan(
     [string]$InstallRoot, [string]$SourceRoot, [string]$ExtensionId,
     [ValidateSet('Chrome', 'Edge', 'Chromium', 'All')][string]$Browser = 'Chrome',
-    [string]$RecoveryVersion
+    [string]$RecoveryVersion,
+    [switch]$Update
 ) {
     $InstallRoot = [IO.Path]::GetFullPath($InstallRoot)
     foreach ($file in @('native/native-host.exe', 'native/security/policy.xml')) {
@@ -32,11 +33,29 @@ function Get-NextExplorerRepairPlan(
     })
     $manifestHash = if (Test-Path -LiteralPath $stable) { (Get-FileHash -LiteralPath $stable).Hash } else { '' }
     $engineDirectory = ''
+    $packageHash = ''
+    $installedHash = ''
+    $needsUpdate = $false
+    if ($Update) {
+        $packageHash = (@('native/native-host.exe', 'native/security/policy.xml') | ForEach-Object {
+            (Get-FileHash -LiteralPath (Join-Path $SourceRoot $_)).Hash
+        }) -join '|'
+        if (!$errors.Count) {
+            $active = [IO.File]::ReadAllText($stable) | ConvertFrom-Json
+            $activeDirectory = Split-Path ([IO.Path]::GetFullPath($active.path)) -Parent
+            if ((Get-Item -LiteralPath $activeDirectory).Attributes -band [IO.FileAttributes]::ReparsePoint) { throw 'La copie active est un lien : mise a jour automatique refusee.' }
+            $installedHash = (@('native-host.exe', 'security/policy.xml') | ForEach-Object {
+                (Get-FileHash -LiteralPath (Join-Path $activeDirectory $_)).Hash
+            }) -join '|'
+            $needsUpdate = $packageHash -cne $installedHash
+            if ($needsUpdate) { $engineDirectory = $activeDirectory }
+        }
+    }
     $choices = @()
     $versions = Join-Path $InstallRoot 'versions'
     $block = ''
     if (!$targets.Count) { $block = 'Le navigateur choisi pointe vers une autre installation. Son enregistrement sera conserve.' }
-    if ($errors.Count) {
+    if ($errors.Count -or $needsUpdate) {
         if (Test-Path -LiteralPath $versions -PathType Container) {
             if ((Get-Item -LiteralPath $versions).Attributes -band [IO.FileAttributes]::ReparsePoint) { throw 'Le dossier versions est un lien : reparation automatique refusee.' }
             $choices = @(Get-ChildItem -LiteralPath $versions -Directory | Where-Object {
@@ -67,7 +86,8 @@ function Get-NextExplorerRepairPlan(
     return [pscustomobject]@{
         installRoot = $InstallRoot; sourceRoot = $SourceRoot; extensionId = $ExtensionId
         browser = $Browser; recoveryVersion = $RecoveryVersion
-        needsRepair = $errors.Count -gt 0; blocked = $block; targets = $targets
+        needsRepair = ($errors.Count -gt 0 -or $needsUpdate); blocked = $block; targets = $targets
+        update = [bool]$Update; needsUpdate = $needsUpdate; packageHash = $packageHash; installedHash = $installedHash
         preserved = $preserved; registrations = $registrations; manifestHash = $manifestHash
         engineDirectory = $engineDirectory; errors = $errors
     }
@@ -75,9 +95,10 @@ function Get-NextExplorerRepairPlan(
 
 function Invoke-NextExplorerRepair($Plan) {
     # Recompute before writing: a stale preview must not overwrite another installation.
-    $fresh = Get-NextExplorerRepairPlan $Plan.installRoot $Plan.sourceRoot $Plan.extensionId $Plan.browser $Plan.recoveryVersion
+    $fresh = Get-NextExplorerRepairPlan $Plan.installRoot $Plan.sourceRoot $Plan.extensionId $Plan.browser $Plan.recoveryVersion -Update:([bool]$Plan.update)
     if ($fresh.blocked) { throw $fresh.blocked }
-    if ($fresh.manifestHash -cne $Plan.manifestHash -or $fresh.engineDirectory -ine $Plan.engineDirectory -or
+    if ($fresh.packageHash -cne $Plan.packageHash -or $fresh.installedHash -cne $Plan.installedHash -or
+        $fresh.manifestHash -cne $Plan.manifestHash -or $fresh.engineDirectory -ine $Plan.engineDirectory -or
         ($fresh.targets -join '|') -cne ($Plan.targets -join '|')) { throw 'Installation modifiee depuis l apercu. Relancez la commande.' }
     foreach ($key in $Plan.registrations.Keys) {
         if ($fresh.registrations[$key] -cne $Plan.registrations[$key]) { throw 'Enregistrement modifie depuis l apercu. Relancez la commande.' }

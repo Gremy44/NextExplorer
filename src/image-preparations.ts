@@ -7,6 +7,7 @@ import {
 import { basename, type Entry, type Job } from "./types";
 import { uploadIssue } from "./uploads";
 import { sendFiles, type UploadTarget } from "./web";
+import { familyFile, fileKey } from "./file-families";
 
 export const imagePreparationsKey = "imagePreparations";
 export const IMAGE_PREPARATION_LIMIT = 20;
@@ -19,6 +20,8 @@ export type ImagePreparation = {
   constraints: ImageConstraints;
   jobId?: string;
   paths?: string[];
+  sources?: Entry[];
+  copies?: Entry[];
 };
 export type PreparedCopy = {
   entry: Entry;
@@ -101,6 +104,29 @@ export function restoreImagePreparations(value: unknown): ImagePreparation[] {
     };
     if (raw.paths !== undefined)
       preparation.paths = outputPaths(raw.paths, preparation);
+    for (const key of ["sources", "copies"] as const) {
+      if (raw[key] === undefined) continue;
+      if (!Array.isArray(raw[key]) || raw[key].length !== preparation.count)
+        throw new Error("Liens de préparation incomplets.");
+      const files: Entry[] = raw[key].map(familyFile);
+      if (
+        new Set(files.map((file) => fileKey(file.path))).size !== files.length
+      )
+        throw new Error("Références de préparation en double.");
+      preparation[key] = files;
+    }
+    if (
+      preparation.copies &&
+      (!preparation.sources ||
+        !preparation.paths ||
+        preparation.copies.some(
+          (copy) =>
+            !preparation.paths!.some(
+              (path) => fileKey(path) === fileKey(copy.path),
+            ),
+        ))
+    )
+      throw new Error("Copies sans sources ou hors du résultat enregistré.");
     return preparation;
   });
 }
@@ -129,6 +155,7 @@ export async function startImagePreparation(
   paths: string[],
   destination: string,
   constraints: ImageConstraints,
+  sources?: Entry[],
 ) {
   const [preparation] = restoreImagePreparations([
     {
@@ -138,9 +165,16 @@ export async function startImagePreparation(
       destination,
       count: paths.length,
       constraints,
+      ...(sources ? { sources } : {}),
     },
   ]);
   paths.forEach(localPath);
+  if (
+    preparation.sources?.some(
+      (source, index) => fileKey(source.path) !== fileKey(paths[index]),
+    )
+  )
+    throw new Error("Sources différentes de la sélection de préparation.");
   // Reserve the receipt before starting a mutation; never restart an uncertain launch.
   await storageUpdate<unknown>(imagePreparationsKey, [], (value) => {
     const current = restoreImagePreparations(value);
@@ -246,6 +280,13 @@ export async function readImagePreparation(
         `${basename(path)} : copie inaccessible, modifiée ou non vérifiable. Vérifiez le fichier et le compagnon, puis recommencez le contrôle.`,
       );
     }
+  }
+  if (preparation.sources && !preparation.copies) {
+    checkAbort();
+    await updatePreparation(preparation.id, {
+      copies: checked.map((copy) => copy.entry),
+    });
+    checkAbort();
   }
   return checked;
 }

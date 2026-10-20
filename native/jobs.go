@@ -20,19 +20,30 @@ import (
 )
 
 type Job struct {
-	mu                         sync.Mutex
-	ID, Kind, State, Error     string
-	Done, Total                int64
-	Result                     any
-	started                    time.Time
-	ctx                        context.Context
-	cancel                     context.CancelFunc
-	host                       *Host
-	last                       time.Time
-	Audit                      TransferAudit
-	JournalError               string
-	archiveRoot, archiveSource string
-	transactionStep            int
+	mu                            sync.Mutex
+	persistMu                     sync.Mutex
+	ID, Kind, State, Error        string
+	Done, Total                   int64
+	Result                        any
+	started                       time.Time
+	ctx                           context.Context
+	cancel                        context.CancelFunc
+	host                          *Host
+	last                          time.Time
+	Audit                         TransferAudit
+	JournalError                  string
+	archiveRoot, archiveSource    string
+	transactionStep               int
+	payload                       Payload
+	expected                      []Entry
+	destination                   *Entry
+	next, checkpointStep          int
+	active, resuming, recoverable bool
+	completed                     []string
+	needsPassword                 bool
+	checkpointDone                int64
+	executing                     bool
+	pending                       bool
 }
 
 func (j *Job) snapshot() M {
@@ -42,7 +53,7 @@ func (j *Job) snapshot() M {
 	eta := float64(j.Total-j.Done) / max(1, speed)
 	audit := j.Audit
 	audit.Entries = append([]TransferEntry{}, audit.Entries...)
-	return M{"id": j.ID, "kind": j.Kind, "state": j.State, "done": j.Done, "total": j.Total, "speed": speed, "eta": eta, "error": j.Error, "result": j.Result, "audit": audit, "startedAt": j.started.UTC().Format(time.RFC3339), "journalError": j.JournalError}
+	return M{"id": j.ID, "kind": j.Kind, "state": j.State, "done": j.Done, "total": j.Total, "speed": speed, "eta": eta, "error": j.Error, "result": j.Result, "audit": audit, "startedAt": j.started.UTC().Format(time.RFC3339), "journalError": j.JournalError, "durable": j.host != nil && j.host.durableDir != "", "recoverable": j.recoverable, "needsPassword": j.needsPassword}
 }
 func (j *Job) emit() {
 	snapshot := j.snapshot()
@@ -54,16 +65,32 @@ func (j *Job) control(c string) {
 	switch c {
 	case "cancel":
 		j.cancel()
+		if j.executing {
+			j.State = "cancelling"
+		} else {
+			j.State = "cancelled"
+		}
+		j.recoverable = false
 	case "pause":
-		if j.Kind == "transfer" && j.State == "running" {
+		if j.State == "running" || j.State == "queued" {
 			j.State = "paused"
 		}
 	case "resume":
 		if j.State == "paused" {
-			j.State = "running"
+			if j.executing {
+				j.State = "running"
+			} else {
+				j.State = "queued"
+			}
 		}
 	}
 	j.mu.Unlock()
+	if err := j.saveDurable(); err != nil {
+		j.mu.Lock()
+		j.JournalError = err.Error()
+		j.mu.Unlock()
+		j.cancel()
+	}
 	j.emit()
 }
 func (j *Job) check() error {
@@ -92,60 +119,146 @@ func (j *Job) progress(n int64) {
 		j.emit()
 	}
 }
-func (h *Host) startJob(kind string, p Payload) M {
+func (h *Host) startJob(kind string, p Payload) (M, error) {
+	if kind == "quick" {
+		if err := validateQuickAction(p); err != nil {
+			return nil, err
+		}
+	}
+	if kind == "convert" || kind == "recipe" {
+		if _, err := validateConversion(p); err != nil {
+			return nil, err
+		}
+	}
 	ctx, cancel := context.WithCancel(context.Background())
 	j := &Job{ID: "job-" + randomID(), Kind: kind, State: "queued", started: time.Now(), ctx: ctx, cancel: cancel, host: h}
+	if p.Paused {
+		j.State = "paused"
+	}
+	if err := h.prepareJob(j, p); err != nil {
+		cancel()
+		return nil, err
+	}
 	h.mu.Lock()
 	h.jobs[j.ID] = j
 	h.mu.Unlock()
 	j.saveJournal()
+	h.runJob(j)
+	return M{"jobId": j.ID}, nil
+}
+func (h *Host) runJob(j *Job) {
+	h.mu.Lock()
+	j.pending = true
+	h.queue = append(h.queue, j)
+	if h.draining {
+		h.mu.Unlock()
+		return
+	}
+	h.draining = true
+	h.mu.Unlock()
 	go func() {
-		h.mutateMu.Lock()
-		defer h.mutateMu.Unlock()
-		j.mu.Lock()
-		j.State = "running"
-		j.started = time.Now()
-		j.mu.Unlock()
-		j.emit()
-		var r any
-		var e error
-		if e = j.check(); e == nil {
-			switch kind {
-			case "transfer":
-				r, e = j.transfer(p)
-			case "scan":
-				r, e = j.scan(p.Path, false)
-			case "duplicates":
-				r, e = j.scan(p.Path, true)
-			case "convert":
-				r, e = j.convert(p)
-			case "zip":
-				r, e = j.zip(p)
-			case "extract":
-				r, e = j.extract(p)
-			case "metadata":
-				r, e = j.editMetadata(p)
-			case "download":
-				r, e = j.download(p)
+		for {
+			h.mu.Lock()
+			if len(h.queue) == 0 {
+				h.draining = false
+				h.mu.Unlock()
+				return
 			}
+			j := h.queue[0]
+			h.queue = h.queue[1:]
+			h.current = j
+			j.pending = false
+			h.mu.Unlock()
+			h.executeJob(j)
+			h.mu.Lock()
+			h.current = nil
+			h.mu.Unlock()
 		}
-		j.mu.Lock()
-		j.Result = r
-		if e != nil {
-			j.State = "error"
-			j.Error = e.Error()
-			if ctx.Err() != nil {
-				j.State = "cancelled"
-			}
-		} else {
-			j.State = "completed"
-		}
-		j.mu.Unlock()
-		cancel()
-		j.saveJournal()
-		j.emit()
 	}()
-	return M{"jobId": j.ID}
+}
+func (h *Host) executeJob(j *Job) {
+	h.mutateMu.Lock()
+	j.mu.Lock()
+	j.executing = true
+	if j.State != "paused" && j.ctx.Err() == nil {
+		j.State = "running"
+	}
+	j.mu.Unlock()
+	j.emit()
+	var r any
+	var e error
+	p := j.payload
+	if e = j.saveDurable(); e == nil {
+		e = j.check()
+	}
+	if e == nil {
+		start := 0
+		if j.Kind == "transfer" || j.Kind == "convert" || j.Kind == "recipe" || j.Kind == "quick" {
+			start = j.next
+		}
+		for i := start; i < len(j.expected); i++ {
+			actual, err := statEntry(j.expected[i].Path)
+			if err != nil || actual != j.expected[i] {
+				e = fmt.Errorf("source modifiée dans la file : %s", j.expected[i].Name)
+				break
+			}
+		}
+	}
+	if e == nil {
+		if j.Kind != "transfer" && j.Kind != "convert" && j.Kind != "recipe" && j.Kind != "quick" {
+			e = j.checkpoint(j.next, true, j.completed)
+		}
+	}
+	if e == nil {
+		switch j.Kind {
+		case "quick":
+			r, e = j.quickAction(p)
+		case "transfer":
+			r, e = j.transfer(p)
+		case "scan":
+			r, e = j.scan(p.Path, false)
+		case "duplicates":
+			r, e = j.scan(p.Path, true)
+		case "convert":
+			r, e = j.convert(p)
+		case "recipe":
+			r, e = j.recipe(p)
+		case "zip":
+			r, e = j.zip(p)
+		case "extract":
+			r, e = j.extract(p)
+		case "metadata":
+			r, e = j.editMetadata(p)
+		case "download":
+			r, e = j.download(p)
+		}
+	}
+	// Finished jobs must release mutations before callers observe completion.
+	h.mutateMu.Unlock()
+	j.mu.Lock()
+	j.Result = r
+	j.executing = false
+	j.payload.Password = ""
+	j.needsPassword = false
+	if e != nil {
+		j.State = "error"
+		j.Error = e.Error()
+		if j.ctx.Err() != nil {
+			j.State = "cancelled"
+		}
+	} else {
+		j.State = "completed"
+	}
+	j.mu.Unlock()
+	j.cancel()
+	if err := j.saveDurable(); err != nil {
+		j.mu.Lock()
+		j.State = "error"
+		j.Error = "Résultat non sauvegardé : " + err.Error() + ". Vérifiez les fichiers avant toute relance."
+		j.mu.Unlock()
+	}
+	j.saveJournal()
+	j.emit()
 }
 func hashFile(path, algorithm string) (string, error) {
 	a, e := validPath(path)
@@ -193,6 +306,11 @@ func (j *Job) transfer(p Payload) (result any, failure error) {
 		return nil, err
 	}
 	defer func() { failure = finish(failure) }()
+	start := j.next
+	j.mu.Lock()
+	j.Total = j.Done
+	j.mu.Unlock()
+	p.Paths = p.Paths[start:]
 	dest, e := validPath(p.Destination)
 	if e != nil {
 		return nil, e
@@ -287,13 +405,16 @@ func (j *Job) transfer(p Payload) (result any, failure error) {
 			return nil, e
 		}
 	}
-	completed := []string{}
+	completed := append([]string{}, j.completed...)
 	for _, a := range sources {
 		if _, e = j.transferEntry(a, filepath.Join(dest, filepath.Base(a)), p, true); e != nil {
 			return nil, e
 		}
 	}
-	for _, a := range sources {
+	for index, a := range sources {
+		if e = j.checkpoint(start+index, true, completed); e != nil {
+			return completed, e
+		}
 		target, err := j.transferEntry(a, filepath.Join(dest, filepath.Base(a)), p, false)
 		e = err
 		if e != nil {
@@ -301,6 +422,9 @@ func (j *Job) transfer(p Payload) (result any, failure error) {
 		}
 		if target != "" {
 			completed = append(completed, target)
+		}
+		if e = j.checkpoint(start+index+1, false, completed); e != nil {
+			return completed, e
 		}
 	}
 	return completed, nil
@@ -396,7 +520,11 @@ func (j *Job) copyTree(src, dst string, move, overwrite bool) error {
 			}
 		}
 		if move {
-			return j.transaction("remove-directory", src, "", "", "", func() error { return os.Remove(src) })
+			err := j.transaction("remove-directory", src, "", "", "", func() error { return os.Remove(src) })
+			if err == nil {
+				j.host.send(M{"event": "PATH_RELOCATED", "data": M{"from": src, "to": dst}})
+			}
+			return err
 		}
 		return nil
 	}
@@ -500,6 +628,7 @@ func (j *Job) copyTree(src, dst string, move, overwrite bool) error {
 			return e
 		}
 		j.recordTransfer(src, dst, "moved")
+		j.host.send(M{"event": "PATH_RELOCATED", "data": M{"from": src, "to": dst}})
 	} else {
 		j.recordTransfer(src, dst, "copied")
 	}
@@ -518,9 +647,17 @@ func (j *Job) scan(path string, duplicates bool) (any, error) {
 	groups := map[int64][]string{}
 	skipped := 0
 	total := int64(0)
+	scanned, pathBytes := 0, 0
+	truncated := false
 	e = filepath.WalkDir(root, func(p string, d os.DirEntry, err error) error {
 		if e := j.check(); e != nil {
 			return e
+		}
+		scanned++
+		pathBytes += len(p)
+		if scanned > 20000 || pathBytes > 512*1024 {
+			truncated = true
+			return filepath.SkipAll
 		}
 		if err != nil {
 			skipped++
@@ -541,7 +678,9 @@ func (j *Job) scan(path string, duplicates bool) (any, error) {
 			return nil
 		}
 		total += s.Size()
-		groups[s.Size()] = append(groups[s.Size()], p)
+		if duplicates {
+			groups[s.Size()] = append(groups[s.Size()], p)
+		}
 		rel, _ := filepath.Rel(root, p)
 		top := strings.Split(rel, string(filepath.Separator))[0]
 		found := false
@@ -563,11 +702,11 @@ func (j *Job) scan(path string, duplicates bool) (any, error) {
 	}
 	if !duplicates {
 		sort.Slice(items, func(i, k int) bool { return items[i].Size > items[k].Size })
-		truncated := len(items) > 500
-		if truncated {
+		if len(items) > 500 {
+			truncated = true
 			items = items[:500]
 		}
-		return M{"items": items, "total": total, "skipped": skipped, "truncated": truncated}, nil
+		return M{"path": root, "items": items, "total": total, "skipped": skipped, "truncated": truncated}, nil
 	}
 	byHash := map[string][]string{}
 	tasks := make(chan string)
@@ -625,5 +764,5 @@ func (j *Job) scan(path string, duplicates bool) (any, error) {
 			break
 		}
 	}
-	return M{"groups": result, "skipped": skipped, "limit": 300}, nil
+	return M{"groups": result, "skipped": skipped, "limit": 300, "truncated": truncated || len(result) >= 300}, nil
 }

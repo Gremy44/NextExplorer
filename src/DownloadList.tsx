@@ -4,6 +4,7 @@ import { FolderOpen, Plus, SlidersHorizontal } from "lucide-react";
 import { basename, size, type Hello, type Job } from "./types";
 import { bridge, storageGet, storageSubscribe, storageUpdate } from "./bridge";
 import { FolderPicker } from "./FolderPicker";
+import type { GroupRuleDraft } from "./file-destinations";
 import {
   canFileDownload,
   downloadFilingKey,
@@ -96,6 +97,7 @@ export function DownloadList({
   path,
   favorites,
   onChoose,
+  ruleDraft,
 }: {
   connected: boolean;
   jobs: Job[];
@@ -106,6 +108,7 @@ export function DownloadList({
     item: chrome.downloads.DownloadItem,
     filing: DownloadFiling,
   ) => void;
+  ruleDraft?: GroupRuleDraft;
 }) {
   const [allowed, setAllowed] = useState(false);
   const [runs, setRuns] = useState<DownloadRun[]>([]);
@@ -202,6 +205,10 @@ export function DownloadList({
     setFiling(restoreDownloadFiling(value));
     setSaved(message);
   }
+  useEffect(() => {
+    if (ruleDraft && filingReady)
+      edit({ ...ruleDraft, id: crypto.randomUUID(), enabled: true });
+  }, [ruleDraft, filingReady]);
   async function changeRules(
     update: (rules: DownloadRule[]) => DownloadRule[],
     message: string,
@@ -273,10 +280,11 @@ export function DownloadList({
   return (
     <section className="downloads-list" aria-label="Téléchargements récents">
       <p>
-        Les 20 derniers téléchargements de ce profil Chrome. Seuls les fichiers
-        terminés et disponibles peuvent être rangés.
+        {ruleDraft
+          ? "Vérifiez les critères et choisissez le dossier de cette règle manuelle. L’enregistrement ne déplace aucun fichier et n’active aucun rangement automatique."
+          : "Les 20 derniers téléchargements de ce profil Chrome. Seuls les fichiers terminés et disponibles peuvent être rangés."}
       </p>
-      {!allowed ? (
+      {!allowed && !ruleDraft ? (
         <button
           className="primary"
           onClick={async () => {
@@ -299,7 +307,7 @@ export function DownloadList({
       ) : (
         <>
           <button
-            disabled={loading}
+            disabled={loading || !allowed}
             onClick={() => setRefresh((value) => value + 1)}
           >
             Actualiser les téléchargements
@@ -513,6 +521,7 @@ export function DownloadList({
                     <input
                       type="checkbox"
                       checked={!!editing.automatic}
+                      disabled={!allowed}
                       onChange={(event) =>
                         setEditing({
                           ...editing,

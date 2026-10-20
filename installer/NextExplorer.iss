@@ -4,11 +4,14 @@
 #ifndef OutputRoot
   #define OutputRoot "..\release"
 #endif
+#ifndef ReleaseVersion
+  #error ReleaseVersion must be supplied by scripts/build-setup.ps1
+#endif
 
 [Setup]
 AppId={{FD03F468-5405-49CD-9530-4FBCC6CE670D}
 AppName=NextExplorer
-AppVersion=1.0.0
+AppVersion={#ReleaseVersion}
 DefaultDirName={localappdata}\Programs\NextExplorer
 PrivilegesRequired=lowest
 ArchitecturesAllowed=x64compatible
@@ -41,10 +44,15 @@ Name: "{userprograms}\NextExplorer\Installer ou réparer"; Filename: "{app}\Next
 Name: "{userprograms}\NextExplorer\Aide"; Filename: "{app}\package\GUIDE_UTILISATION.md"
 Name: "{userprograms}\NextExplorer\Dossier de l'extension"; Filename: "{app}\package\dist"
 
+[Run]
+Filename: "{code:StoreURL}"; Description: "Ouvrir la fiche Chrome Web Store"; Flags: shellexec postinstall unchecked skipifsilent; Check: OfferStore
+
 [Code]
 var
   ConnectionPage: TInputQueryWizardPage;
   BrowserPage: TInputOptionWizardPage;
+  AdvancedSettings: TNewCheckBox;
+  PackagedId: String;
   PreviewPage: TWizardPage;
   PreviewText: TNewMemo;
   PayloadReady: Boolean;
@@ -62,6 +70,16 @@ begin
     3: Result := 'All';
   else Result := 'Chrome';
   end;
+end;
+
+function OfferStore: Boolean;
+begin
+  Result := (BrowserPage.SelectedValueIndex = 0) and not AdvancedSettings.Checked;
+end;
+
+function StoreURL(Param: String): String;
+begin
+  Result := 'https://chromewebstore.google.com/detail/' + PackagedId;
 end;
 
 function ValidId(Value: String; RequiredLength: Integer; Alphabet: String): Boolean;
@@ -102,18 +120,25 @@ procedure InitializeWizard;
 var Id: AnsiString;
 begin
   BrowserPage := CreateInputOptionPage(wpWelcome, 'Votre navigateur',
-    'Installer ou réparer la liaison avec vos fichiers',
+    'Installer, mettre à jour ou réparer la liaison avec vos fichiers',
     'Choisissez le navigateur utilisé pour NextExplorer. Les autres installations seront conservées.', True, False);
   BrowserPage.Add('Chrome'); BrowserPage.Add('Edge'); BrowserPage.Add('Chromium'); BrowserPage.Add('Tous');
   BrowserPage.SelectedValueIndex := 0;
-  ConnectionPage := CreateInputQueryPage(BrowserPage.ID, 'Connexion de l''extension',
-    'Vérifiez l''identifiant avant de continuer',
-    'L''identifiant du paquet est prérempli. Le choix d''une copie de moteurs sert uniquement à une réparation ambiguë.');
+  BrowserPage.CheckListBox.Height := BrowserPage.SurfaceHeight - BrowserPage.CheckListBox.Top - ScaleY(44);
+  AdvancedSettings := TNewCheckBox.Create(BrowserPage);
+  AdvancedSettings.Parent := BrowserPage.Surface;
+  AdvancedSettings.SetBounds(0, BrowserPage.SurfaceHeight - ScaleY(28), BrowserPage.SurfaceWidth, ScaleY(24));
+  AdvancedSettings.Caption := 'Afficher les réglages avancés (réparation ou développement)';
+  AdvancedSettings.Checked := False;
+  ConnectionPage := CreateInputQueryPage(BrowserPage.ID, 'Réglages avancés',
+    'Uniquement pour une réparation particulière ou le développement',
+    'L''installation normale utilise automatiquement l''identité de ce paquet. Ne modifiez ces valeurs que pour une intervention précise.');
   ConnectionPage.Add('Identifiant de l''extension :', False);
   ConnectionPage.Add('Copie des moteurs (facultatif) :', False);
   ExtractTemporaryFiles('{tmp}\payload\extension-id.txt');
   if LoadStringFromFile(ExpandConstant('{tmp}\payload\extension-id.txt'), Id) then
-    ConnectionPage.Values[0] := Trim(String(Id));
+    PackagedId := Trim(String(Id));
+  ConnectionPage.Values[0] := PackagedId;
   PreviewPage := CreateCustomPage(ConnectionPage.ID, 'Corrections prévues',
     'Vérifiez le résultat avant de lancer l''installation.');
   PreviewText := TNewMemo.Create(PreviewPage);
@@ -123,10 +148,21 @@ begin
   PreviewText.ScrollBars := ssVertical;
 end;
 
+function ShouldSkipPage(PageID: Integer): Boolean;
+begin
+  Result := (PageID = ConnectionPage.ID) and not AdvancedSettings.Checked;
+end;
+
 function NextButtonClick(CurPageID: Integer): Boolean;
 begin
   Result := True;
-  if CurPageID = ConnectionPage.ID then begin
+  if (CurPageID = BrowserPage.ID) and not AdvancedSettings.Checked then begin
+    { Returning to the normal path must discard hidden repair overrides. }
+    ConnectionPage.Values[0] := PackagedId;
+    ConnectionPage.Values[1] := '';
+  end;
+  if (CurPageID = ConnectionPage.ID) or
+     ((CurPageID = BrowserPage.ID) and not AdvancedSettings.Checked) then begin
     if not ValidId(ConnectionPage.Values[0], 32, 'abcdefghijklmnop') then begin
       MsgBox('L''identifiant doit contenir 32 lettres de a à p.', mbError, MB_OK); Result := False; exit;
     end;
@@ -160,11 +196,19 @@ end;
 
 procedure CurPageChanged(CurPageID: Integer);
 begin
-  if CurPageID = wpFinished then
-    WizardForm.FinishedLabel.Caption := 'Le paquet et la liaison navigateur sont prêts.' + #13#10#13#10 +
-      'Dans chrome://extensions (ou edge://extensions), activez le mode développeur puis chargez ce dossier :' + #13#10 +
-      ExpandConstant('{app}\package\dist') + #13#10#13#10 +
-      'Si l''extension est déjà chargée ailleurs, rechargez-la depuis ce dossier. Désactivez puis réactivez l''extension pour vérifier la connexion.';
+  if CurPageID = wpFinished then begin
+    WizardForm.FinishedLabel.Caption := 'Le compagnon Windows est prêt.' + #13#10#13#10 +
+      'Revenez dans NextExplorer puis cliquez sur « Vérifier la connexion ». Vous pourrez ensuite choisir votre premier dossier.';
+    if OfferStore then
+      WizardForm.FinishedLabel.Caption := WizardForm.FinishedLabel.Caption + #13#10#13#10 +
+        'Si l''extension manque, ajoutez-la depuis le Chrome Web Store. Le compagnon ne l''installe pas silencieusement.'
+    else
+      WizardForm.FinishedLabel.Caption := WizardForm.FinishedLabel.Caption + #13#10#13#10 +
+        'Chargement avancé : dans la gestion des extensions, activez le mode développeur puis chargez :' + #13#10 + ExpandConstant('{app}\package\dist');
+    WizardForm.FinishedLabel.Caption := WizardForm.FinishedLabel.Caption + #13#10#13#10 +
+      'Les moteurs images, vidéo et archives avancées sont facultatifs. Consultez « Réglages et moteurs » dans l''extension.' + #13#10#13#10 +
+      'Après une mise à jour, désactivez puis réactivez l''extension avant de vérifier la connexion.';
+  end;
 end;
 
 procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);

@@ -66,5 +66,5 @@ func (h *Host) list(p Payload) (any, error) {
 		}
 		end = offset + (end-offset)/2
 	}
-	return M{"currentPath": data["currentPath"], "parentPath": data["parentPath"], "entries": entries[offset:end], "total": len(entries), "nextOffset": end, "snapshot": key}, nil
+	return M{"currentPath": data["currentPath"], "parentPath": data["parentPath"], "entries": entries[offset:end], "total": len(entries), "nextOffset": end, "snapshot": key, "truncated": data["truncated"]}, nil
 }

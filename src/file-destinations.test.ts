@@ -2,6 +2,7 @@ import { expect, it, vi } from "vitest";
 vi.mock("./bridge", () => ({ bridge: {}, storageUpdate: vi.fn() }));
 import {
   groupFileDestinations,
+  groupRuleDraft,
   GROUP_TRANSFER_LIMIT,
   verifyGroupOrigins,
   verifyGroupTransfer,
@@ -178,6 +179,50 @@ const rule = {
   enabled: true,
   destination: "C:/Documents",
 };
+it("propose un brouillon pour une extension commune et une origine commune contrôlée, sans activation", () => {
+  const entries = [file(), file("autre.pdf")];
+  const origins = new Map(
+    entries.map((entry) => [
+      entry.path,
+      {
+        title: entry.name,
+        sourceUrl: "https://example.com/page",
+        size: entry.size,
+        collectedAt: "2026-10-17",
+      },
+    ]),
+  );
+  expect(groupRuleDraft(entries, "C:/Docs", origins)).toEqual({
+    name: "PDF de example.com",
+    extension: ".pdf",
+    site: "example.com",
+    destination: "C:/Docs",
+  });
+  expect(groupRuleDraft(entries, "C:/Docs")).toMatchObject({
+    extension: ".pdf",
+    site: "",
+  });
+  const text = file("note.txt");
+  const mixed = new Map([
+    ...origins,
+    [text.path, { ...source, title: text.name }],
+  ]);
+  expect(groupRuleDraft([entries[0], text], "C:/Docs", mixed)).toMatchObject({
+    extension: "",
+    site: "example.com",
+    name: "Fichiers de example.com",
+  });
+  origins.delete(entries[1].path);
+  expect(groupRuleDraft(entries, "C:/Docs", origins)?.site).toBe("");
+  for (const files of [
+    [],
+    [file("README")],
+    [file(), file("other.txt")],
+    [file("data.source.json")],
+    [file("foo.a-b")],
+  ])
+    expect(groupRuleDraft(files, "C:/Docs")).toBeNull();
+});
 
 it("réutilise les règles actives d’extension, explique chaque fichier et exclut sites et provenances", () => {
   const entries = [

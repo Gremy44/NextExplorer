@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="fr">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width">
+<title>__TITLE__</title>
+<style>
+  *{box-sizing:border-box}body{margin:0;font:18px "Segoe UI",sans-serif;background:#f7f8fa;color:#1e2a39}
+  header{height:84px;background:white;border-bottom:1px solid #dce2e9;padding:0 48px;display:flex;align-items:center;justify-content:space-between}
+  header strong{font-size:24px;letter-spacing:-1px}header span{font-size:15px;color:#697586}
+  main{max-width:1020px;margin:70px auto;padding:0 40px}nav{color:#697586;font-size:15px;margin-bottom:30px}
+  h1{font-size:44px;font-weight:600;letter-spacing:-1.5px;margin:0 0 14px}p{line-height:1.6;color:#536174;max-width:660px}
+  #zone{margin:38px 0 26px;background:white;border:2px dashed #879ab5;border-radius:18px;min-height:286px;display:grid;place-content:center;text-align:center;padding:36px;transition:background .15s}
+  #zone.active{background:#e5effe;border-color:#3264ad}#zone b{font-size:24px;font-weight:600}#zone span{color:#697586;margin-top:12px}
+  #received{background:white;border:1px solid #dce2e9;border-radius:16px;padding:24px;display:none;align-items:center;gap:20px}
+  .icon{color:#28518a;background:#e8effa;border-radius:12px;width:52px;height:58px;display:grid;place-items:center;font-size:24px}
+  #received strong{display:block;margin-bottom:6px}#metadata{font-size:15px;color:#617087}#status{margin-left:auto;color:#23774b;font-weight:600}
+  footer{margin-top:30px;font-size:14px;color:#697586;line-height:1.7}label{font-size:15px;color:#536174}input{margin-left:14px;font:inherit}
+</style>
+<header><strong>Atelier Atlas</strong><span>Page de démonstration locale · aucun envoi sur Internet</span></header>
+<main>
+  <nav>Projet Atlas / Documents / Ajouter un fichier</nav>
+  <h1>Vos fichiers, à côté du web.</h1>
+  <p>Gardez le site ouvert. Retrouvez votre document dans le panneau NextExplorer et faites-le glisser directement dans la zone de dépôt.</p>
+  <div id="zone"><b>Déposez votre fichier ici</b><span>Depuis le panneau latéral, par son nom.</span></div>
+  <div id="received"><div class="icon">↳</div><div><strong id="filename"></strong><div id="metadata"></div></div><span id="status">Fichier reçu</span></div>
+  <label>Ou choisir un fichier <input type="file" id="field"></label>
+  <footer>Site témoin local pour montrer le glisser-déposer Windows.<br>Le fichier reste à sa place. Cette page lit uniquement le fichier reçu, sans le téléverser.</footer>
+</main>
+<script>
+  window.events=[];
+  async function receive(files,trusted){
+    window.result={trusted,files:await Promise.all([...files].map(async f=>({name:f.name,size:f.size,text:f.size<1000?await f.text():null})))};
+    const file=files[0];if(!file)return;
+    document.getElementById('filename').textContent=file.name;
+    document.getElementById('metadata').textContent=new Intl.NumberFormat('fr').format(file.size)+' octets · reçu dans le navigateur';
+    document.getElementById('received').style.display='flex';
+  }
+  const zone=document.getElementById('zone');
+  zone.ondragover=e=>{e.preventDefault();zone.classList.add('active');events.push({type:e.type,trusted:e.isTrusted,types:[...e.dataTransfer.types]})};
+  zone.ondragleave=()=>zone.classList.remove('active');
+  zone.ondrop=async e=>{e.preventDefault();zone.classList.remove('active');await receive(e.dataTransfer.files,e.isTrusted)};
+  document.getElementById('field').onchange=e=>receive(e.target.files,e.isTrusted);
+</script>
+</html>

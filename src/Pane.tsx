@@ -3,9 +3,13 @@ import {
   useLayoutEffect,
   useRef,
   useState,
+  useMemo,
+  useId,
+  Fragment,
   type CSSProperties,
 } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
+import { conversionKind } from "./media-conversion";
 import {
   ArrowLeft,
   ArrowUp,
@@ -28,8 +32,21 @@ import {
   ArchiveRestore,
   Fingerprint,
   Trash2,
+  Tags,
+  Palette,
+  WandSparkles,
+  SlidersHorizontal,
 } from "lucide-react";
+import { DRIVES_PATH } from "./disk-space";
+import { DrivesView } from "./DrivesView";
 import { bridge } from "./bridge";
+import { useOrganization } from "./OrganizationContext";
+import { orderFiles } from "./file-order";
+import { fileKey } from "./file-families";
+import { TagColors } from "./TagPicker";
+import { saveSelectionTags } from "./tag-selection";
+import { toggleColorTag, type FinderColor } from "./tags";
+import { DirectoryColumns } from "./DirectoryColumns";
 import { FileIcon } from "./Preview";
 import {
   FileEntryContent,
@@ -63,13 +80,16 @@ const contextActionGroups = [
       ["cut", "Couper", "Ctrl+X", Scissors],
       ["rename", "Renommer", "F2", Pencil],
       ["batch", "Renommer par lot", "", ListOrdered],
+      ["tags", "Tags…", "", Tags],
+      ["appearance", "Personnaliser les dossiers…", "", Palette],
     ],
   },
   {
     label: "Transformer",
     actions: [
       ["convert", "Convertir…", "", FileCog],
-      ["zip", "Créer une archive ZIP", "", Archive],
+      ["quick", "Actions rapides…", "", WandSparkles],
+      ["zip", "Créer une archive", "", Archive],
       ["extract", "Extraire une archive…", "", ArchiveRestore],
     ],
   },
@@ -93,6 +113,8 @@ export type PaneState = {
   sortOrder: string;
   viewMode: ViewMode;
   loading: boolean;
+  scrollTop?: number;
+  selectionPaths?: string[];
 };
 export function Pane({
   pane,
@@ -100,6 +122,7 @@ export function Pane({
   onActive,
   onChange,
   onNavigate,
+  onBack,
   onOpenTab,
   onPreview,
   onAction,
@@ -108,12 +131,14 @@ export function Pane({
   onPin,
   showHidden,
   refresh,
+  onRefreshVolumes,
 }: {
   pane: PaneState;
   active: boolean;
   onActive: () => void;
   onChange: (p: Partial<PaneState>) => void;
   onNavigate: (path: string) => void;
+  onBack: () => void;
   onOpenTab: (path: string) => void;
   onPreview: (entry: Entry) => void;
   onAction: (action: string) => void;
@@ -122,6 +147,7 @@ export function Pane({
   onPin: (link?: Quicklink) => void;
   showHidden: boolean;
   refresh: () => void;
+  onRefreshVolumes: () => void;
 }) {
   const [address, setAddress] = useState(pane.path);
   const [editing, setEditing] = useState(false);
@@ -131,12 +157,95 @@ export function Pane({
     y: number;
     entry: Entry;
   } | null>(null);
+  const [tagBusy, setTagBusy] = useState(false);
+  const [tagError, setTagError] = useState("");
   const scroll = useRef<HTMLDivElement>(null);
   const contextMenu = useRef<HTMLDivElement>(null);
   const anchor = useRef(0);
-  const rows = pane.listing?.entries || [];
+  const { preferences, tags, sizes } = useOrganization();
+  const [tagFilter, setTagFilter] = useState("");
+  const [kindFilter, setKindFilter] = useState("");
+  const [minimum, setMinimum] = useState("");
+  const [after, setAfter] = useState("");
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const filtersId = useId();
+  const filtersButton = useRef<HTMLButtonElement>(null);
+  const filterCount = [tagFilter, kindFilter, minimum, after].filter(
+    Boolean,
+  ).length;
+  async function applyColorTag(color: FinderColor) {
+    if (tagBusy) return;
+    const selection = [...pane.selected];
+    setTagBusy(true);
+    setTagError("");
+    try {
+      await saveSelectionTags(selection, (value) =>
+        toggleColorTag(
+          value,
+          selection.map((entry) => entry.path),
+          color,
+        ),
+      );
+      setMenu(null);
+      scroll.current?.focus();
+    } catch (error) {
+      setTagError((error as Error).message);
+    } finally {
+      setTagBusy(false);
+    }
+  }
+  const hoverTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const rows = useMemo(
+    () =>
+      orderFiles(
+        (pane.listing?.entries || []).filter(
+          (entry) =>
+            (!tagFilter ||
+              tags.files[fileKey(entry.path)]?.includes(tagFilter)) &&
+            (!kindFilter ||
+              (kindFilter === "directory"
+                ? entry.type === "directory"
+                : entry.type === "file")) &&
+            (!minimum ||
+              (entry.type === "file" &&
+                entry.size >= Number(minimum) * 1024 * 1024)) &&
+            (!after || entry.mtime >= Date.parse(after) / 1000),
+        ),
+        pane.sortBy,
+        pane.sortOrder,
+        preferences.foldersFirst,
+        sizes,
+        tags,
+      ),
+    [
+      pane.listing,
+      pane.sortBy,
+      pane.sortOrder,
+      preferences.foldersFirst,
+      sizes,
+      tags,
+      tagFilter,
+      kindFilter,
+      minimum,
+      after,
+    ],
+  );
+  useEffect(
+    () => () => {
+      if (hoverTimer.current) clearTimeout(hoverTimer.current);
+    },
+    [],
+  );
+  useLayoutEffect(() => {
+    if (!pane.loading && scroll.current)
+      scroll.current.scrollTop = pane.scrollTop || 0;
+  }, [pane.path, pane.loading]);
   const [width, setWidth] = useState(0);
   const view = fileView(pane.viewMode);
+  const visibleColumns = preferences.columns
+    .filter((key) => width >= 700 || key !== "tags")
+    .filter((key) => width >= 540 || key !== "type")
+    .filter((key) => width >= 460 || key !== "mtime");
   const columns = view.width
     ? Math.max(1, Math.floor((width || 500) / view.width))
     : 1;
@@ -207,10 +316,12 @@ export function Pane({
     element.style.left = `${Math.max(8, Math.min(menu.x, window.innerWidth - width - 8))}px`;
     element.style.top = `${Math.max(8, Math.min(menu.y, window.innerHeight - height - 8))}px`;
     element.querySelector<HTMLButtonElement>("button")?.focus();
+  }, [menu, tagError]);
+  useEffect(() => {
+    setTagError("");
   }, [menu]);
   function navigate(path: string) {
     if (path === pane.path) return;
-    onChange({ history: [...pane.history, pane.path].slice(-50) });
     onNavigate(path);
   }
   function select(e: Entry, index: number, event: React.MouseEvent) {
@@ -235,6 +346,26 @@ export function Pane({
   }
   const parts = pane.path.split(/[\\/]/).filter(Boolean);
   const separator = pane.path.includes("\\") ? "\\" : "/";
+  if (pane.path === DRIVES_PATH)
+    return (
+      <section
+        className={"pane " + (active ? "active" : "")}
+        onPointerDown={onActive}
+        aria-label="Ce PC"
+      >
+        <div className="pathbar">
+          <button
+            title="Précédent"
+            disabled={!pane.history.length}
+            onClick={onBack}
+          >
+            <ArrowLeft size={17} />
+          </button>
+          <strong>Ce PC</strong>
+        </div>
+        <DrivesView onNavigate={onNavigate} onRefresh={onRefreshVolumes} />
+      </section>
+    );
   return (
     <section
       className={"pane " + (active ? "active" : "")}
@@ -251,18 +382,16 @@ export function Pane({
         <button
           title="Précédent"
           disabled={!pane.history.length}
-          onClick={() => {
-            const p = pane.history.at(-1);
-            onChange({ history: pane.history.slice(0, -1) });
-            if (p) onNavigate(p);
-          }}
+          onClick={onBack}
         >
           <ArrowLeft size={17} />
         </button>
         <button
           title="Dossier parent"
-          disabled={!pane.listing?.parentPath}
-          onClick={() => navigate(pane.listing!.parentPath!)}
+          disabled={!pane.listing}
+          onClick={() =>
+            pane.listing && navigate(pane.listing.parentPath || DRIVES_PATH)
+          }
         >
           <ArrowUp size={17} />
         </button>
@@ -373,7 +502,38 @@ export function Pane({
           <Plus size={13} />
         </button>
       </div>
+      {pane.listing?.truncated && (
+        <p role="status" className="listing-limit">
+          Liste partielle : limite de 10 000 résultats, 8 Mio de métadonnées ou
+          200 000 noms parcourus. Affinez le filtre par nom.
+        </p>
+      )}
       <div className="file-toolbar">
+        <button
+          ref={filtersButton}
+          type="button"
+          className={
+            "organization-filter-toggle" +
+            (filtersOpen || filterCount ? " toggled" : "")
+          }
+          aria-label="Filtres et organisation"
+          aria-expanded={filtersOpen}
+          aria-controls={filtersId}
+          aria-describedby={filterCount ? `${filtersId}-count` : undefined}
+          title="Filtres et organisation"
+          onClick={() => setFiltersOpen(!filtersOpen)}
+        >
+          <SlidersHorizontal size={17} />
+          {filterCount > 0 && (
+            <span
+              id={`${filtersId}-count`}
+              className="organization-filter-count"
+              aria-label={`${filterCount} filtres actifs`}
+            >
+              {filterCount}
+            </span>
+          )}
+        </button>
         <label className="filter">
           <Search size={15} />
           <input
@@ -397,8 +557,102 @@ export function Pane({
           onChange={onChange}
         />
       </div>
+      <section
+        id={filtersId}
+        className="organization-pane-filters"
+        aria-label="Filtres et organisation"
+        hidden={!filtersOpen}
+        onKeyDown={(event) => {
+          if (event.key === "Escape") {
+            event.stopPropagation();
+            setFiltersOpen(false);
+            filtersButton.current?.focus();
+          }
+        }}
+      >
+        <div className="organization-filters">
+          <label>
+            Type
+            <select
+              aria-label="Type d’élément"
+              value={kindFilter}
+              onChange={(event) => setKindFilter(event.target.value)}
+            >
+              <option value="">Tout</option>
+              <option value="directory">Dossiers</option>
+              <option value="file">Fichiers</option>
+            </select>
+          </label>
+          <label>
+            Tag
+            <select
+              aria-label="Tag du dossier"
+              value={tagFilter}
+              onChange={(event) => setTagFilter(event.target.value)}
+            >
+              <option value="">Tous</option>
+              {tags.labels.map((tag) => (
+                <option key={tag.id} value={tag.id}>
+                  {tag.name}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label>
+            Taille minimale (Mio)
+            <input
+              type="number"
+              min={0}
+              value={minimum}
+              onChange={(event) => setMinimum(event.target.value)}
+            />
+          </label>
+          <label>
+            Modifié depuis
+            <input
+              type="date"
+              value={after}
+              onChange={(event) => setAfter(event.target.value)}
+            />
+          </label>
+        </div>
+        <div className="organization-actions">
+          <button
+            type="button"
+            onClick={() => {
+              setTagFilter("");
+              setKindFilter("");
+              setMinimum("");
+              setAfter("");
+            }}
+          >
+            Effacer les filtres
+          </button>
+          <button type="button" onClick={() => onAction("tag-picker")}>
+            Tags de la sélection
+          </button>
+          <button type="button" onClick={() => onAction("scan")}>
+            Calculer les tailles des dossiers
+          </button>
+          <button type="button" onClick={() => onAction("search")}>
+            Recherche indexée…
+          </button>
+        </div>
+      </section>
+      {pane.viewMode === "columns" && (
+        <DirectoryColumns
+          path={pane.path}
+          onNavigate={navigate}
+          hidden={showHidden}
+        />
+      )}
       {pane.viewMode === "details" && (
-        <div className="table-head">
+        <div
+          className="table-head custom-columns"
+          style={{
+            gridTemplateColumns: `minmax(0,1fr) ${visibleColumns.map((key) => (key === "mtime" ? preferences.dateWidth + "px" : key === "size" ? preferences.sizeWidth + "px" : key === "type" ? "90px" : "160px")).join(" ")}`,
+          }}
+        >
           <button
             onClick={() =>
               onChange({
@@ -418,49 +672,72 @@ export function Pane({
                 <ArrowDown size={12} />
               ))}
           </button>
-          <button
-            onClick={() =>
-              onChange({
-                sortBy: "mtime",
-                sortOrder:
-                  pane.sortBy === "mtime" && pane.sortOrder === "asc"
-                    ? "desc"
-                    : "asc",
-              })
-            }
-          >
-            Modifié{" "}
-            {pane.sortBy === "mtime" &&
-              (pane.sortOrder === "asc" ? (
-                <ArrowUp size={12} />
-              ) : (
-                <ArrowDown size={12} />
-              ))}
-          </button>
-          <button
-            onClick={() =>
-              onChange({
-                sortBy: "size",
-                sortOrder:
-                  pane.sortBy === "size" && pane.sortOrder === "asc"
-                    ? "desc"
-                    : "asc",
-              })
-            }
-          >
-            Taille{" "}
-            {pane.sortBy === "size" &&
-              (pane.sortOrder === "asc" ? (
-                <ArrowUp size={12} />
-              ) : (
-                <ArrowDown size={12} />
-              ))}
-          </button>
+          {visibleColumns.includes("mtime") && (
+            <button
+              className="detail-date"
+              onClick={() =>
+                onChange({
+                  sortBy: "mtime",
+                  sortOrder:
+                    pane.sortBy === "mtime" && pane.sortOrder === "asc"
+                      ? "desc"
+                      : "asc",
+                })
+              }
+            >
+              Modifié{" "}
+              {pane.sortBy === "mtime" &&
+                (pane.sortOrder === "asc" ? (
+                  <ArrowUp size={12} />
+                ) : (
+                  <ArrowDown size={12} />
+                ))}
+            </button>
+          )}
+          {visibleColumns.includes("size") && (
+            <button
+              className="detail-size"
+              onClick={() =>
+                onChange({
+                  sortBy: "size",
+                  sortOrder:
+                    pane.sortBy === "size" && pane.sortOrder === "asc"
+                      ? "desc"
+                      : "asc",
+                })
+              }
+            >
+              Taille{" "}
+              {pane.sortBy === "size" &&
+                (pane.sortOrder === "asc" ? (
+                  <ArrowUp size={12} />
+                ) : (
+                  <ArrowDown size={12} />
+                ))}
+            </button>
+          )}
+          {visibleColumns.includes("type") && (
+            <button
+              onClick={() => onChange({ sortBy: "type", sortOrder: "asc" })}
+            >
+              Type
+            </button>
+          )}
+          {visibleColumns.includes("tags") && (
+            <button
+              onClick={() => onChange({ sortBy: "tags", sortOrder: "asc" })}
+            >
+              Tags
+            </button>
+          )}
         </div>
       )}
       <div
         ref={scroll}
         className="file-scroll"
+        onScroll={(event) =>
+          onChange({ scrollTop: event.currentTarget.scrollTop })
+        }
         tabIndex={0}
         onKeyDown={(e) => {
           if (!rows.length || e.altKey || e.ctrlKey || e.metaKey) return;
@@ -592,6 +869,11 @@ export function Pane({
                         style={
                           {
                             "--file-icon-size": `${view.iconSize}px`,
+                            ...(pane.viewMode === "details"
+                              ? {
+                                  gridTemplateColumns: `minmax(0,1fr) ${visibleColumns.map((key) => (key === "mtime" ? preferences.dateWidth + "px" : key === "size" ? preferences.sizeWidth + "px" : key === "type" ? "90px" : "160px")).join(" ")}`,
+                                }
+                              : {}),
                           } as CSSProperties
                         }
                         draggable
@@ -625,7 +907,29 @@ export function Pane({
                             onDrop(e, entry.path);
                           }
                         }}
-                        onClick={(e) => select(entry, v.index * columns + k, e)}
+                        onPointerEnter={() => {
+                          if (preferences.hoverSelect)
+                            hoverTimer.current = setTimeout(
+                              () => onChange({ selected: [entry] }),
+                              600,
+                            );
+                        }}
+                        onPointerLeave={() => {
+                          if (hoverTimer.current)
+                            clearTimeout(hoverTimer.current);
+                        }}
+                        onClick={(e) => {
+                          select(entry, v.index * columns + k, e);
+                          if (
+                            preferences.singleClick &&
+                            !e.ctrlKey &&
+                            !e.metaKey &&
+                            !e.shiftKey
+                          )
+                            entry.type === "directory"
+                              ? navigate(entry.path)
+                              : onPreview(entry);
+                        }}
                         onAuxClick={(e) => {
                           if (e.button === 1 && entry.type === "directory") {
                             e.preventDefault();
@@ -633,9 +937,10 @@ export function Pane({
                           }
                         }}
                         onDoubleClick={() =>
-                          entry.type === "directory"
+                          !preferences.singleClick &&
+                          (entry.type === "directory"
                             ? navigate(entry.path)
-                            : onPreview(entry)
+                            : onPreview(entry))
                         }
                         onContextMenu={(e) => {
                           e.preventDefault();
@@ -648,7 +953,31 @@ export function Pane({
                         }}
                         title={entry.path}
                       >
-                        <FileEntryContent entry={entry} mode={pane.viewMode} />
+                        {preferences.checkboxes && (
+                          <input
+                            className="file-checkbox"
+                            aria-label={`Sélectionner ${entry.name}`}
+                            type="checkbox"
+                            checked={selected}
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              onChange({
+                                selected: selected
+                                  ? pane.selected.filter(
+                                      (item) => item.path !== entry.path,
+                                    )
+                                  : [...pane.selected, entry],
+                              });
+                            }}
+                            readOnly
+                          />
+                        )}
+                        <FileEntryContent
+                          entry={entry}
+                          mode={pane.viewMode}
+                          customDetails
+                          detailColumns={visibleColumns}
+                        />
                       </div>
                     );
                   })}
@@ -700,7 +1029,7 @@ export function Pane({
             event.preventDefault();
             const buttons = [
               ...event.currentTarget.querySelectorAll<HTMLButtonElement>(
-                "button",
+                "button:not(:disabled)",
               ),
             ];
             const index = buttons.indexOf(
@@ -718,51 +1047,98 @@ export function Pane({
             buttons[next]?.focus();
           }}
         >
-          {contextActionGroups.map((group, index) => (
-            <div key={group.label}>
-              {index > 0 && (
-                <div className="context-separator" role="separator" />
-              )}
-              <div role="group" aria-label={group.label}>
-                <div className="context-group-label" aria-hidden="true">
-                  {group.label}
-                </div>
-                {index === 0 && menu.entry.type === "directory" && (
-                  <button
-                    type="button"
-                    role="menuitem"
-                    tabIndex={-1}
-                    onClick={() => {
-                      setMenu(null);
-                      onOpenTab(menu.entry.path);
-                    }}
-                  >
-                    <FolderPlus size={18} aria-hidden="true" />
-                    <span>Ouvrir dans un nouvel onglet</span>
-                  </button>
+          {contextActionGroups
+            .filter((group) =>
+              group.actions.some(
+                ([action]) => !preferences.hiddenActions.includes(action),
+              ),
+            )
+            .map((group, index) => (
+              <div key={group.label}>
+                {index > 0 && (
+                  <div className="context-separator" role="separator" />
                 )}
-                {group.actions.map(([action, label, shortcut, Icon]) => (
-                  <button
-                    key={action}
-                    type="button"
-                    role="menuitem"
-                    tabIndex={-1}
-                    className={action === "trash" ? "context-trash" : undefined}
-                    aria-label={label}
-                    onClick={() => {
-                      setMenu(null);
-                      scroll.current?.focus();
-                      onAction(action);
-                    }}
-                  >
-                    <Icon size={18} aria-hidden="true" />
-                    <span>{label}</span>
-                    {shortcut && <kbd aria-hidden="true">{shortcut}</kbd>}
-                  </button>
-                ))}
+                <div role="group" aria-label={group.label}>
+                  <div className="context-group-label" aria-hidden="true">
+                    {group.label}
+                  </div>
+                  {group.label === "Ouvrir" &&
+                    menu.entry.type === "directory" && (
+                      <button
+                        type="button"
+                        role="menuitem"
+                        tabIndex={-1}
+                        onClick={() => {
+                          setMenu(null);
+                          onOpenTab(menu.entry.path);
+                        }}
+                      >
+                        <FolderPlus size={18} aria-hidden="true" />
+                        <span>Ouvrir dans un nouvel onglet</span>
+                      </button>
+                    )}
+                  {group.actions
+                    .filter(
+                      ([action]) => !preferences.hiddenActions.includes(action),
+                    )
+                    .map(([action, label, shortcut, Icon]) => (
+                      <Fragment key={action}>
+                        {action === "tags" && (
+                          <>
+                            <TagColors
+                              selection={pane.selected}
+                              menu
+                              busy={tagBusy}
+                              onColor={(color) => void applyColorTag(color)}
+                            />
+                            {tagError && (
+                              <p
+                                className="context-tag-error error"
+                                role="alert"
+                              >
+                                {tagError}
+                              </p>
+                            )}
+                          </>
+                        )}
+                        <button
+                          disabled={
+                            (action === "convert" &&
+                              !pane.selected.some((entry) =>
+                                conversionKind(entry),
+                              )) ||
+                            (action === "appearance" &&
+                              (!pane.selected.length ||
+                                pane.selected.some(
+                                  (entry) => entry.type !== "directory",
+                                )))
+                          }
+                          type="button"
+                          role="menuitem"
+                          tabIndex={-1}
+                          className={
+                            action === "trash" ? "context-trash" : undefined
+                          }
+                          aria-label={label}
+                          onClick={() => {
+                            setMenu(null);
+                            scroll.current?.focus();
+                            onAction(action === "tags" ? "tag-picker" : action);
+                          }}
+                        >
+                          <Icon size={18} aria-hidden="true" />
+                          <span>{label}</span>
+                          {preferences.shortcuts[action] && (
+                            <kbd aria-hidden="true">
+                              {preferences.shortcuts[action]}
+                            </kbd>
+                          )}
+                        </button>
+                      </Fragment>
+                    ))}
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
         </div>
       )}
     </section>

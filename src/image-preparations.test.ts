@@ -23,6 +23,7 @@ import {
   type ImagePreparation,
 } from "./image-preparations";
 import { sendFiles, type UploadTarget } from "./web";
+import type { Entry } from "./types";
 
 const constraints = {
   format: "jpg" as const,
@@ -48,6 +49,56 @@ const copy = {
   mtime: 1,
   ext: ".jpg",
 };
+const source: Entry = {
+  name: "photo.png",
+  path: "D:/photo.png",
+  type: "file",
+  size: 456,
+  mtime: 1,
+  ext: ".png",
+};
+it("conserve les sources fournies et les premières copies vérifiées sans inventer de paires", async () => {
+  const started = await startImagePreparation(
+    [source.path],
+    preparation.destination,
+    constraints,
+    [source],
+  );
+  expect(started.sources).toEqual([source]);
+  expect(started.copies).toBeUndefined();
+  stored = [{ ...preparation, sources: [source] }];
+  await readImagePreparation({ ...preparation, sources: [source] }, signal());
+  expect(restoreImagePreparations(stored)[0].copies).toEqual([copy]);
+  const known = restoreImagePreparations(stored)[0];
+  vi.mocked(storageUpdate).mockClear();
+  await readImagePreparation(known, signal());
+  expect(storageUpdate).not.toHaveBeenCalled();
+});
+it("refuse les sources incohérentes et les liens corrompus avant tout lancement", async () => {
+  await expect(
+    startImagePreparation(
+      ["D:/other.png"],
+      preparation.destination,
+      constraints,
+      [source],
+    ),
+  ).rejects.toThrow("Sources différentes");
+  expect(bridge.request).not.toHaveBeenCalled();
+  for (const extra of [
+    { sources: [] },
+    { copies: [copy] },
+    {
+      sources: [source],
+      paths: [copy.path],
+      copies: [{ ...copy, path: "D:/Outside/photo.jpg" }],
+    },
+    { sources: [{ ...source, size: -1 }] },
+    { sources: [{ ...source, type: "symlink" }] },
+  ])
+    expect(() =>
+      restoreImagePreparations([{ ...preparation, ...extra }]),
+    ).toThrow();
+});
 const signal = () => new AbortController().signal;
 const target: UploadTarget = {
   page: { id: 7, windowId: 2, url: "https://example.com/form", title: "Form" },

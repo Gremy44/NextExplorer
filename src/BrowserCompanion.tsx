@@ -7,6 +7,7 @@ import {
   type CSSProperties,
   type DragEvent,
   type PointerEvent,
+  type ReactNode,
 } from "react";
 import {
   ArrowLeft,
@@ -39,6 +40,11 @@ import { bridge } from "./bridge";
 import { uploadIssue } from "./uploads";
 import { imageFormatsForField, preparableImage } from "./prepare-images";
 import type { PaneState } from "./Pane";
+import { useOrganization } from "./OrganizationContext";
+import { orderFiles } from "./file-order";
+import { DirectoryColumns } from "./DirectoryColumns";
+import { DRIVES_PATH } from "./disk-space";
+import { DrivesView } from "./DrivesView";
 import {
   basename,
   collectedLink,
@@ -59,9 +65,7 @@ import {
 
 type Props = {
   hello: Hello | null;
-  connecting: boolean;
-  connectionError: string;
-  onConnect: () => void;
+  connectionSetup: ReactNode;
   pane: PaneState;
   favorites: { name: string; path: string }[];
   stash: CollectionEntry[];
@@ -86,10 +90,22 @@ type Props = {
   ) => void;
   onNote: () => void;
   onDrop: (event: DragEvent, path: string) => void;
+  onFolderAction: (action: "tags" | "appearance") => void;
+  onRefreshVolumes: () => void;
+  analysis?: ReactNode;
 };
 
 export function BrowserCompanion(props: Props) {
   const { hello, pane, stash } = props;
+  const { preferences, tags, sizes } = useOrganization();
+  const ordered = orderFiles(
+    pane.listing?.entries || [],
+    pane.sortBy,
+    pane.sortOrder,
+    preferences.foldersFirst,
+    sizes,
+    tags,
+  );
   const container = useRef<HTMLDivElement>(null);
   const [folderPicker, setFolderPicker] = useState(false);
   const [foldersExpanded, setFoldersExpanded] = useState(false);
@@ -120,10 +136,9 @@ export function BrowserCompanion(props: Props) {
   const nativeDrag =
     !!hello?.features?.nativeDrag &&
     (hello.features.nativeDragVersion || 0) >= 2;
-  const folders =
-    pane.listing?.entries.filter((entry) => entry.type === "directory") || [];
+  const folders = ordered.filter((entry) => entry.type === "directory");
   const documents =
-    pane.listing?.entries.filter((entry) => {
+    ordered.filter((entry) => {
       if (entry.type === "directory") return false;
       const type = mediaType(entry);
       const document =
@@ -278,6 +293,19 @@ export function BrowserCompanion(props: Props) {
     }
   };
 
+  if (hello && pane.path === DRIVES_PATH)
+    return (
+      <section className="browser-companion">
+        <button onClick={props.onBack} disabled={!pane.history.length}>
+          <ArrowLeft size={18} />
+          Précédent
+        </button>
+        <DrivesView
+          onNavigate={props.onNavigate}
+          onRefresh={props.onRefreshVolumes}
+        />
+      </section>
+    );
   return (
     <section className="browser-companion" aria-label="Compagnon du navigateur">
       <nav
@@ -332,7 +360,7 @@ export function BrowserCompanion(props: Props) {
       </nav>
 
       <div className="companion-scroll" ref={container}>
-        {hello && (
+        {hello && !props.connectionSetup && (
           <section className="companion-folder" aria-label="Dossier de travail">
             <button
               className="companion-folder-trigger"
@@ -361,10 +389,10 @@ export function BrowserCompanion(props: Props) {
               <button
                 aria-label="Dossier parent"
                 title="Dossier parent"
-                disabled={!pane.listing?.parentPath}
+                disabled={!pane.listing}
                 onClick={() => {
-                  if (pane.listing?.parentPath)
-                    props.onNavigate(pane.listing.parentPath);
+                  if (pane.listing)
+                    props.onNavigate(pane.listing.parentPath || DRIVES_PATH);
                 }}
               >
                 <ArrowUp size={18} />
@@ -374,38 +402,8 @@ export function BrowserCompanion(props: Props) {
           </section>
         )}
 
-        {!hello && (
-          <section
-            className="companion-offline"
-            aria-label="Connexion aux fichiers"
-          >
-            <h2>
-              {props.connecting
-                ? "Connexion à vos fichiers…"
-                : "Accédez à vos fichiers"}
-            </h2>
-            <p>Le compagnon local relie vos dossiers au navigateur.</p>
-            <button
-              className="primary"
-              disabled={props.connecting}
-              onClick={props.onConnect}
-            >
-              {props.connecting ? "Connexion…" : "Se connecter"}
-            </button>
-            <details className="companion-disclosure">
-              <summary>Aide à la connexion</summary>
-              <div className="companion-disclosure-content">
-                <p>
-                  Lancez NextExplorer-Setup.exe depuis release pour installer ou
-                  réparer le compagnon.
-                </p>
-                {props.connectionError && (
-                  <p className="error">{props.connectionError}</p>
-                )}
-              </div>
-            </details>
-          </section>
-        )}
+        {props.analysis}
+        {props.connectionSetup}
 
         {props.pendingCapture && (
           <button
@@ -422,11 +420,24 @@ export function BrowserCompanion(props: Props) {
           id={`companion-${mode}`}
           aria-labelledby={`companion-tab-${mode}`}
         >
-          {mode === "files" && hello && (
+          {mode === "files" && hello && !props.connectionSetup && (
             <section
               className="companion-content"
               aria-label="Fichiers du dossier"
             >
+              {pane.viewMode === "columns" && (
+                <DirectoryColumns
+                  path={pane.path}
+                  onNavigate={props.onNavigate}
+                  hidden={props.showHidden}
+                />
+              )}
+              {pane.listing?.truncated && (
+                <p role="status">
+                  Liste partielle : affinez le filtre par nom (10 000 résultats
+                  / 8 Mio de métadonnées / 200 000 noms maximum).
+                </p>
+              )}
               <div className="companion-search-toolbar">
                 <label className="companion-search">
                   <Search size={18} aria-hidden="true" />
@@ -525,6 +536,17 @@ export function BrowserCompanion(props: Props) {
                   </div>
                 </details>
               )}
+              <details className="companion-disclosure">
+                <summary>Organiser ce dossier</summary>
+                <div className="companion-disclosure-content companion-tools">
+                  <button onClick={() => props.onFolderAction("tags")}>
+                    Tags du dossier…
+                  </button>
+                  <button onClick={() => props.onFolderAction("appearance")}>
+                    Personnaliser le dossier…
+                  </button>
+                </div>
+              </details>
               <div
                 className={`companion-files file-layout-${view.layout}`}
                 data-view={pane.viewMode}

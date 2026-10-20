@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"golang.org/x/sys/windows"
 	"golang.org/x/sys/windows/registry"
 	"os"
@@ -9,7 +10,42 @@ import (
 	"path/filepath"
 	"strings"
 	"syscall"
+	"unsafe"
 )
+
+func diskVolumes() ([]M, error) {
+	mask, err := windows.GetLogicalDrives()
+	if err != nil {
+		return nil, err
+	}
+	volumes := []M{}
+	for letter := 'A'; letter <= 'Z'; letter++ {
+		if mask&(1<<uint(letter-'A')) == 0 {
+			continue
+		}
+		root := fmt.Sprintf("%c:\\", letter)
+		ptr, _ := windows.UTF16PtrFromString(root)
+		kind := windows.GetDriveType(ptr)
+		volume := M{"path": root, "name": fmt.Sprintf("Disque %c:", letter), "kind": "local"}
+		if kind == windows.DRIVE_REMOTE {
+			volume["kind"], volume["error"] = "network", "Capacité réseau non interrogée"
+		} else if kind == windows.DRIVE_FIXED || kind == windows.DRIVE_REMOVABLE || kind == windows.DRIVE_RAMDISK {
+			var available, total, free uint64
+			if err := windows.GetDiskFreeSpaceEx(ptr, &available, &total, &free); err != nil {
+				volume["error"] = "Lecteur indisponible"
+			} else {
+				volume["available"], volume["total"], volume["free"] = available, total, free
+			}
+			if kind == windows.DRIVE_REMOVABLE {
+				volume["kind"] = "removable"
+			}
+		} else {
+			volume["error"] = "Capacité indisponible"
+		}
+		volumes = append(volumes, volume)
+	}
+	return volumes, nil
+}
 
 func hidden(path, name string) bool {
 	if strings.HasPrefix(name, ".") {
@@ -23,6 +59,33 @@ func hidden(path, name string) bool {
 	return e == nil && a&(syscall.FILE_ATTRIBUTE_HIDDEN|syscall.FILE_ATTRIBUTE_SYSTEM) != 0
 }
 func quiet(c *exec.Cmd) { c.SysProcAttr = &syscall.SysProcAttr{HideWindow: true} }
+func runImageCommand(c *exec.Cmd) error {
+	job, err := windows.CreateJobObject(nil, nil)
+	if err != nil {
+		return err
+	}
+	defer windows.CloseHandle(job)
+	var limits windows.JOBOBJECT_EXTENDED_LIMIT_INFORMATION
+	limits.BasicLimitInformation.LimitFlags = windows.JOB_OBJECT_LIMIT_PROCESS_MEMORY | windows.JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE
+	limits.ProcessMemoryLimit = 512 << 20
+	if _, err = windows.SetInformationJobObject(job, windows.JobObjectExtendedLimitInformation, uintptr(unsafe.Pointer(&limits)), uint32(unsafe.Sizeof(limits))); err != nil {
+		return err
+	}
+	if err = c.Start(); err != nil {
+		return err
+	}
+	process, err := windows.OpenProcess(windows.PROCESS_SET_QUOTA|windows.PROCESS_TERMINATE, false, uint32(c.Process.Pid))
+	if err == nil {
+		err = windows.AssignProcessToJobObject(job, process)
+		windows.CloseHandle(process)
+	}
+	if err != nil {
+		c.Process.Kill()
+		c.Wait()
+		return err
+	}
+	return c.Wait()
+}
 func publishFile(src, dst string) error {
 	a, e := syscall.UTF16PtrFromString(src)
 	if e != nil {

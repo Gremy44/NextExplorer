@@ -325,10 +325,10 @@ func (h *Host) undoCopy(id string) (any, error) {
 	if err := writeTransactionEvent(undoDir, transactionEvent{Action: "undo", Phase: "begin"}); err != nil {
 		return nil, err
 	}
-	return executeUndoPlan(report, plan, undoDir, 0)
+	return h.executeUndoPlan(report, plan, undoDir, 0)
 }
 
-func executeUndoPlan(report UndoReport, plan []undoUnit, undoDir string, completed int) (any, error) {
+func (h *Host) executeUndoPlan(report UndoReport, plan []undoUnit, undoDir string, completed int) (any, error) {
 	for i := len(plan) - 1 - completed; i >= 0; i-- {
 		unit := plan[i]
 		event := unit.Root
@@ -349,6 +349,7 @@ func executeUndoPlan(report UndoReport, plan []undoUnit, undoDir string, complet
 			if err := undoMoveUnit(unit, undoDir, step); err != nil {
 				return nil, fmt.Errorf("annulation arrêtée, éventuellement partielle ; vérifier les emplacements indiqués : %w", err)
 			}
+			h.send(M{"event": "PATH_RELOCATED", "data": M{"from": unit.Root.Destination, "to": unit.Root.Source}})
 			if unit.Backup != nil {
 				if err := restoreUndoBackup(*unit.Backup, undoDir, step+1); err != nil {
 					return nil, err

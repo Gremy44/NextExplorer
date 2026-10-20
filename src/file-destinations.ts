@@ -1,10 +1,48 @@
 import { fileRuleSuggestion, type DownloadRule } from "./downloads";
-import { GROUP_ENTRY_LIMIT } from "./file-groups";
+import { fileExtension, GROUP_ENTRY_LIMIT } from "./file-groups";
 import { groupFileOrigins } from "./file-origins";
 import type { Provenance } from "./provenance";
 import type { CollectionEntry, Entry } from "./types";
 
 export const GROUP_TRANSFER_LIMIT = 20;
+export type GroupRuleDraft = Pick<
+  DownloadRule,
+  "name" | "site" | "extension" | "destination"
+>;
+export function groupRuleDraft(
+  entries: Entry[],
+  destination: string,
+  origins?: Map<string, Provenance>,
+): GroupRuleDraft | null {
+  const firstExtension = entries.length ? fileExtension(entries[0]) : "";
+  if (
+    !entries.length ||
+    entries.some(
+      (entry) => entry.type !== "file" || /\.source\.json$/i.test(entry.name),
+    )
+  )
+    return null;
+  const extension =
+    /^[a-z0-9]{1,16}$/.test(firstExtension) &&
+    entries.every((entry) => fileExtension(entry) === firstExtension)
+      ? "." + firstExtension
+      : "";
+  const sites = entries
+    .map((entry) => origins?.get(entry.path)?.sourceUrl)
+    .map((url) => (url ? new URL(url).hostname : ""));
+  const site =
+    sites[0] && sites.every((value) => value === sites[0]) ? sites[0] : "";
+  if (!site && !extension) return null;
+  return {
+    name: `${extension ? extension.slice(1).toUpperCase() : "Fichiers"}${site ? ` de ${site}` : ""}`.slice(
+      0,
+      80,
+    ),
+    site,
+    extension,
+    destination,
+  };
+}
 
 function folderKey(path: string) {
   const windows = /^(?:[a-z]:|[\\/]{2})/i.test(path);

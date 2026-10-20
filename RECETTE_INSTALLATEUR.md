@@ -1,6 +1,55 @@
 # J1.7 — recette de l'EXE sur Windows isolé
 
+## Candidat courant — 1.0.3, 20 octobre 2026
+
+Le kit `release/recette-windows` contient l’EXE public 1.0.3 exact, le contrôleur,
+la procédure et son SHA256. Préparation explicite :
+`npm run setup:acceptance -- -SetupPath release/distribution/1.0.3/NextExplorer-1.0.3-Setup.exe`.
+Empreinte : `ee21c7328a262c00d512f6f3bf5fb319bb5afc996f9c724edf2e9d002939ae07`.
+
+Identité officielle Store `afjflepinklhgicoppoobiichmjodgcp` vérifiée avec
+Native Messaging réel. Compilation, 240 tests, connexion guidée, moteurs/console,
+backend et contrôleur de maintenance, interface de l’assistant réussis sur le
+poste de développement. Le backend et le contrôleur utilisent un registre simulé ;
+le test UI n’appuie jamais sur Installer. **La recette Windows propre reste ouverte.**
+Le poste est sous Windows 11 Famille ; aucun outil de VM disponible détecté.
+
+## Historique des préparations
+
+**Évolution de l’assistant en développement, 19 octobre :** le parcours normal
+utilise l’identité du paquet et saute les champs techniques. La case
+**Afficher les réglages avancés** les conserve pour la réparation/développement.
+Tester également le retour au parcours normal après modification de ces champs :
+identité rétablie, récupération effacée, nouvel aperçu calculé. La recette UI
+isolée couvre ces parcours sans installation. La release publique 1.0.1 conserve
+l’ancien assistant ; aucune de ces vérifications ne clôture la recette Windows
+propre ci-dessous.
+
+**Première connexion guidée en développement :** après l’écran de fin, revenir
+dans NextExplorer, vérifier la connexion et choisir le premier dossier.
+Contrôler le lien vers l’EXE de la même version, le retour automatique après
+téléchargement et le bouton de vérification, l’annulation du sélecteur, le
+dossier personnel et la reprise sans nouvel accueil. Les détails techniques
+doivent rester repliés ; une mise à jour rappelle de désactiver/réactiver
+l’extension. La recette `npm run test:connection:extension` utilise Chromium
+et Native Messaging réels avec profil/dossiers/enregistrement Chromium isolés ;
+elle simule la disponibilité du compagnon et intercepte le lien de téléchargement,
+sans installer ni exécuter d’EXE téléchargé. Elle ne remplace pas le contrôle
+de l’installation réelle ci-dessous et ne modifie pas l’enregistrement Chrome.
+
+Résultat local du 19 octobre : parcours de connexion et console réels réussis,
+234 tests TypeScript, compilation et parcours navigateur complet réussis.
+Preuves : `test-results/connection-{extension,check,build,browser}.log` et
+captures `connection-*.png`. L’EXE compilé a été parcouru jusqu’à l’aperçu en
+fixture isolée (`connection-installer-ui.log`), sans installation effective.
+
+**Correctif de mise à jour du 19 octobre 2026 :** l’EXE compare les empreintes du compagnon actif et de sa politique avec le paquet. Une liaison valide avec un ancien binaire doit déclencher une nouvelle copie et une sauvegarde, avec conservation des moteurs ; un paquet identique reste sans réinstallation du compagnon. Vérifier ce scénario depuis une installation précédente fonctionnelle, puis désactiver/réactiver l’extension et ouvrir **Aperçu → Console**. Contrôler l’égalité SHA256 entre `package/native/native-host.exe` et l’exécutable désigné par le manifeste actif. La recette automatisée du backend couvre la différence de binaire/politique, le retour arrière après échec d’enregistrement et le refus d’un paquet changé après l’aperçu ; elle ne remplace pas la recette de l’EXE sur Windows propre.
+
+**Paquet du 18 octobre 2026 :** organisation et actions rapides décrites dans [le guide dédié](AMELIORATIONS_FINDER.md). Les ressources PDF.js (worker, CMaps, polices) et licences sont incluses dans le paquet/EXE ; elles ne doivent pas être téléchargées à l’ouverture de l’outil. Ajouter à la recette navigateur un PDF annoté hors connexion et la vue **Ce PC**. Le kit préparé ne vaut pas validation de cette recette sur Windows propre.
+
 État au 18 septembre 2026 : kit préparé, **recette réelle non exécutée**. Le poste de développement est sous Windows 11 Famille, sans Windows Sandbox détecté. Les tests à registre simulé de J1.3–J1.6 ne remplacent pas cette recette.
+
+**Paquet J5 du 17 octobre :** guide médias/tâches durables inclus. La reconstruction du kit ne clôture pas J1.7. Ajouter au contrôle de mise à jour : terminer les anciennes tâches, fermer l’extension une minute si l’ancien worker reste actif, installer le nouveau compagnon puis vérifier la navigation et la récupération explicite des états. Aucune tâche interrompue ne doit être rejouée automatiquement.
 
 ## Environnement
 

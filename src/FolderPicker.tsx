@@ -11,6 +11,7 @@ import {
   X,
 } from "lucide-react";
 import { bridge } from "./bridge";
+import { FileIcon } from "./Preview";
 import { pathBreadcrumbs, type Hello, type Listing } from "./types";
 
 export function FolderPath({
@@ -299,7 +300,7 @@ export function FolderPicker({
                 title={folder.path}
                 onClick={() => browse(folder.path)}
               >
-                <Folder size={20} />
+                <FileIcon entry={folder} size={20} />
                 <span>{folder.name}</span>
                 <ChevronRight size={16} />
               </button>

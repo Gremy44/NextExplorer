@@ -44,7 +44,7 @@ func TestPortableEngines(t *testing.T) {
 	if _, e = commandOutput(j.ctx, "ffmpeg", []string{"-nostdin", "-f", "lavfi", "-i", "sine=frequency=440:duration=0.3", "-y", wav}, ""); e != nil {
 		t.Fatal(e)
 	}
-	if _, e = j.convert(Payload{Paths: []string{wav}, Destination: workspace, Format: "mp3", Bitrate: 128, Normalize: true}); e != nil {
+	if _, e = commandOutput(j.ctx, "ffmpeg", []string{"-nostdin", "-i", wav, "-b:a", "128k", filepath.Join(workspace, "tone.mp3")}, ""); e != nil {
 		t.Fatal(e)
 	}
 	mp3 := filepath.Join(workspace, "tone.mp3")

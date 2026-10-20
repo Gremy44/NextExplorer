@@ -22,7 +22,7 @@ try {
         else { $preview.plan | Export-Clixml -LiteralPath $StateFile -Depth 10 }
     } else {
         $backup = Invoke-NextExplorerSetupPlan $StateFile $installRoot $SourceRoot
-        $text = 'Compagnon installe ou deja coherent. Desactivez puis reactivez l extension pour verifier la connexion.'
+        $text = 'Compagnon installe ou deja a jour avec ce paquet. Desactivez puis reactivez l extension pour verifier la connexion.'
         if ($backup) { $text += [Environment]::NewLine + 'Sauvegarde locale : ' + $backup }
     }
 } catch {

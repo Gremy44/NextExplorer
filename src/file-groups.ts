@@ -230,6 +230,49 @@ export function groupModifiedDates(entries: CollectionEntry[]) {
   };
 }
 
+export function groupFileSizes(entries: CollectionEntry[]) {
+  const limits = [
+    0,
+    1024 * 1024,
+    10 * 1024 * 1024,
+    100 * 1024 * 1024,
+    Infinity,
+  ];
+  const names = [
+    "Fichiers vides",
+    "Moins de 1 Mio",
+    "De 1 à moins de 10 Mio",
+    "De 10 à moins de 100 Mio",
+    "100 Mio et plus",
+    "Taille indisponible",
+  ];
+  const groups = names.map((name) => ({
+    name,
+    entries: [] as Entry[],
+    reason:
+      "Même tranche de taille en octets. Aucune comparaison de contenu ni preuve de doublon.",
+  }));
+  let excluded = 0;
+  for (const entry of entries.slice(0, GROUP_ENTRY_LIMIT)) {
+    if (entry.type !== "file") {
+      excluded++;
+      continue;
+    }
+    const index =
+      !Number.isSafeInteger(entry.size) || entry.size < 0
+        ? 5
+        : entry.size === 0
+          ? 0
+          : limits.findIndex((limit) => entry.size < limit);
+    groups[index].entries.push(entry);
+  }
+  return {
+    groups,
+    excluded,
+    omitted: Math.max(0, entries.length - GROUP_ENTRY_LIMIT),
+  };
+}
+
 const genericNameWords = new Set(
   "de du des le la les un une et pour sans avec document documents fichier fichiers image images photo photos scan scans rapport rapports facture factures copie copies final finale export exports version revision titre nouveau nouvelle the a an of and for file files picture pictures report invoice copy draft untitled new img dsc dscn capture screenshot".split(
     " ",
@@ -245,22 +288,7 @@ export function groupRelatedNames(entries: CollectionEntry[]) {
       excluded++;
       continue;
     }
-    const ext = fileExtension(entry);
-    const stem = ext ? entry.name.slice(0, -ext.length - 1) : entry.name;
-    const name = stem
-      .trim()
-      .normalize("NFKD")
-      .replace(/\p{M}/gu, "")
-      .toLowerCase()
-      .replace(/œ/g, "oe")
-      .replace(/æ/g, "ae")
-      // Preserve bare numbers/dates; only explicit versions and terminal copy markers are ignored.
-      .replace(
-        /(?:[\s_.–—-]+(?:v|version|rev|revision)[\s_-]*\d+|[\s_.–—-]+copie|\s*\(\d{1,3}\))+$/g,
-        "",
-      )
-      .replace(/[^\p{L}\p{N}]+/gu, " ")
-      .trim();
+    const name = relatedFileName(entry);
     const words = name.split(" ");
     if (
       words.length < 2 ||
@@ -306,8 +334,29 @@ export function groupRelatedNames(entries: CollectionEntry[]) {
   };
 }
 
+export function relatedFileName(entry: Entry) {
+  const ext = fileExtension(entry);
+  const stem = ext ? entry.name.slice(0, -ext.length - 1) : entry.name;
+  return (
+    stem
+      .trim()
+      .normalize("NFKD")
+      .replace(/\p{M}/gu, "")
+      .toLowerCase()
+      .replace(/œ/g, "oe")
+      .replace(/æ/g, "ae")
+      // Preserve bare numbers/dates; only explicit versions and terminal copy markers are ignored.
+      .replace(
+        /(?:[\s_.–—-]+(?:v|version|rev|revision)[\s_-]*\d+|[\s_.–—-]+copie|\s*\(\d{1,3}\))+$/g,
+        "",
+      )
+      .replace(/[^\p{L}\p{N}]+/gu, " ")
+      .trim()
+  );
+}
+
 type GroupListing = Listing & { snapshot: string };
-// shortcut: Native snapshots enumerate the whole directory; use streaming listing for massive folders in J4.
+// Native snapshots enumerate in bounded batches; this grouping retains at most 1 000 entries.
 export async function listGroupFolder(
   path: string,
   showHidden: boolean,
