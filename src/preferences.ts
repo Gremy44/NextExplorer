@@ -75,6 +75,11 @@ export type Preferences = {
   version: 1;
   theme: "system" | "light" | "dark";
   accent: "blue" | "green" | "purple";
+  density: "compact" | "standard" | "comfortable";
+  textSize: number;
+  menuSize: "compact" | "standard" | "comfortable";
+  tooltips: boolean;
+  remoteEnabled: boolean;
   hidden: boolean;
   extensions: boolean;
   thumbnails: boolean;
@@ -99,6 +104,11 @@ export const defaultPreferences: Preferences = {
   version: 1,
   theme: "dark",
   accent: "blue",
+  density: "standard",
+  textSize: 100,
+  menuSize: "standard",
+  tooltips: true,
+  remoteEnabled: false,
   hidden: false,
   extensions: true,
   thumbnails: true,
@@ -150,6 +160,8 @@ export function restorePreferences(value: unknown): Preferences {
   };
   choice("theme", ["system", "light", "dark"]);
   choice("accent", ["blue", "green", "purple"]);
+  choice("density", ["compact", "standard", "comfortable"]);
+  choice("menuSize", ["compact", "standard", "comfortable"]);
   choice("units", ["binary", "decimal"]);
   choice("startup", ["restore", "home", "folders"]);
   choice(
@@ -166,15 +178,22 @@ export function restorePreferences(value: unknown): Preferences {
     "foldersFirst",
     "rememberFolders",
     "newTabFocus",
+    "tooltips",
+    "remoteEnabled",
   ] as const)
     if (typeof p[key] !== "boolean")
       throw new Error(`Préférence invalide : ${key}`);
   for (const [key, min, max] of [
     ["dateWidth", 90, 240],
     ["sizeWidth", 70, 200],
+    ["textSize", 85, 150],
   ] as const)
     if (!Number.isInteger(p[key]) || p[key] < min || p[key] > max)
-      throw new Error("Largeur de colonne invalide");
+      throw new Error(
+        key === "textSize"
+          ? "Taille du texte invalide"
+          : "Largeur de colonne invalide",
+      );
   for (const [key, allowed] of [
     ["columns", ["mtime", "size", "type", "tags"]],
     ["homeSections", ["favorites", "drives", "recent", "tags"]],

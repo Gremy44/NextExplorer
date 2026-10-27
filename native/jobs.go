@@ -44,6 +44,7 @@ type Job struct {
 	checkpointDone                int64
 	executing                     bool
 	pending                       bool
+	remoteConnections             []*remoteConnection
 }
 
 func (j *Job) snapshot() M {
@@ -191,13 +192,16 @@ func (h *Host) executeJob(j *Job) {
 	if e = j.saveDurable(); e == nil {
 		e = j.check()
 	}
+	if e == nil && j.Kind == "remote" {
+		e = h.checkRemoteIdentity(p)
+	}
 	if e == nil {
 		start := 0
 		if j.Kind == "transfer" || j.Kind == "convert" || j.Kind == "recipe" || j.Kind == "quick" {
 			start = j.next
 		}
 		for i := start; i < len(j.expected); i++ {
-			actual, err := statEntry(j.expected[i].Path)
+			actual, err := h.locationStat(j.expected[i].Path)
 			if err != nil || actual != j.expected[i] {
 				e = fmt.Errorf("source modifiée dans la file : %s", j.expected[i].Name)
 				break
@@ -211,6 +215,8 @@ func (h *Host) executeJob(j *Job) {
 	}
 	if e == nil {
 		switch j.Kind {
+		case "remote":
+			r, e = j.remoteTransfer(p)
 		case "quick":
 			r, e = j.quickAction(p)
 		case "transfer":

@@ -50,3 +50,11 @@ Pour une question sur le produit ou ses données : https://github.com/Gremy44/Ne
 ## Hebergement de la documentation
 
 Ce depot et ses fichiers de telechargement sont heberges par GitHub. Les connexions au site et leurs donnees techniques suivent aussi la politique de confidentialite de GitHub : https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement. NextExplorer ne recoit pas un historique nominatif de vos fichiers locaux par ce canal.
+
+## Dossiers distants — sources du 26 octobre 2026, non distribuées dans le Setup actuel
+
+Cette fonction facultative nécessite une future version du compagnon. Après activation, le compagnon contacte directement le serveur choisi pour SFTP/SSH ou FTP/FTPS. Le serveur reçoit l’adresse IP de connexion, l’utilisateur, l’authentification et les fichiers ou commandes nécessaires aux actions demandées. FTP sans TLS transmet ces données sans chiffrement et exige une acceptation explicite.
+
+Les noms de serveurs, utilisateurs, ports, chemins de clés et empreintes approuvées sont conservés dans le carnet local du compagnon. Le mot de passe ou la phrase secrète peut être mémorisé sur demande avec DPAPI Windows, lié au compte de cet appareil ; ce secret ne figure ni dans le stockage Chrome, ni dans les exports de préférences, ni dans les tâches. Supprimer un profil depuis Connexions retire son secret de ce carnet. Les sauvegardes externes de Windows restent sous le contrôle de l’utilisateur.
+
+Une console SSH est ouverte uniquement sur action explicite. NextExplorer garde sa sortie en mémoire pour la session ; les commandes peuvent être enregistrées par le serveur et les programmes exécutés. Les transferts terminés, chemins et résultats restent dans l’Activité locale. Aucun de ces éléments n’est transmis à un service NextExplorer.

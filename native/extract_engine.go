@@ -225,6 +225,10 @@ func (j *Job) convertArchivePassword(source, dest, extension, password string) (
 	if err != nil {
 		return "", nil, err
 	}
+	if len(j.payload.Members) > 0 {
+		entries, err = selectArchiveEntries(entries, j.payload.Members)
+		if err != nil { return "", nil, err }
+	}
 	var total uint64
 	for _, entry := range entries {
 		total += entry.size

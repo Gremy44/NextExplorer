@@ -91,7 +91,7 @@ export default defineConfig({
   worker: { format: "es" },
   build: {
     outDir: "dist",
-    sourcemap: true,
+    sourcemap: false,
     rollupOptions: {
       preserveEntrySignatures: "strict",
       input: {

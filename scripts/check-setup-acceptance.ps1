@@ -3,11 +3,14 @@ param(
     [Parameter(Mandatory=$true)]
     [ValidateSet('Baseline','Cancelled','Installed','Reinstalled','RepairPrepared','Repaired','UninstallCancelled','Uninstalled')]
     [string]$Stage,
+    [ValidateSet('Chrome','Edge','Chromium')]
+    [string]$Browser = 'Chrome',
     [string]$EvidenceRoot = (Join-Path $PSScriptRoot 'evidence'),
     [string]$InstallRoot = (Join-Path ([Environment]::GetFolderPath('LocalApplicationData')) 'Programs/NextExplorer'),
     [string]$PersonalFile
 )
 $ErrorActionPreference = 'Stop'
+$browserKey = @{ Chrome='Google\Chrome'; Edge='Microsoft\Edge'; Chromium='Chromium' }[$Browser]
 function Require([bool]$Ok, [string]$Message) { if (!$Ok) { throw $Message } }
 function Hash([string]$Path) {
     if (Test-Path -LiteralPath $Path -PathType Leaf) { return (Get-FileHash -LiteralPath $Path -Algorithm SHA256).Hash }
@@ -46,13 +49,18 @@ if ($Stage -eq 'Baseline') {
 } else {
     $baseline = Read-Evidence 'Baseline'
     Require ($baseline.installRoot -eq $InstallRoot) 'Installation differs from baseline'
+    $baselineBrowser = if ($baseline.browser) { $baseline.browser } else { 'Chrome' }
+    Require ($baselineBrowser -eq $Browser) 'Browser differs from baseline'
     $PersonalFile = $baseline.personalFile
 }
 $snapshot = Snapshot
 if ($Stage -eq 'Baseline') {
-    foreach ($value in $snapshot.registrations.Values) { Require (!$value) 'Baseline requires no existing browser registrations' }
+    Require (!$snapshot.registrations[$browserKey]) 'Baseline requires no existing registration for selected browser'
 } else {
     Require ($snapshot.personalHash -eq $baseline.snapshot.personalHash) 'Personal sentinel changed or disappeared'
+    foreach ($key in $snapshot.registrations.Keys | Where-Object { $_ -ne $browserKey }) {
+        Require ($snapshot.registrations[$key] -ceq $baseline.snapshot.registrations.$key) 'Unselected browser registration changed'
+    }
 }
 $manifestPath = Join-Path $InstallRoot 'com.local.file_explorer.json'
 switch ($Stage) {
@@ -68,12 +76,11 @@ switch ($Stage) {
         Require ($binary.StartsWith((Join-Path $InstallRoot 'versions') + '\', [StringComparison]::OrdinalIgnoreCase)) 'Companion outside versions directory'
         Require (Test-Path -LiteralPath $binary -PathType Leaf) 'Installed companion missing'
         Require ((Hash $binary) -eq (Hash (Join-Path $InstallRoot 'package/native/native-host.exe'))) 'Companion differs from packaged binary'
-        Require ($snapshot.registrations['Google\Chrome'] -eq $manifestPath) 'Chrome registration mismatch'
-        foreach ($browser in @('Microsoft\Edge','Chromium')) { Require (!$snapshot.registrations[$browser]) 'Unselected browser registration changed' }
+        Require ($snapshot.registrations[$browserKey] -eq $manifestPath) 'Selected browser registration mismatch'
         foreach ($file in @('NextExplorer-Maintenance.exe','unins000.exe','package/dist/manifest.json')) {
             Require (Test-Path -LiteralPath (Join-Path $InstallRoot $file) -PathType Leaf) ('Missing installed file: ' + $file)
         }
-        & powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File (Join-Path $InstallRoot 'package/scripts/diagnose-host.ps1') -Browser Chrome -ExtensionId $id -Json | Out-Null
+        & powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File (Join-Path $InstallRoot 'package/scripts/diagnose-host.ps1') -Browser $Browser -ExtensionId $id -Json | Out-Null
         Require ($LASTEXITCODE -eq 0) 'Installed diagnostic failed'
         if ($Stage -eq 'Reinstalled') {
             $oldVersions = @($previous.snapshot.files | Where-Object { $_.path -like '\versions\*' })
@@ -92,7 +99,7 @@ switch ($Stage) {
     }
     'Uninstalled' {
         $repaired = Read-Evidence 'Repaired'
-        foreach ($value in $snapshot.registrations.Values) { Require (!$value) 'Browser registration remains' }
+        Require (!$snapshot.registrations[$browserKey]) 'Selected browser registration remains'
         Require (!(Test-Path -LiteralPath (Join-Path $InstallRoot 'package'))) 'Package remains'
         Require (!(Test-Path -LiteralPath (Join-Path $InstallRoot 'NextExplorer-Maintenance.exe'))) 'Maintenance executable remains'
         Require (!(Test-Path -LiteralPath (Join-Path $InstallRoot 'unins000.exe'))) 'Uninstaller remains'
@@ -102,6 +109,6 @@ switch ($Stage) {
     }
 }
 New-Item -ItemType Directory -Path $EvidenceRoot -Force | Out-Null
-$report = [ordered]@{ stage = $Stage; time = [DateTime]::UtcNow.ToString('o'); installRoot = $InstallRoot; personalFile = $PersonalFile; snapshot = $snapshot; browserConnection = 'Not verified by this checker' }
+$report = [ordered]@{ stage = $Stage; browser = $Browser; time = [DateTime]::UtcNow.ToString('o'); installRoot = $InstallRoot; personalFile = $PersonalFile; snapshot = $snapshot; browserConnection = 'Not verified by this checker' }
 $report | ConvertTo-Json -Depth 12 | Set-Content -LiteralPath (Join-Path $EvidenceRoot ($Stage + '.json')) -Encoding UTF8
 Write-Output ($Stage + ': PASS (filesystem/registry only; browser connection requires separate evidence)')

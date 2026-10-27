@@ -1,6 +1,6 @@
 {
   "name": "nextexplorer",
-  "version": "1.0.3",
+  "version": "1.0.6",
   "private": true,
   "type": "module",
   "scripts": {
@@ -12,6 +12,7 @@
     "test:tags": "node scripts/browser-test.mjs --tags-only",
     "test:space": "node scripts/browser-test.mjs --space-only",
     "test:console": "node scripts/browser-test.mjs --console-only",
+    "test:remote": "node scripts/browser-test.mjs --remote-only",
     "test:console:extension": "node scripts/console-extension-test.mjs",
     "test:connection:extension": "node scripts/console-extension-test.mjs --setup",
     "test:extension": "node scripts/extension-test.mjs",

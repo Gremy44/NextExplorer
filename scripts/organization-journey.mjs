@@ -360,7 +360,7 @@ export async function runOrganizationJourney({ context, baseURL, fixture }) {
       await panel.locator("html").getAttribute("data-theme"),
       "light",
     );
-    await dialog.getByText("Raccourcis clavier", { exact: true }).click();
+    await dialog.getByRole("button", { name: "Raccourcis", exact: true }).click();
     const searchShortcut = dialog.getByLabel(
       "Raccourci Rechercher dans mes fichiers et espaces",
       { exact: true },
@@ -392,9 +392,7 @@ export async function runOrganizationJourney({ context, baseURL, fixture }) {
       .waitFor();
     await close(page);
     dialog = await command(page, "Réglages et moteurs");
-    await dialog
-      .getByText("Exporter / importer les préférences et tags", { exact: true })
-      .click();
+    await dialog.getByRole("button", { name: "Sauvegarde", exact: true }).click();
     const downloadEvent = page.waitForEvent("download");
     await dialog.getByRole("button", { name: "Exporter", exact: true }).click();
     const download = await downloadEvent,

@@ -50,6 +50,7 @@ type Host struct {
 	streams        *mediaStreams
 	relocations    *relocationLog
 	terminals      map[string]*terminalSession
+	remote         *remoteHub
 }
 
 func newHost(out io.Writer) *Host {
@@ -195,6 +196,7 @@ func main() {
 }
 
 type Payload struct {
+	RemoteServers   map[string]string `json:"remoteServers,omitempty"`
 	Owner           string            `json:"owner"`
 	Session         string            `json:"session"`
 	Columns         int               `json:"columns"`
@@ -203,6 +205,7 @@ type Payload struct {
 	Snapshot        string            `json:"snapshot"`
 	Path            string            `json:"path"`
 	Paths           []string          `json:"paths"`
+	Members         []string          `json:"members"`
 	Destination     string            `json:"destination"`
 	Name            string            `json:"name"`
 	Text            string            `json:"text"`
@@ -255,21 +258,31 @@ type Payload struct {
 }
 
 func (h *Host) dispatch(r Request) (any, error) {
-	if h.workerRequired && workerAction(r.Action) {
+	var p Payload
+	if len(r.Payload) > 0 && (!strings.HasPrefix(r.Action, "REMOTE_") || strings.HasPrefix(r.Action, "REMOTE_TERMINAL_")) {
+		if e := json.Unmarshal(r.Payload, &p); e != nil {
+			return nil, e
+		}
+	}
+	remote := remoteInPayload(p)
+	if h.workerRequired && (workerAction(r.Action) || remote) {
 		client, err := h.connectedWorker()
 		if err != nil {
 			return nil, fmt.Errorf("worker local indisponible : %w", err)
 		}
 		return client.request(r)
 	}
-	var p Payload
-	if len(r.Payload) > 0 {
-		if e := json.Unmarshal(r.Payload, &p); e != nil {
-			return nil, e
-		}
+	if strings.HasPrefix(r.Action, "REMOTE_TERMINAL_") {
+		return h.remoteTerminal(p, strings.TrimPrefix(r.Action, "REMOTE_"))
+	}
+	if strings.HasPrefix(r.Action, "REMOTE_") {
+		return h.remoteRequest(r)
+	}
+	if remote {
+		return h.remoteFS(p, r.Action)
 	}
 	switch r.Action {
-	case "FS_WRITE", "FS_UPLOAD", "FS_MKDIR", "FS_RENAME", "FS_TRASH", "FS_RESTORE", "TRANSFER_UNDO_CHECK", "TRANSFER_UNDO_RESUME", "TRANSFER_UNDO", "BATCH_RENAME":
+	case "EDITOR_SAVE", "FILE_VERSION_CREATE", "FILE_VERSION_DELETE", "FILE_VERSION_RESTORE", "FS_WRITE", "FS_UPLOAD", "FS_MKDIR", "FS_RENAME", "FS_TRASH", "FS_RESTORE", "TRANSFER_UNDO_CHECK", "TRANSFER_UNDO_RESUME", "TRANSFER_UNDO", "BATCH_RENAME":
 		// Direct actions must not wait and mutate after the browser has timed out.
 		if !h.mutateMu.TryLock() {
 			return nil, fmt.Errorf("Une tâche locale bloque les modifications. Consultez l’activité et terminez ou annulez la tâche avant de réessayer.")
@@ -295,7 +308,11 @@ func (h *Host) dispatch(r Request) (any, error) {
 		value["features"].(M)["contextualConversion"] = true
 		value["features"].(M)["diskVolumes"] = true
 		value["features"].(M)["quickActions"] = true
-		if consoleSupported() { value["features"].(M)["consoleVersion"] = 1 }
+		value["features"].(M)["documentTools"] = 1
+		value["features"].(M)["remoteVersion"] = 1
+		if consoleSupported() {
+			value["features"].(M)["consoleVersion"] = 1
+		}
 		available := h.durableDir != ""
 		if h.workerRequired {
 			_, err := h.connectedWorker()
@@ -332,6 +349,8 @@ func (h *Host) dispatch(r Request) (any, error) {
 		return h.closeMedia(p.Name)
 	case "MEDIA_WAVEFORM":
 		return mediaWaveform(p)
+	case "MEDIA_DETAILS", "MEDIA_SUBTITLE":
+		return mediaDetails(p, r.Action == "MEDIA_SUBTITLE")
 	case "FS_LIST_DIR":
 		return h.list(p)
 	case "DISK_VOLUMES":
@@ -344,6 +363,14 @@ func (h *Host) dispatch(r Request) (any, error) {
 		return readChunk(p)
 	case "FS_TEXT":
 		return extractPDF(p.Path)
+	case "EDITOR_READ":
+		return readEditor(p.Path)
+	case "EDITOR_SAVE":
+		return h.saveEditor(p)
+	case "FILE_VERSIONS", "FILE_VERSION_CREATE", "FILE_VERSION_READ", "FILE_VERSION_RESTORE", "FILE_VERSION_DELETE":
+		return h.fileVersions(r.Action, p)
+	case "OFFICE_TEXT":
+		return extractOffice(p.Path)
 	case "FS_WRITE":
 		return writeFile(p)
 	case "FS_UPLOAD":
@@ -429,6 +456,8 @@ func (h *Host) dispatch(r Request) (any, error) {
 		return h.startJob("zip", p)
 	case "ARCHIVE_LIST":
 		return archiveList(p.Path)
+	case "ARCHIVE_BROWSE", "ARCHIVE_READ_MEMBER":
+		return browseArchive(p, r.Action == "ARCHIVE_READ_MEMBER")
 	case "ZIP_EXTRACT", "ARCHIVE_EXTRACT":
 		return h.startJob("extract", p)
 	case "METADATA":

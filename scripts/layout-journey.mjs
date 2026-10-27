@@ -177,6 +177,28 @@ export async function runLayoutJourney({ page }) {
     await toggle.click();
   }
   await page.locator(".appbar .brand").click();
+  const panelURL = new URL(page.url());
+  panelURL.searchParams.set("panel", "1");
+  await page.goto(panelURL.href);
+  await page.locator(".app.sidepanel").waitFor();
+  for (const height of [320, 600, 1200]) {
+    await page.setViewportSize({ width: 420, height });
+    const bounds = await page.locator(".app.sidepanel").boundingBox();
+    assert.equal(bounds.y, 0);
+    assert.equal(
+      bounds.height,
+      height,
+      "Native panel must fit the available height",
+    );
+    assert.ok(
+      await page.evaluate(
+        () => document.documentElement.scrollHeight <= innerHeight,
+      ),
+    );
+  }
+  console.log(
+    "Panneau natif : hauteur disponible 320/600/1200 px sans débordement de page : OK",
+  );
   console.log(
     "Disposition : activité redimensionnable souris/clavier, bornes, fermeture/rechargement, thèmes et 320/390/900/1440 px ; filtres sans ligne à vide, indicateur actif, réinitialisation, Échap et panneaux indépendants : OK",
   );

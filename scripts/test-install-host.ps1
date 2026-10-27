@@ -1,4 +1,5 @@
 $ErrorActionPreference = 'Stop'
+& (Join-Path $PSScriptRoot 'test-host-registration.ps1')
 . (Join-Path $PSScriptRoot 'host-installation.ps1')
 $project = Split-Path $PSScriptRoot -Parent
 $fixture = [IO.Path]::GetFullPath((Join-Path $project ('test-results/installer-' + [guid]::NewGuid().ToString('N'))))

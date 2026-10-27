@@ -22,6 +22,7 @@ import { FileIcon, Preview } from "./Preview";
 import { size, type Entry } from "./types";
 import { useOrganization } from "./OrganizationContext";
 import { fileKey } from "./file-families";
+import { isRemote, remotePath } from "./remote";
 
 const ConsolePane = lazy(() =>
   import("./ConsolePane").then((module) => ({ default: module.ConsolePane })),
@@ -44,8 +45,13 @@ const fields: Record<string, string> = {
 
 export function DetailsPane({
   visible,
+  onDocument,
+  onGallery,
+  onExtract,
   path,
   consoleAvailable,
+  remoteAvailable = false,
+  remoteName,
   entries,
   exiftool,
   onClose,
@@ -60,8 +66,13 @@ export function DetailsPane({
   actions,
 }: {
   visible: boolean;
+  onDocument?: (entry: Entry, mode: "edit" | "versions") => void;
+  onGallery?: (entry: Entry) => void;
+  onExtract?: (entry: Entry, members: string[], expected: Entry) => void;
   path: string;
   consoleAvailable: boolean;
+  remoteAvailable?: boolean;
+  remoteName?: string;
   entries: Entry[];
   exiftool: boolean;
   onClose: () => void;
@@ -78,6 +89,10 @@ export function DetailsPane({
   const { tags } = useOrganization();
   const [tab, setTab] = useState("file");
   const [consoleOpened, setConsoleOpened] = useState(false);
+  const consoleAllowed = !isRemote(path) || remoteAvailable;
+  useEffect(() => {
+    if (!consoleAllowed) setTab("file");
+  }, [consoleAllowed]);
   useEffect(() => {
     if (analysisKey) setTab("space");
   }, [analysisKey]);
@@ -129,7 +144,8 @@ export function DetailsPane({
       tab !== "file" ||
       !entry ||
       entry.type !== "file" ||
-      !exiftool
+      !exiftool ||
+      isRemote(entry.path)
     )
       return;
     setLoading(true);
@@ -158,8 +174,8 @@ export function DetailsPane({
 
   const tools = (
     <>
-      {actions}
-      {entries.length > 0 && (
+      {!isRemote(path) && actions}
+      {!isRemote(path) && entries.length > 0 && (
         <section
           className="details-actions"
           aria-label="Organisation de la sélection"
@@ -289,6 +305,7 @@ export function DetailsPane({
               </button>
             )}
             <button
+              hidden={!consoleAllowed}
               aria-pressed={tab === "console"}
               onClick={() => {
                 setConsoleOpened(true);
@@ -302,7 +319,7 @@ export function DetailsPane({
         <div
           className={`details-content${tab === "console" ? " console-content" : ""}`}
         >
-          {consoleOpened && (
+          {consoleAllowed && consoleOpened && (
             <div
               className="details-console"
               hidden={tab !== "console" || !visible}
@@ -311,9 +328,13 @@ export function DetailsPane({
                 fallback={<p className="muted">Chargement de la console…</p>}
               >
                 <ConsolePane
+                  key={isRemote(path) ? remotePath(path).id : "local"}
                   path={path}
                   active={visible && tab === "console"}
-                  available={consoleAvailable}
+                  available={
+                    isRemote(path) ? remoteAvailable : consoleAvailable
+                  }
+                  remoteName={remoteName}
                 />
               </Suspense>
             </div>
@@ -327,12 +348,32 @@ export function DetailsPane({
                 <>
                   {entry.type === "file" ? (
                     <Preview
+                      onExtract={
+                        !isRemote(path) && onExtract
+                          ? (members, expected) =>
+                              onExtract(entry, members, expected)
+                          : undefined
+                      }
+                      onGallery={
+                        !isRemote(path) && onGallery
+                          ? () => onGallery(entry)
+                          : undefined
+                      }
+                      onDocument={
+                        !isRemote(path) && onDocument
+                          ? (mode) => onDocument(entry, mode)
+                          : undefined
+                      }
                       key={`${entry.path}:${entry.mtime}:${entry.size}`}
                       entry={entry}
                       embedded
                       onClose={onClose}
                       onError={onError}
-                      onConvert={onConvert ? () => onConvert(entry) : undefined}
+                      onConvert={
+                        !isRemote(path) && onConvert
+                          ? () => onConvert(entry)
+                          : undefined
+                      }
                     />
                   ) : (
                     <div className="details-placeholder">

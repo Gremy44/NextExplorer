@@ -12,6 +12,21 @@
 AppId={{FD03F468-5405-49CD-9530-4FBCC6CE670D}
 AppName=NextExplorer
 AppVersion={#ReleaseVersion}
+AppPublisher=Gremy44
+AppPublisherURL=https://github.com/Gremy44/NextExplorer-Downloads
+AppSupportURL=https://github.com/Gremy44/NextExplorer-Downloads/issues
+VersionInfoCompany=Gremy44
+VersionInfoDescription=Installation du compagnon Windows NextExplorer
+VersionInfoProductName=NextExplorer
+VersionInfoProductVersion={#ReleaseVersion}
+VersionInfoVersion={#ReleaseVersion}
+VersionInfoTextVersion={#ReleaseVersion}
+VersionInfoCopyright=Copyright (c) 2026 Gremy44
+LicenseFile={#PackageRoot}\LICENSE
+#ifdef SigningEnabled
+SignTool=NextExplorer
+SignedUninstaller=yes
+#endif
 DefaultDirName={localappdata}\Programs\NextExplorer
 PrivilegesRequired=lowest
 ArchitecturesAllowed=x64compatible
@@ -23,7 +38,7 @@ DisableProgramGroupPage=yes
 DisableWelcomePage=no
 WizardStyle=modern
 OutputDir={#OutputRoot}
-OutputBaseFilename=NextExplorer-Setup
+OutputBaseFilename=NextExplorer-{#ReleaseVersion}-Setup
 Compression=lzma2
 SolidCompression=yes
 UninstallDisplayName=NextExplorer (paquet et liaison navigateur)

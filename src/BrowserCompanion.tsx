@@ -1,3 +1,4 @@
+import { Help } from "./Help";
 import { InsertionHistory } from "./InsertionHistory";
 import {
   useEffect,
@@ -41,6 +42,7 @@ import { uploadIssue } from "./uploads";
 import { imageFormatsForField, preparableImage } from "./prepare-images";
 import type { PaneState } from "./Pane";
 import { useOrganization } from "./OrganizationContext";
+import { fileMetrics } from "./interface-layout";
 import { orderFiles } from "./file-order";
 import { DirectoryColumns } from "./DirectoryColumns";
 import { DRIVES_PATH } from "./disk-space";
@@ -157,7 +159,8 @@ export function BrowserCompanion(props: Props) {
     Number(!!pane.filter) +
     Number(fileType !== "all") +
     Number(props.showHidden);
-  const view = fileView(pane.viewMode);
+  const baseView = fileView(pane.viewMode);
+  const view = { ...baseView, ...fileMetrics(baseView, preferences) };
   const viewStyle = {
     "--file-cell-width": view.width ? `${view.width}px` : "100%",
     "--file-icon-size": `${view.iconSize}px`,
@@ -520,11 +523,11 @@ export function BrowserCompanion(props: Props) {
                   </button>
                 </div>
               </details>
-              <p className="companion-hint">
+              <Help>
                 {nativeDrag
                   ? "Glissez sur le site, cliquez pour l’aperçu."
                   : "Cliquez sur un fichier pour l’examiner."}
-              </p>
+              </Help>
               {hello.platform === "windows" && !nativeDrag && (
                 <details className="companion-disclosure">
                   <summary>Activer le glisser-déposer</summary>
@@ -802,11 +805,11 @@ export function BrowserCompanion(props: Props) {
               </div>
               {stash.length ? (
                 <>
-                  <p className="companion-hint">
+                  <Help>
                     {nativeDrag
                       ? "Glissez vos fichiers sur le site. Les liens restent ici."
                       : "Vos fichiers et références restent ici entre les pages."}
-                  </p>
+                  </Help>
                   <div className="companion-collection-files">
                     {stash.map((entry) => (
                       <div className="companion-entry" key={entry.path}>

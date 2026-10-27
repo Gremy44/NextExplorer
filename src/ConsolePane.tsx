@@ -3,6 +3,7 @@ import { Eraser, Link2, Palette, Power, RotateCcw, Square } from "lucide-react";
 import { Terminal } from "@xterm/xterm";
 import { FitAddon } from "@xterm/addon-fit";
 import { bridge } from "./bridge";
+import { isRemote, remotePath } from "./remote";
 import {
   consoleColorsKey,
   consoleFontFamily,
@@ -36,11 +37,16 @@ export function ConsolePane({
   path,
   active,
   available,
+  remoteName,
 }: {
   path: string;
   active: boolean;
   available: boolean;
+  remoteName?: string;
 }) {
+  const remote = isRemote(path);
+  const shell = remote ? `SSH · ${remoteName || "serveur"}` : "PowerShell";
+  const rpc = (action: string) => (remote ? "REMOTE_" + action : action);
   const container = useRef<HTMLDivElement>(null);
   const terminal = useRef<Terminal | null>(null);
   const fitAddon = useRef<FitAddon | null>(null);
@@ -114,7 +120,7 @@ export function ConsolePane({
       screenReaderMode: true,
       minimumContrastRatio: 4.5,
       disableStdin: true,
-      windowsPty: { backend: "conpty" },
+      windowsPty: remote ? undefined : { backend: "conpty" },
       linkHandler: { activate() {} },
     });
     const fit = new FitAddon();
@@ -122,7 +128,10 @@ export function ConsolePane({
     term.loadAddon(fit);
     term.open(container.current!);
     terminal.current = term;
-    term.textarea?.setAttribute("aria-label", "Saisir une commande PowerShell");
+    term.textarea?.setAttribute(
+      "aria-label",
+      remote ? "Saisir une commande SSH" : "Saisir une commande PowerShell",
+    );
     const clipboard = term.parser.registerOscHandler(52, () => true);
     applyColors();
     const theme = new MutationObserver(applyColors);
@@ -137,7 +146,7 @@ export function ConsolePane({
         if (session.current)
           void bridge
             .request(
-              "TERMINAL_RESIZE",
+              rpc("TERMINAL_RESIZE"),
               {
                 session: session.current,
                 columns: Math.max(10, Math.min(300, cols)),
@@ -174,7 +183,7 @@ export function ConsolePane({
           )
             return;
           await bridge.request(
-            "TERMINAL_WRITE",
+            rpc("TERMINAL_WRITE"),
             { session: target, data },
             5000,
           );
@@ -194,7 +203,7 @@ export function ConsolePane({
       session.current = "";
       if (current)
         void bridge
-          .request("TERMINAL_CLOSE", { session: current }, 5000)
+          .request(rpc("TERMINAL_CLOSE"), { session: current }, 5000)
           .catch(() => {});
       clearTimeout(resizeTimer);
       input.dispose();
@@ -242,9 +251,13 @@ export function ConsolePane({
       session.current = "";
       setId("");
       if (previous)
-        await bridge.request("TERMINAL_CLOSE", { session: previous }, 5000);
+        await bridge.request(
+          rpc("TERMINAL_CLOSE"),
+          { session: previous },
+          5000,
+        );
       const result = await bridge.request<{ id: string; build: number }>(
-        "TERMINAL_OPEN",
+        rpc("TERMINAL_OPEN"),
         {
           path: directory.current,
           columns: Math.max(10, Math.min(300, terminal.current?.cols || 80)),
@@ -254,13 +267,13 @@ export function ConsolePane({
       );
       if (generation.current !== current) {
         void bridge
-          .request("TERMINAL_CLOSE", { session: result.id }, 5000)
+          .request(rpc("TERMINAL_CLOSE"), { session: result.id }, 5000)
           .catch(() => {});
         return;
       }
       session.current = result.id;
       setId(result.id);
-      if (terminal.current)
+      if (terminal.current && !remote)
         terminal.current.options.windowsPty = {
           backend: "conpty",
           buildNumber: result.build,
@@ -280,7 +293,7 @@ export function ConsolePane({
     }
   }
   useEffect(() => {
-    if (available && path && !attempted.current) void open();
+    if (available && path && !attempted.current && !remote) void open();
   }, [available, path]);
 
   useEffect(() => {
@@ -291,7 +304,7 @@ export function ConsolePane({
       try {
         const result = await bridge.request<
           ConsoleState & { data: string; dropped: boolean; more?: boolean }
-        >("TERMINAL_READ", { session: id }, 5000);
+        >(rpc("TERMINAL_READ"), { session: id }, 5000);
         if (!live) return;
         if (result.dropped) {
           terminal.current?.reset();
@@ -338,7 +351,7 @@ export function ConsolePane({
     if (id && !state.closed)
       void bridge
         .request(
-          "TERMINAL_SYNC",
+          rpc("TERMINAL_SYNC"),
           { session: id, path: follow ? path : "" },
           5000,
         )
@@ -356,7 +369,7 @@ export function ConsolePane({
       await inputQueue.current;
       if (session.current !== target) return;
       await bridge.request(
-        "TERMINAL_WRITE",
+        rpc("TERMINAL_WRITE"),
         { session: target, data: "\x03" },
         5000,
       );
@@ -371,12 +384,12 @@ export function ConsolePane({
   return (
     <section
       className="console-pane"
-      aria-label="Console PowerShell"
+      aria-label={"Console " + shell}
       data-ready={state.ready}
       data-session={id}
     >
       <div className="console-toolbar">
-        <strong>PowerShell</strong>
+        <strong>{shell}</strong>
         <button
           className={follow ? "toggled" : ""}
           aria-pressed={follow}
@@ -556,10 +569,18 @@ export function ConsolePane({
           {id && !state.closed ? (
             <button
               title="Fermer la session et ses commandes"
-              aria-label="Fermer la session PowerShell"
+              aria-label={
+                remote
+                  ? "Fermer la session SSH"
+                  : "Fermer la session PowerShell"
+              }
               onClick={async () => {
                 try {
-                  await bridge.request("TERMINAL_CLOSE", { session: id }, 5000);
+                  await bridge.request(
+                    rpc("TERMINAL_CLOSE"),
+                    { session: id },
+                    5000,
+                  );
                   session.current = "";
                   setId("");
                   setState((value) => ({ ...value, closed: true }));
@@ -579,18 +600,30 @@ export function ConsolePane({
             <button
               disabled={starting || !available || !path}
               onClick={open}
-              title="Ouvrir une nouvelle session"
-              aria-label="Ouvrir une nouvelle session PowerShell"
+              title={
+                remote
+                  ? "Ouvrir une console SSH ici"
+                  : "Ouvrir une nouvelle session"
+              }
+              aria-label={
+                remote
+                  ? "Ouvrir une console SSH ici"
+                  : "Ouvrir une nouvelle session PowerShell"
+              }
             >
               <RotateCcw size={16} />
+              {remote && "Ouvrir SSH"}
             </button>
           )}
         </div>
       </div>
       <p className="console-path" title={state.path || path}>
-        {state.path || path || "Choisissez un dossier pour ouvrir la console."}
+        {(remote && (state.path || path)
+          ? remotePath(state.path || path).directory
+          : state.path || path) ||
+          "Choisissez un dossier pour ouvrir la console."}
       </p>
-      {colors.palette === "ubuntu" && (
+      {colors.palette === "ubuntu" && !remote && (
         <p className="console-appearance-note" role="note">
           Apparence Ubuntu uniquement : vous utilisez PowerShell, pas Bash.
         </p>
@@ -599,7 +632,7 @@ export function ConsolePane({
         {!available
           ? "Mettez à jour le compagnon Windows pour utiliser la console."
           : starting
-            ? "Ouverture de PowerShell…"
+            ? `Ouverture de ${shell}…`
             : state.closed
               ? "Session terminée"
               : state.pending
@@ -608,7 +641,9 @@ export function ConsolePane({
                   ? "Suivi en attente d’un dossier"
                   : state.ready
                     ? "Prêt"
-                    : "Commande ou saisie en cours"}
+                    : !id && remote
+                      ? "Ouvrez explicitement une console SSH pour exécuter des commandes sur ce serveur."
+                      : "Commande ou saisie en cours"}
       </p>
       {state.error && (
         <p className="error console-error" role="alert">
@@ -617,8 +652,10 @@ export function ConsolePane({
       )}
       <div className="console-terminal" ref={container} />
       <p className="console-hint">
-        Commandes locales avec vos droits. Masquer ce volet conserve la session
-        ; fermer cette page l’arrête.
+        {remote
+          ? "Commandes exécutées sur le serveur avec vos droits SSH. Le serveur doit autoriser un shell POSIX et un terminal interactif."
+          : "Commandes locales avec vos droits."}{" "}
+        Masquer ce volet conserve la session ; fermer cette page l’arrête.
       </p>
     </section>
   );

@@ -9,7 +9,7 @@ function Get-HostRegistration([string]$Browser) {
 }
 function Set-HostRegistration([string]$Browser, [string]$Manifest) {
     $key = 'HKCU:\Software\' + $Browser + '\NativeMessagingHosts\com.local.file_explorer'
-    New-Item -Path $key -Force | Out-Null
+    if (!(Test-Path -LiteralPath $key)) { New-Item -Path $key -Force | Out-Null }
     Set-Item -LiteralPath $key -Value $Manifest
 }
 function Remove-HostRegistration([string]$Browser) {

@@ -26,6 +26,7 @@ import { size, type Entry } from "./types";
 import { useOrganization } from "./OrganizationContext";
 import { displaySize } from "./preferences";
 import { fileKey } from "./file-families";
+import { fileMetrics } from "./interface-layout";
 
 export const fileViews = [
   {
@@ -373,7 +374,8 @@ export function FileEntryContent({
       ))}
     </span>
   );
-  const view = fileView(mode);
+  const baseView = fileView(mode);
+  const view = { ...baseView, ...fileMetrics(baseView, preferences) };
   const date = new Date(entry.mtime * 1000).toLocaleDateString("fr-FR", {
     day: "2-digit",
     month: "short",

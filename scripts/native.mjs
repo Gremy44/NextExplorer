@@ -1,5 +1,5 @@
 import { spawnSync } from "node:child_process";
-import { existsSync, mkdirSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 const root = process.cwd();
 const local = path.join(
@@ -12,13 +12,14 @@ const local = path.join(
 mkdirSync(".tools/go-cache", { recursive: true });
 mkdirSync(".tools/go-mod", { recursive: true });
 const command = process.argv[2];
+const version = JSON.parse(readFileSync(path.join(root, "package.json"), "utf8")).version;
 const args =
   command === "test"
     ? ["test", "./...", "-count=1"]
     : [
         "build",
         "-trimpath",
-        "-ldflags=-s -w",
+        `-ldflags=-s -w -X main.releaseVersion=${version}`,
         "-o",
         path.join(
           root,

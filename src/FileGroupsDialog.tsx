@@ -1,3 +1,4 @@
+import { Help } from "./Help";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { FolderOpen, Layers, Plus, Settings2, Trash2 } from "lucide-react";
 import { bridge, storageGet, storageSubscribe, storageUpdate } from "./bridge";
@@ -530,7 +531,7 @@ export function FileGroupsDialog({
   }
   return (
     <section className="file-groups" aria-label="Groupes virtuels de fichiers">
-      <p>
+      <Help>
         {mode === "copies"
           ? "Retrouvez les copies identiques par taille et empreinte complète BLAKE3. Le contenu est lu par le compagnon, sans ouvrir ni décoder les images dans le navigateur."
           : mode === "similar"
@@ -547,7 +548,7 @@ export function FileGroupsDialog({
         {mode === "destination"
           ? "Regrouper ne déplace rien ; un transfert exige votre confirmation."
           : "Aucun fichier n’est déplacé."}
-      </p>
+      </Help>
       <label className="group-scope">
         Regrouper par
         <select

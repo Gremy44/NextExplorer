@@ -1,13 +1,16 @@
 param([string]$SetupPath)
 $ErrorActionPreference = 'Stop'
 $root = Split-Path $PSScriptRoot -Parent
-$setup = if ($SetupPath) { (Resolve-Path -LiteralPath $SetupPath).Path } else { Join-Path $root 'release/NextExplorer-Setup.exe' }
+$version = (Get-Content -LiteralPath (Join-Path $root 'package.json') -Raw | ConvertFrom-Json).version
+$setup = if ($SetupPath) { (Resolve-Path -LiteralPath $SetupPath).Path } else { Join-Path $root ('release/NextExplorer-' + $version + '-Setup.exe') }
 if (!(Test-Path -LiteralPath $setup -PathType Leaf)) { throw 'Build setup first: npm run setup:build' }
 $destination = Join-Path $root 'release/recette-windows'
 New-Item -ItemType Directory -Path $destination -Force | Out-Null
 Copy-Item -LiteralPath $setup -Destination (Join-Path $destination 'NextExplorer-Setup.exe')
 Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'check-setup-acceptance.ps1') -Destination $destination
 Copy-Item -LiteralPath (Join-Path $root 'RECETTE_INSTALLATEUR.md') -Destination $destination
+Copy-Item -LiteralPath (Join-Path $root 'SIGNATURE_WINDOWS.md') -Destination $destination
+Copy-Item -LiteralPath (Join-Path $root 'VALIDATION_WINDOWS_NEUF.md') -Destination $destination
 Copy-Item -LiteralPath (Join-Path $root 'AMELIORATIONS_FINDER.md') -Destination $destination
 Copy-Item -LiteralPath (Join-Path $root 'REVUE_ERGONOMIE_OUTILS.md') -Destination $destination
 Copy-Item -LiteralPath (Join-Path $root 'APERCUS_100_FORMATS.md') -Destination $destination

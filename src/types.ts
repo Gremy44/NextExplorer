@@ -1,3 +1,4 @@
+import { isRemote, remotePath, remoteLocation } from "./remote";
 export type Entry = {
   name: string;
   path: string;
@@ -42,6 +43,8 @@ export function collectedLink(address: string, title: string): CollectedLink {
 export type Hello = {
   workerError?: string;
   features?: {
+    remoteVersion?: number;
+    documentTools?: number;
     consoleVersion?: number;
     diskVolumes?: boolean;
     quickActions?: boolean;
@@ -126,14 +129,31 @@ export const size = (n: number) =>
       : n < 1073741824
         ? `${(n / 1048576).toFixed(1)} Mo`
         : `${(n / 1073741824).toFixed(2)} Go`;
-export const basename = (p: string) =>
-  p === "nextexplorer:drives"
-    ? "Ce PC"
-    : p.split(/[\\/]/).filter(Boolean).pop() || p;
+export const basename = (p: string): string =>
+  isRemote(p)
+    ? remotePath(p).directory.split("/").filter(Boolean).pop() || "Serveur"
+    : p === "nextexplorer:drives"
+      ? "Ce PC"
+      : p.split(/[\\/]/).filter(Boolean).pop() || p;
 export const join = (p: string, n: string) =>
-  p.replace(/[\\/]$/, "") + (p.includes("\\") ? "\\" : "/") + n;
+  isRemote(p)
+    ? remoteLocation(
+        remotePath(p).id,
+        remotePath(p).directory.replace(/\/$/, "") + "/" + n,
+      )
+    : p.replace(/[\\/]$/, "") + (p.includes("\\") ? "\\" : "/") + n;
 export function pathBreadcrumbs(path: string) {
   if (!path) return [];
+  if (isRemote(path)) {
+    const { id, directory } = remotePath(path);
+    const trail = [{ name: "Serveur", path: remoteLocation(id, "/") }];
+    let current = "";
+    for (const name of directory.split("/").filter(Boolean)) {
+      current += "/" + name;
+      trail.push({ name, path: remoteLocation(id, current) });
+    }
+    return trail;
+  }
   const parts = path.split(/[\\/]+/).filter(Boolean);
   const network = /^[\\/]{2}[^\\/]+[\\/]+[^\\/]+(?:[\\/]|$)/.test(path);
   const drive = /^[a-z]:[\\/]/i.test(path);

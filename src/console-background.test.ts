@@ -143,4 +143,45 @@ describe("console native routing", () => {
       false,
     );
   });
+  it("isolates SSH ownership and cleans up a late SSH opening in the worker", async () => {
+    const h = harness();
+    const c = h.client();
+    c.send("REMOTE_TERMINAL_OPEN", {
+      owner: "spoofed",
+      path: "nxe-remote://server-test/",
+    });
+    await tick();
+    const opened = h.sent.find(
+      (message) => message.action === "REMOTE_TERMINAL_OPEN",
+    );
+    expect(opened.payload.owner).not.toBe("spoofed");
+    c.port.onDisconnect.fire();
+    h.native.onMessage.fire({
+      id: opened.id,
+      status: "SUCCESS",
+      data: { id: "late-ssh" },
+    });
+    expect(
+      h.sent.filter(
+        (message) =>
+          message.action === "REMOTE_TERMINAL_CLOSE_OWNER" &&
+          message.payload.owner === opened.payload.owner,
+      ),
+    ).toHaveLength(2);
+    expect(c.replies).toHaveLength(0);
+  });
+  it("rejects remote profile and SSH commands from content pages", () => {
+    const h = harness();
+    for (const action of [
+      "REMOTE_PROFILES",
+      "REMOTE_PROFILE_SAVE",
+      "REMOTE_CONNECT",
+      "REMOTE_TERMINAL_OPEN",
+    ]) {
+      const c = h.client("https://example.com/");
+      c.send(action);
+      expect(c.replies[0].status).toBe("ERROR");
+    }
+    expect(h.sent).toHaveLength(0);
+  });
 });

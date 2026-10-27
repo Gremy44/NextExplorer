@@ -1,5 +1,11 @@
 # Couverture du cahier des charges
 
+## Sources du 26 octobre 2026 — dossiers distants
+
+Activation facultative, profils SFTP/FTP/FTPS, navigation et aperçus bornés, copies SFTP récursives vérifiées dans l’Activité, comparaison du niveau affiché et console SSH explicite. FTP/FTPS restent limités à la navigation et au téléchargement. [Périmètre, validation et travaux restants](DOSSIERS_DISTANTS.md).
+
+Compagnon recompilé le 27 octobre 2026 dans la préversion privée avec son extension ; Setup existant inchangé. Recette sur serveur utilisateur encore ouverte.
+
 ## Socle gratuit — candidat 1.0.3, 20 octobre 2026
 
 La [préversion publique 1.0.3](https://github.com/Gremy44/NextExplorer-Downloads/releases/tag/v1.0.3)

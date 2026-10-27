@@ -2,6 +2,8 @@
 
 **Vos fichiers locaux et vos projets web dans un même espace.**
 
+**Préversion privée du 27 octobre 2026 :** [archive de test avec compagnon recompilé](https://github.com/Gremy44/NextExplorer/releases/tag/preview-2026-10-27), interface compacte, atelier d’actions rapides et dossiers SFTP/SSH. Extraire l’archive, lancer `scripts/install-host.ps1`, puis charger ou recharger son dossier `dist` dans Chrome/Edge. Le Setup et la version publique restent inchangés. [Périmètre et recette distante](DOSSIERS_DISTANTS.md).
+
 **Téléchargements publics :** [NextExplorer-Downloads](https://github.com/Gremy44/NextExplorer-Downloads) — [préversion technique 1.0.1](https://github.com/Gremy44/NextExplorer-Downloads/releases/tag/v1.0.1), gratuite et non signée, pour essais sur fichiers fictifs. Le code applicatif reste privé ; la [licence](LICENSE) autorise l’utilisation des versions compilées. Aucun paiement requis pour cette distribution.
 
 **Présentation publique :** [usages et captures grand format](distribution/README.md), [guide détaillé des fonctionnalités](distribution/FONCTIONNALITES.md). Six captures réelles de démonstration, dont le panneau Chrome recevant un dépôt Windows et Codex CLI ouvert dans la console du dossier actif.
@@ -10,7 +12,7 @@ NextExplorer associe une extension Chrome à un compagnon natif pour explorer, p
 
 L’interface est en français, avec des thèmes clair et sombre inspirés de Material 3. Le fonctionnement repose sur le navigateur et le compagnon local, sans compte NextExplorer ni serveur applicatif distant.
 
-> **Projet en développement.** La cible actuellement testée est Windows avec Chrome/Chromium. La recette complète de l’installateur sur une machine Windows propre reste à effectuer. L’IA locale figure dans les pistes futures ; aucun modèle d’IA n’est actuellement intégré.
+> **Projet en développement.** Le candidat local 1.0.6 a passé le parcours principal de l’installateur sous Windows 11 isolé avec Chrome et Edge : connexion, lecture, réinstallation, réparation et désinstallation. [Rapport et cas restant à qualifier](VALIDATION_WINDOWS_NEUF.md). L’IA locale figure dans les pistes futures ; aucun modèle d’IA n’est actuellement intégré.
 
 **Distribution J7 :** [dossier Chrome Web Store](store/README.md), ZIP de l’extension et textes/visuels préparés localement. `npm run package:store` produit l’archive séparée du compagnon Windows ; aucun élément publié. Identité Store, URLs, premier parcours d’installation et recette Windows propre restent à finaliser.
 
@@ -18,7 +20,11 @@ L’interface est en français, avec des thèmes clair et sombre inspirés de Ma
 
 **Console intégrée :** **Aperçu → Console** ouvre un vrai PowerShell dans le dossier actif, avec suivi désactivable, saisie/commande en cours préservées et session conservée quand le volet est masqué. Windows et compagnon mis à jour requis. [Guide et limites](CONSOLE_INTEGREE.md).
 
-**Nouveautés du 18 octobre :** tags à sept couleurs et recherche dans tous les dossiers, personnalisation des dossiers, actions rapides (rotation, annotation, PDF, découpe), analyse d’espace dans l’aperçu et vue **Ce PC** avec les capacités des lecteurs. [Guide et limites](AMELIORATIONS_FINDER.md).
+**Candidat local 1.0.6 :** retour au panneau natif Chrome, adapté à la hauteur disponible, après le blocage signalé avec la superposition 1.0.5. Installateur avec licence, informations d’éditeur, empreintes et prise en charge d’un certificat de signature reconnu ; [état et solutions Windows](SIGNATURE_WINDOWS.md). Galerie média, navigation et extraction ciblée d’archives, éditeur texte avec historique local, recherche Office et sous-titres avec diagnostic codec : [détails et limites](FEATURES_DOCUMENTS_LOCAUX.md). La version publique reste la 1.0.3 jusqu’à une publication distincte.
+
+Le parcours principal de l’installateur 1.0.6 est [validé sur Windows 11 neuf avec Chrome](VALIDATION_WINDOWS_NEUF.md), sous compte standard : installation, reconnexion, réinstallation, réparation et désinstallation. Signature, réputation de téléchargement et configurations complémentaires restent distinctes.
+
+**Fonctions existantes :** tags à sept couleurs et recherche dans tous les dossiers, personnalisation des dossiers, actions rapides (rotation, annotation, PDF, découpe), analyse d’espace dans l’aperçu et vue **Ce PC** avec les capacités des lecteurs. [Guide et limites](AMELIORATIONS_FINDER.md).
 
 **Revue ergonomique :** espace disque agrandissable, noms et détails des blocs au survol/clavier, couleurs plus contrastées. [Liste des 47 parcours à vérifier ensemble](REVUE_ERGONOMIE_OUTILS.md).
 
@@ -51,7 +57,7 @@ Les périmètres exacts et les limites sont décrits dans [la matrice des foncti
 - Windows 64 bits et Chrome/Chromium 116 ou supérieur.
 - Git et accès à ce dépôt privé.
 - Node.js 22 ou supérieur, avec npm.
-- Go 1.24 ou supérieur. Le compagnon compilé ne nécessite ensuite aucune installation de Go.
+- Go 1.26 ou supérieur. Le compagnon compilé ne nécessite ensuite aucune installation de Go.
 
 ### Construire et connecter l’extension
 

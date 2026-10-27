@@ -1,3 +1,4 @@
+import { Help } from "./Help";
 import { FolderOpen, RefreshCw, X } from "lucide-react";
 import {
   useEffect,
@@ -11,6 +12,7 @@ import { createPortal } from "react-dom";
 import { basename, size } from "./types";
 import type { SpaceAnalysis as Analysis } from "./disk-space";
 import { spaceColors, spacePercent, spaceTiles } from "./disk-space";
+import { useOrganization } from "./OrganizationContext";
 
 export function SpaceAnalysis({
   analysis,
@@ -23,6 +25,7 @@ export function SpaceAnalysis({
   onNavigate: (path: string) => void;
   onClose: () => void;
 }) {
+  const { preferences } = useOrganization();
   const result = analysis.result,
     total = result?.total || 0;
   const [limit, setLimit] = useState(80);
@@ -58,7 +61,7 @@ export function SpaceAnalysis({
   function inspect(item: { path: string; size: number }) {
     return {
       onPointerEnter: (event: React.PointerEvent<HTMLButtonElement>) => {
-        if (event.pointerType !== "touch")
+        if (preferences.tooltips && event.pointerType !== "touch")
           setInspection({
             ...item,
             x: event.clientX + 12,
@@ -69,6 +72,7 @@ export function SpaceAnalysis({
         if (document.activeElement !== event.currentTarget) setInspection(null);
       },
       onFocus: (event: React.FocusEvent<HTMLButtonElement>) => {
+        if (!preferences.tooltips) return;
         const bounds = event.currentTarget.getBoundingClientRect();
         setInspection({ ...item, x: bounds.left + 12, y: bounds.bottom + 8 });
       },
@@ -82,7 +86,7 @@ export function SpaceAnalysis({
         }
       },
       "aria-describedby":
-        inspection?.path === item.path ? tooltipId : undefined,
+        preferences.tooltips && inspection?.path === item.path ? tooltipId : undefined,
     };
   }
   return (
@@ -153,12 +157,12 @@ export function SpaceAnalysis({
               </button>
             ))}
           </div>
-          <p className="muted">
+          <Help>
             Survolez un bloc ou utilisez Tab pour voir son nom, son chemin et sa
             taille. La surface indique l’espace occupé ; les couleurs
             distinguent les éléments. Un clic ouvre le dossier sans fermer cette
             analyse. Carte : les 40 plus gros éléments et le reste.
-          </p>
+          </Help>
           <div className="space-items">
             {result.items.slice(0, limit).map((item) => (
               <button
@@ -196,7 +200,7 @@ export function SpaceAnalysis({
           )}
         </>
       )}
-      {inspection &&
+      {preferences.tooltips && inspection &&
         createPortal(
           <div
             ref={tooltip}

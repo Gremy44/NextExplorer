@@ -13,7 +13,9 @@ import {
   Pause,
   X,
   ExternalLink,
-  ZoomIn,
+  ChevronLeft,
+  ChevronRight,
+  Maximize2,
 } from "lucide-react";
 import DOMPurify from "dompurify";
 import { marked } from "marked";
@@ -25,6 +27,10 @@ import { mimes } from "./file-mime";
 import { nativeThumbnail } from "./native-thumbnail";
 import { useOrganization } from "./OrganizationContext";
 import { fileKey } from "./file-families";
+import { GalleryImage } from "./GalleryImage";
+import { ArchiveBrowser } from "./ArchiveBrowser";
+import { MediaOptions } from "./MediaOptions";
+import { isRemote } from "./remote";
 export function FileIcon({
   entry,
   size: dim = 18,
@@ -114,7 +120,7 @@ export function CardPreview({
   useEffect(() => {
     setText("");
     setURL("");
-    if (!visible) return;
+    if (!visible || isRemote(entry.path)) return;
     let live = true;
     let mediaToken = "";
     const controller = new AbortController();
@@ -265,6 +271,11 @@ export function Preview({
   onConvert,
   embedded = false,
   actions,
+  onDocument,
+  siblings = [],
+  onNavigate,
+  onGallery,
+  onExtract,
 }: {
   entry: Entry;
   onClose: () => void;
@@ -272,6 +283,11 @@ export function Preview({
   onConvert?: () => void;
   embedded?: boolean;
   actions?: ReactNode;
+  onDocument?: (mode: "edit" | "versions") => void;
+  siblings?: Entry[];
+  onNavigate?: (entry: Entry) => void;
+  onGallery?: () => void;
+  onExtract?: (members: string[], expected: Entry) => void;
 }) {
   const [url, setURL] = useState("");
   const [text, setText] = useState("");
@@ -282,16 +298,30 @@ export function Preview({
   const [sourceError, setSourceError] = useState("");
   const [html, setHTML] = useState("");
   const [truncated, setTruncated] = useState(false);
-  const [zoom, setZoom] = useState(false);
+  const gallery = siblings.filter((item) =>
+    ["image", "video"].includes(mediaType(item)),
+  );
+  const galleryIndex = gallery.findIndex((item) => item.path === entry.path);
+  const navigateMedia = (direction: number) => {
+    const next = gallery[galleryIndex + direction];
+    if (next && onNavigate) onNavigate(next);
+  };
   const [playing, setPlaying] = useState(false);
   const video = useRef<HTMLVideoElement>(null);
   const audio = useRef<HTMLAudioElement>(null);
   const canvas = useRef<HTMLCanvasElement>(null);
   const kind = mediaType(entry);
   const tiff = /\.tiff?$/i.test(entry.ext);
+  const remote = isRemote(entry.path);
+  const office = /\.(docx|xlsx|pptx)$/i.test(entry.ext);
   const unsupported =
-    kind === "binary" ||
-    (embedded && (kind === "folder" || kind === "archive"));
+    (kind === "binary" && !office) ||
+    (embedded && kind === "folder") ||
+    (remote &&
+      (office ||
+        ["archive", "audio", "video"].includes(kind) ||
+        (kind === "image" &&
+          (tiff || entry.ext === ".svg" || entry.size > 8 * 1024 * 1024))));
   useEffect(() => {
     setSourceOpen(false);
     setSource(null);
@@ -323,16 +353,16 @@ export function Preview({
     if (unsupported) return () => controller.abort();
     (async () => {
       try {
+        if (office) {
+          const result = await bridge.request<{ text: string; note: string }>(
+            "OFFICE_TEXT",
+            { path: entry.path },
+            10000,
+          );
+          if (live) setText(`${result.note}\n\n${result.text}`);
+          return;
+        }
         if (kind === "archive") {
-          const d = await bridge.request("ARCHIVE_LIST", { path: entry.path });
-          if (live)
-            setText(
-              d.text ||
-                d.entries
-                  .map((e: any) => `${size(e.size).padStart(12)}  ${e.name}`)
-                  .join("\n") +
-                  (d.truncated ? "\n… liste limitée à 3 000 entrées" : ""),
-            );
           return;
         }
         if (kind === "text") {
@@ -360,6 +390,20 @@ export function Preview({
           return;
         }
         if (kind === "image") {
+          if (remote) {
+            const data = await bridge.bytes(
+              entry.path,
+              8 * 1024 * 1024,
+              controller.signal,
+            );
+            object = URL.createObjectURL(
+              new Blob([data], {
+                type: mimes[entry.ext] || "application/octet-stream",
+              }),
+            );
+            if (live) setURL(object);
+            return;
+          }
           const expected = await bridge.request<Entry>("FS_STAT", {
             path: entry.path,
           });
@@ -485,12 +529,40 @@ export function Preview({
         role={embedded ? "region" : "dialog"}
         aria-modal={embedded ? undefined : true}
         aria-label={"Aperçu de " + entry.name}
+        onKeyDown={(event) => {
+          if (
+            !embedded &&
+            !(event.target as HTMLElement).closest("input,textarea,video") &&
+            ["ArrowLeft", "ArrowRight"].includes(event.key)
+          ) {
+            event.stopPropagation();
+            event.preventDefault();
+            navigateMedia(event.key === "ArrowLeft" ? -1 : 1);
+          }
+        }}
       >
         <header>
           <FileIcon entry={entry} />
           <strong>{entry.name}</strong>
           <span>{size(entry.size)}</span>
+          {!remote && onDocument && kind === "text" && (
+            <button
+              title="Modifier le texte"
+              onClick={() => onDocument("edit")}
+            >
+              Modifier
+            </button>
+          )}
+          {!remote && onDocument && entry.type === "file" && (
+            <button
+              title="Historique des versions"
+              onClick={() => onDocument("versions")}
+            >
+              Versions
+            </button>
+          )}
           <button
+            hidden={remote}
             title="Ouvrir dans l’application"
             onClick={() =>
               bridge
@@ -506,7 +578,48 @@ export function Preview({
             </button>
           )}
         </header>
-        <div className={"preview-body " + (zoom ? "zoom" : "")}>
+        {["image", "video"].includes(kind) && (
+          <div className="gallery-toolbar">
+            {onGallery && (
+              <button onClick={onGallery}>Ouvrir la galerie</button>
+            )}
+            {!embedded && galleryIndex >= 0 && (
+              <>
+                <button
+                  title="Média précédent"
+                  disabled={galleryIndex === 0}
+                  onClick={() => navigateMedia(-1)}
+                >
+                  <ChevronLeft size={18} />
+                </button>
+                <span>
+                  {galleryIndex + 1} / {gallery.length} médias chargés
+                </span>
+                <button
+                  title="Média suivant"
+                  disabled={galleryIndex === gallery.length - 1}
+                  onClick={() => navigateMedia(1)}
+                >
+                  <ChevronRight size={18} />
+                </button>
+              </>
+            )}
+            <button
+              title="Plein écran"
+              onClick={(event) => {
+                const section = event.currentTarget.closest("section")!;
+                void (
+                  document.fullscreenElement
+                    ? document.exitFullscreen()
+                    : section.requestFullscreen()
+                ).catch((error) => onError(error.message));
+              }}
+            >
+              <Maximize2 size={18} />
+            </button>
+          </div>
+        )}
+        <div className="preview-body">
           {truncated && (
             <p className="muted" role="status">
               Aperçu partiel : 64 Ko ou 1 000 lignes maximum. Le fichier
@@ -515,33 +628,24 @@ export function Preview({
           )}
           {unsupported ? (
             <p className="muted">
-              Ce format ne dispose pas d’un aperçu intégré. Ouvrez ce fichier
-              dans son application
-              {onConvert ? " ou créez une copie PNG pour le consulter." : "."}
+              {remote ? (
+                "Copiez ce fichier dans un dossier local avec le double panneau pour utiliser son aperçu ou ses outils."
+              ) : (
+                <>
+                  Ce format ne dispose pas d’un aperçu intégré. Ouvrez ce
+                  fichier dans son application
+                  {onConvert
+                    ? " ou créez une copie PNG pour le consulter."
+                    : "."}
+                </>
+              )}
             </p>
           ) : error ? (
             <p className="error">{error}</p>
           ) : kind === "text" && entry.size === 0 ? (
             <p className="muted">Fichier vide.</p>
           ) : kind === "image" && url ? (
-            <>
-              <button
-                className="zoom-button"
-                title="Zoom"
-                onClick={() => setZoom(!zoom)}
-              >
-                <ZoomIn size={18} />
-              </button>
-              <img
-                src={url}
-                alt={entry.name}
-                onError={() =>
-                  setError(
-                    "Cette image ne peut pas être décodée. Ouvrez-la dans son application.",
-                  )
-                }
-              />
-            </>
+            <GalleryImage key={entry.path + url} url={url} name={entry.name} />
           ) : kind === "video" && url ? (
             <video
               preload="metadata"
@@ -624,12 +728,22 @@ export function Preview({
             />
           ) : kind === "text" && text ? (
             <pre>{text}</pre>
+          ) : office && text ? (
+            <pre className="code">{text}</pre>
           ) : kind === "archive" ? (
-            <pre>{text || "Lecture de l’archive…"}</pre>
+            <ArchiveBrowser entry={entry} onExtract={onExtract} />
           ) : (
             <p className="muted">Chargement de l’aperçu…</p>
           )}
         </div>
+        {!remote && (kind === "video" || kind === "audio") && (
+          <MediaOptions
+            key={entry.path}
+            entry={entry}
+            media={kind === "video" ? video : audio}
+            onConvert={kind === "video" ? onConvert : undefined}
+          />
+        )}
         {sourceOpen && (
           <section
             className="capture-provenance"
@@ -674,7 +788,7 @@ export function Preview({
             )}
           </section>
         )}
-        {actions}
+        {!remote && actions}
         <footer>
           {!embedded && (
             <span>
@@ -683,10 +797,10 @@ export function Preview({
                 : "Échap pour fermer"}
             </span>
           )}
-          {tiff && onConvert && (
+          {!remote && tiff && onConvert && (
             <button onClick={onConvert}>Créer une copie PNG…</button>
           )}
-          {entry.type === "file" && (
+          {!remote && entry.type === "file" && (
             <button
               aria-expanded={sourceOpen}
               onClick={() => setSourceOpen(!sourceOpen)}
@@ -694,7 +808,7 @@ export function Preview({
               {sourceOpen ? "Masquer la provenance" : "Voir la provenance"}
             </button>
           )}
-          {!embedded && (
+          {!remote && !embedded && (
             <button
               onClick={() =>
                 bridge

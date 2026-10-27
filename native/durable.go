@@ -109,7 +109,7 @@ func (h *Host) prepareJob(j *Job, p Payload) error {
 		return fmt.Errorf("1 000 sources maximum par tâche")
 	}
 	for _, path := range p.Paths {
-		entry, err := statEntry(path)
+		entry, err := h.locationStat(path)
 		if err != nil {
 			return err
 		}
@@ -119,7 +119,7 @@ func (h *Host) prepareJob(j *Job, p Payload) error {
 		j.expected = append(j.expected, entry)
 	}
 	if p.Destination != "" {
-		entry, err := statEntry(p.Destination)
+		entry, err := h.locationStat(p.Destination)
 		if err != nil || entry.Type != "directory" {
 			return fmt.Errorf("dossier de destination inaccessible")
 		}
@@ -200,6 +200,10 @@ func (h *Host) loadDurableJobs() error {
 }
 
 func (j *Job) canRecover() bool {
+	// shortcut: remote copies require manual review after a process interruption, never automatic replay.
+	if j.Kind == "remote" {
+		return false
+	}
 	if !j.active {
 		return true
 	}

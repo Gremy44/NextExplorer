@@ -6,6 +6,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync"
 	"time"
 )
@@ -24,10 +25,12 @@ type workerClient struct {
 }
 
 func workerAction(action string) bool {
-	if action == "WORKER_HELLO" || action == "RELOCATIONS" {
+	if action == "WORKER_HELLO" || action == "RELOCATIONS" || strings.HasPrefix(action, "REMOTE_") {
 		return true
 	}
 	switch action {
+	case "EDITOR_SAVE", "FILE_VERSIONS", "FILE_VERSION_CREATE", "FILE_VERSION_READ", "FILE_VERSION_RESTORE", "FILE_VERSION_DELETE":
+		return true
 	case "QUICK_ACTION", "FS_TRANSFER", "JOB_CONTROL", "JOBS", "JOB_RESULT", "OPERATION_JOURNAL", "TRANSFER_UNDO_CHECK", "TRANSFER_UNDO_RESUME", "TRANSFER_UNDO", "CONVERT", "RECIPE", "ZIP", "ZIP_EXTRACT", "ARCHIVE_EXTRACT", "SCAN", "DUPLICATES", "METADATA_WRITE", "DOWNLOAD", "FS_WRITE", "FS_UPLOAD", "FS_MKDIR", "FS_RENAME", "FS_TRASH", "FS_RESTORE", "BATCH_RENAME":
 		return true
 	}

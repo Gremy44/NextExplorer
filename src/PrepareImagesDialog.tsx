@@ -1,3 +1,4 @@
+import { Help } from "./Help";
 import { useEffect, useRef, useState } from "react";
 import { bridge, storageGet, storageSubscribe, storageUpdate } from "./bridge";
 import { DownloadDestination } from "./DownloadList";
@@ -132,21 +133,21 @@ export function PrepareImagesDialog({
           confirmer, avec contrôle de la page et du champ.
         </p>
       )}
-      <p>
+      <Help>
         Indiquez les contraintes du site. Des copies seront créées ; les
         originaux seront conservés. Fermer ce dialogue laisse la préparation
         continuer ; retrouvez-la dans Préparations récentes. Créer des copies
         n’envoie aucun fichier au site.
-      </p>
+      </Help>
       {!!history.length && (
         <details>
           <summary>Préparations récentes ({history.length})</summary>
-          <p>
+          <Help>
             Retrouvez les copies sans les recréer. Leur format, leurs dimensions
             et leur poids sont revérifiés avant de proposer leur collecte.
             Retirer une entrée ne supprime aucun fichier et n’arrête pas sa
             tâche. 20 préparations maximum.
-          </p>
+          </Help>
           {history.map((preparation) => (
             <article key={preparation.id}>
               <strong>

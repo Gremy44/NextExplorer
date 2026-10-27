@@ -1,6 +1,7 @@
 import { conversionKind } from "./media-conversion";
 import type { Entry, Hello } from "./types";
 export type QuickAction = "rotate" | "annotate" | "pdf-create" | "trim";
+export type QuickTool = QuickAction | "convert";
 export const editableImage = (entry: Entry) =>
   entry.type === "file" && /\.(png|jpe?g|webp|gif|bmp)$/i.test(entry.name);
 export const documentFile = (entry: Entry) =>
@@ -62,4 +63,46 @@ export function validTrim(start: number, end: number, duration: number) {
     end <= duration + 0.001 &&
     end - start <= 3600
   );
+}
+
+export function defaultQuickAction(entries: Entry[], hello: Hello | null) {
+  const actions = quickActions(entries, hello);
+  return (
+    actions.find((action) => action.id === "trim" && !action.disabled)?.id ||
+    actions.find((action) => !action.disabled)?.id ||
+    actions[0]?.id
+  );
+}
+
+export function quickTime(seconds: number) {
+  if (!Number.isFinite(seconds) || seconds < 0) return "0:00.0";
+  const tenths = Math.round(seconds * 10);
+  return `${Math.floor(tenths / 600)}:${String(Math.floor(tenths / 10) % 60).padStart(2, "0")}.${tenths % 10}`;
+}
+
+export function reorderQuickFiles(files: Entry[], from: number, to: number) {
+  if (
+    !Number.isInteger(from) ||
+    !Number.isInteger(to) ||
+    from < 0 ||
+    to < 0 ||
+    from >= files.length ||
+    to >= files.length ||
+    from === to
+  )
+    return files;
+  const next = [...files];
+  next.splice(to, 0, next.splice(from, 1)[0]);
+  return next;
+}
+
+export function quickCopyName(name: string, existing: string[]) {
+  const names = new Set(existing.map((value) => value.toLowerCase()));
+  const dot = name.lastIndexOf("."),
+    stem = dot > 0 ? name.slice(0, dot) : name,
+    extension = dot > 0 ? name.slice(dot) : "";
+  let candidate = name;
+  for (let number = 2; names.has(candidate.toLowerCase()); number++)
+    candidate = `${stem} (${number})${extension}`;
+  return candidate;
 }

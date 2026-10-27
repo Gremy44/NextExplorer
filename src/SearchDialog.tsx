@@ -1,3 +1,4 @@
+import { Help } from "./Help";
 import { useEffect, useRef, useState } from "react";
 import {
   Search,
@@ -106,6 +107,16 @@ export function SearchDialog({
           stat: (path) => bridge.request("FS_STAT", { path }, 5000),
           read: (path) =>
             bridge.textPrefix(path, INDEX_TEXT_BYTES, current.signal),
+          ...(hello?.features?.documentTools
+            ? {
+                office: (path: string) =>
+                  bridge.request<{ text: string; note: string }>(
+                    "OFFICE_TEXT",
+                    { path },
+                    10000,
+                  ),
+              }
+            : {}),
           ...(hello?.tools.pdftotext
             ? {
                 pdf: (path: string) =>
@@ -326,10 +337,10 @@ export function SearchDialog({
   }
   return (
     <section className="organization-dialog" aria-label="Recherche locale">
-      <p>
+      <Help>
         Recherchez dans un dossier choisi, vos liens collectés et vos espaces
         enregistrés. Aucun historique du navigateur n’est parcouru.
-      </p>
+      </Help>
       <label className="field">
         Dossier à indexer
         <input
@@ -402,10 +413,12 @@ export function SearchDialog({
       <small>
         Limites : 1 000 entrées, 100 dossiers, profondeur 8, 2 millions de
         caractères. TXT/Markdown et formats texte : 16 Kio par lecture. PDF :
-        moteur pdftotext optionnel, 8 Mio / 10 pages / 8 s. Aucun OCR. Origines
-        déclarées contrôlées pour les 20 premiers fichiers. Pendant l’ouverture
-        : actualisation après notification et contrôle des métadonnées toutes
-        les 15 s. Index à revalider à la réouverture.
+        moteur pdftotext optionnel, 8 Mio / 10 pages / 8 s. DOCX/XLSX/PPTX :
+        extraction locale sans moteur, fichier de 32 Mio maximum, texte partiel
+        de 16 Kio. Aucun OCR. Origines déclarées contrôlées pour les 20 premiers
+        fichiers. Pendant l’ouverture : actualisation après notification et
+        contrôle des métadonnées toutes les 15 s. Index à revalider à la
+        réouverture.
       </small>
       {index && (
         <p className="muted">
@@ -549,7 +562,17 @@ export function SearchDialog({
           </button>
           <small>{file.note}</small>
           {file.source && <small>Origine déclarée : {file.source}</small>}
-          <p>{file.text.slice(0, 220)}</p>
+          <p>
+            {(() => {
+              const text = file.text;
+              const i = text
+                .toLocaleLowerCase("fr")
+                .indexOf(query.trim().toLocaleLowerCase("fr"));
+              return i < 0
+                ? text.slice(0, 220)
+                : `${i > 80 ? "…" : ""}${text.slice(Math.max(0, i - 80), i + 140)}${i + 140 < text.length ? "…" : ""}`;
+            })()}
+          </p>
           {file.text && (
             <button
               type="button"

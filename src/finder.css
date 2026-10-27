@@ -215,7 +215,7 @@
 }
 .folder-style-preview > span {
   position: absolute;
-  font-size: 28px;
+  font-size: calc(28px * var(--text-scale, 1));
   top: 34px;
   color: var(--text);
 }
@@ -299,7 +299,7 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  font-size: 12px;
+  font-size: calc(12px * var(--text-scale, 1));
 }
 .space-tooltip {
   position: fixed;
@@ -317,10 +317,10 @@
   box-shadow: 0 4px 12px #0004;
   pointer-events: none;
   overflow-wrap: anywhere;
-  font-size: 13px;
+  font-size: calc(13px * var(--text-scale, 1));
 }
 .space-tooltip small {
-  font-size: 12px;
+  font-size: calc(12px * var(--text-scale, 1));
 }
 .space-items {
   display: grid;
@@ -389,7 +389,7 @@
   width: 100%;
 }
 .drive-capacity small {
-  font-size: 11px;
+  font-size: calc(11px * var(--text-scale, 1));
   color: var(--muted);
   white-space: normal;
 }
@@ -416,170 +416,13 @@
   max-width: 170px;
 }
 .nav-drive .drive-capacity small {
-  font-size: 10px;
+  font-size: calc(10px * var(--text-scale, 1));
 }
 .organization-dialog .drives-view {
   padding: 0;
 }
-.quick-actions {
-  display: grid;
-  gap: 8px;
-  padding: 12px 16px;
-  border-bottom: 1px solid var(--line);
-}
-.quick-actions h3 {
-  font-size: 14px;
-  margin: 0;
-}
-.quick-actions .organization-actions {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-}
-.quick-actions button {
-  border-radius: var(--md-sys-shape-corner-small);
-  white-space: normal;
-  justify-content: flex-start;
-  background: var(--panel);
-  min-height: 44px;
-}
-.quick-actions small {
-  color: var(--muted);
-}
-.modal:has(.quick-action-dialog) .modal-content {
-  padding: 16px;
-}
-.quick-action-dialog {
-  gap: 16px;
-}
-.quick-action-dialog input[type="range"] {
-  width: 100%;
-  padding: 0;
-  height: 32px;
-  accent-color: var(--accent);
-}
-.quick-action-dialog input[type="color"] {
-  width: 44px;
-  min-width: 44px;
-  height: 40px;
-  padding: 4px;
-}
-.quick-action-dialog button[aria-pressed="true"] {
-  background: var(--selected);
-  color: var(--md-sys-color-on-secondary-container);
-  border-color: var(--accent);
-}
-.markup-toolbar {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 4px;
-  padding: 8px;
-  background: var(--panel);
-  border-radius: var(--md-sys-shape-corner-medium);
-}
-.markup-toolbar button {
-  min-width: 44px;
-  padding: 8px;
-}
-.markup-toolbar label {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 0 4px;
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-.markup-toolbar select {
-  max-width: 72px;
-}
-.markup-pagination {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  padding: 8px;
-}
-.markup-paper {
-  position: relative;
-  width: 100%;
-  margin: 12px auto;
-  background: white;
-  max-height: 640px;
-  overflow: auto;
-  line-height: 0;
-}
-.markup-paper canvas {
-  display: block;
-  width: 100%;
-  height: auto;
-}
-.markup-paper canvas + canvas {
-  position: absolute;
-  left: 0;
-  top: 0;
-  cursor: crosshair;
-}
-.markup-paper canvas:focus-visible {
-  outline-offset: -3px;
-}
-.markup-editor {
-  min-width: 0;
-}
-.markup-editor > .field {
-  margin: 12px 0;
-}
-.trim-player video {
-  width: 100%;
-  max-height: 300px;
-  background: black;
-  border-radius: var(--md-sys-shape-corner-medium);
-}
-.trim-player audio {
-  width: 100%;
-}
-.pdf-source-list {
-  padding-left: 24px;
-  display: grid;
-  gap: 8px;
-  margin: 0;
-}
-.pdf-source-list li {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  border-bottom: 1px solid var(--line);
-  padding-bottom: 8px;
-}
-.pdf-source-list li > span {
-  flex: 1;
-  min-width: 0;
-  overflow-wrap: anywhere;
-}
-.pdf-source-list button {
-  padding: 8px;
-  flex: 0 0 auto;
-}
-.quick-action-footer {
-  position: sticky;
-  bottom: -16px;
-  background: var(--raised);
-  padding: 12px 0;
-  border-top: 1px solid var(--line);
-  z-index: 2;
-}
 .preview-organization {
   padding: 8px 16px;
-}
-@media (max-width: 480px) {
-  .markup-toolbar button span {
-    display: none;
-  }
-  .markup-toolbar label {
-    font-size: 12px;
-  }
-  .markup-toolbar {
-    padding: 4px;
-  }
 }
 @media (forced-colors: active) {
   .custom-folder-icon {

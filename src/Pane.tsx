@@ -10,6 +10,8 @@ import {
 } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { conversionKind } from "./media-conversion";
+import { isRemote, remoteActions } from "./remote";
+import { fileMetrics } from "./interface-layout";
 import {
   ArrowLeft,
   ArrowUp,
@@ -36,6 +38,7 @@ import {
   Palette,
   WandSparkles,
   SlidersHorizontal,
+  LockKeyhole,
 } from "lucide-react";
 import { DRIVES_PATH } from "./disk-space";
 import { DrivesView } from "./DrivesView";
@@ -57,6 +60,7 @@ import {
 } from "./FileView";
 import {
   basename,
+  pathBreadcrumbs,
   size,
   type Entry,
   type Listing,
@@ -101,6 +105,13 @@ const contextActionGroups = [
     label: "Supprimer",
     actions: [["trash", "Mettre à la corbeille", "Suppr", Trash2]],
   },
+  {
+    label: "Serveur",
+    actions: [
+      ["remote-permissions", "Permissions Unix…", "", LockKeyhole],
+      ["remote-delete", "Supprimer du serveur…", "", Trash2],
+    ],
+  },
 ] as const;
 
 export type PaneState = {
@@ -132,6 +143,7 @@ export function Pane({
   showHidden,
   refresh,
   onRefreshVolumes,
+  remoteProtocol,
 }: {
   pane: PaneState;
   active: boolean;
@@ -148,6 +160,7 @@ export function Pane({
   showHidden: boolean;
   refresh: () => void;
   onRefreshVolumes: () => void;
+  remoteProtocol?: "sftp" | "ftp" | "ftps";
 }) {
   const [address, setAddress] = useState(pane.path);
   const [editing, setEditing] = useState(false);
@@ -241,7 +254,8 @@ export function Pane({
       scroll.current.scrollTop = pane.scrollTop || 0;
   }, [pane.path, pane.loading]);
   const [width, setWidth] = useState(0);
-  const view = fileView(pane.viewMode);
+  const baseView = fileView(pane.viewMode);
+  const view = { ...baseView, ...fileMetrics(baseView, preferences) };
   const visibleColumns = preferences.columns
     .filter((key) => width >= 700 || key !== "tags")
     .filter((key) => width >= 540 || key !== "type")
@@ -268,7 +282,7 @@ export function Pane({
       (entry) => entry.path === pane.selected.at(-1)?.path,
     );
     virtual.scrollToIndex(index < 0 ? 0 : Math.floor(index / columns));
-  }, [pane.viewMode, columns]);
+  }, [pane.viewMode, columns, view.height]);
   useEffect(() => {
     setAddress(pane.path);
   }, [pane.path]);
@@ -344,8 +358,14 @@ export function Pane({
       anchor.current = index;
     }
   }
-  const parts = pane.path.split(/[\\/]/).filter(Boolean);
-  const separator = pane.path.includes("\\") ? "\\" : "/";
+  const trail = pathBreadcrumbs(pane.path);
+  const allowed = (action: string) =>
+    !preferences.hiddenActions.includes(action) &&
+    (isRemote(pane.path)
+      ? remoteActions.has(action) &&
+        (!["rename", "remote-permissions"].includes(action) ||
+          remoteProtocol === "sftp")
+      : !action.startsWith("remote-"));
   if (pane.path === DRIVES_PATH)
     return (
       <section
@@ -373,7 +393,8 @@ export function Pane({
       onPointerDown={onActive}
       onDragOver={(e) => {
         e.preventDefault();
-        e.dataTransfer.dropEffect = e.ctrlKey ? "copy" : "move";
+        e.dataTransfer.dropEffect =
+          e.ctrlKey || isRemote(pane.path) ? "copy" : "move";
       }}
       onDrop={(e) => onDrop(e, pane.path)}
       aria-label={active ? "Dossier actif" : "Second dossier"}
@@ -388,7 +409,9 @@ export function Pane({
         </button>
         <button
           title="Dossier parent"
-          disabled={!pane.listing}
+          disabled={
+            !pane.listing || (isRemote(pane.path) && !pane.listing.parentPath)
+          }
           onClick={() =>
             pane.listing && navigate(pane.listing.parentPath || DRIVES_PATH)
           }
@@ -428,27 +451,11 @@ export function Pane({
             </>
           ) : (
             <div className="breadcrumbs" onDoubleClick={() => setEditing(true)}>
-              <button
-                onClick={() =>
-                  navigate(separator === "/" ? "/" : parts[0] + "\\")
-                }
-              >
-                {separator === "/" ? "/" : parts[0]}
-              </button>
-              {parts.slice(separator === "/" ? 0 : 1).map((part, i) => (
-                <span key={i}>
-                  <ChevronRight size={12} />
-                  <button
-                    onClick={() =>
-                      navigate(
-                        (separator === "/" ? "/" : "") +
-                          parts
-                            .slice(0, i + (separator === "/" ? 1 : 2))
-                            .join(separator),
-                      )
-                    }
-                  >
-                    {part}
+              {trail.map((part, i) => (
+                <span key={part.path}>
+                  {i > 0 && <ChevronRight size={12} />}
+                  <button onClick={() => navigate(part.path)}>
+                    {part.name}
                   </button>
                 </span>
               ))}
@@ -1052,9 +1059,7 @@ export function Pane({
         >
           {contextActionGroups
             .filter((group) =>
-              group.actions.some(
-                ([action]) => !preferences.hiddenActions.includes(action),
-              ),
+              group.actions.some(([action]) => allowed(action)),
             )
             .map((group, index) => (
               <div key={group.label}>
@@ -1081,9 +1086,7 @@ export function Pane({
                       </button>
                     )}
                   {group.actions
-                    .filter(
-                      ([action]) => !preferences.hiddenActions.includes(action),
-                    )
+                    .filter(([action]) => allowed(action))
                     .map(([action, label, shortcut, Icon]) => (
                       <Fragment key={action}>
                         {action === "tags" && (

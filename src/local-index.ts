@@ -61,6 +61,7 @@ export type IndexIO = {
   stat: (path: string) => Promise<Entry>;
   read: (path: string) => Promise<{ bytes: Uint8Array; size: number }>;
   pdf?: (path: string) => Promise<{ text: string; note: string }>;
+  office?: (path: string) => Promise<{ text: string; note: string }>;
 };
 export function words(text: string) {
   return (
@@ -208,6 +209,11 @@ export async function buildIndex(
                 : parsed.truncated || file.text.length < parsed.text.length
                   ? "Extrait tronqué (16 Kio / 1 000 lignes / 8 192 caractères)"
                   : "Texte extrait";
+            } else if (/^\.(docx|xlsx|pptx)$/i.test(entry.ext) && io.office && textBudget > 0) {
+              const parsed = await io.office(entry.path);
+              signal.throwIfAborted();
+              file.text = parsed.text.slice(0, Math.min(8192, textBudget));
+              file.note = parsed.note;
             } else if (entry.ext === ".pdf") {
               file.note = "Nom uniquement · pdftotext non installé";
               if (io.pdf && textBudget > 0) {

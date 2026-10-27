@@ -1,5 +1,11 @@
 # Guide d’installation et d’utilisation — NextExplorer
 
+## Dossiers distants — sources en développement
+
+Le socle SFTP/SSH s’active dans **Réglages → Connexions**. Il réutilise les onglets, le double panneau, les favoris et l’Activité, avec vérification de l’empreinte SSH, copies sans écrasement et console distante explicite. [Parcours et limites](DOSSIERS_DISTANTS.md).
+
+Le compagnon recompilé du 27 octobre 2026 et son extension sont inclus dans la [préversion privée](https://github.com/Gremy44/NextExplorer/releases/tag/preview-2026-10-27). Le Setup existant reste inchangé : réinstaller cet ancien Setup ne met pas ces fonctions à jour. Extraire la nouvelle archive, lancer `scripts/install-host.ps1`, puis charger ou recharger son dossier `dist`. Désactiver puis réactiver l’extension si une ancienne connexion persiste. La compilation seule n’installe pas la mise à jour sur le PC.
+
 ## Assistant simplifié — préversion 1.0.3
 
 Le parcours normal choisit le navigateur puis affiche les changements prévus.
@@ -321,7 +327,7 @@ Après réparation, désactiver et réactiver l’extension pour vérifier la co
 
 ## Développement
 
-Node.js 22+ et Go 1.24+ sont nécessaires uniquement pour reconstruire. Le compagnon produit est autonome. Le choix Go est prévu par l’architecture générale du cahier des charges, même si son tableau de phases cite Rust.
+Node.js 22+ et Go 1.26+ sont nécessaires uniquement pour reconstruire. Le compagnon produit est autonome. Le choix Go est prévu par l’architecture générale du cahier des charges, même si son tableau de phases cite Rust.
 
 ```powershell
 npm install

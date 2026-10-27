@@ -52,6 +52,14 @@ export async function runFinderJourney({
     await dialog.getByRole("button", { name: label, exact: true }).click();
     return page.getByRole("dialog").last();
   }
+  async function quickDestination(dialog, destination) {
+    const field = dialog.getByLabel("Destination de l’action rapide", {
+      exact: true,
+    });
+    if (!(await field.isVisible()))
+      await dialog.locator(".quick-output-settings summary").click();
+    await field.fill(destination);
+  }
   async function waitOutput(file) {
     const deadline = Date.now() + 45000;
     while (Date.now() < deadline) {
@@ -190,9 +198,7 @@ export async function runFinderJourney({
   proof.push("Ce PC et analyse persistante dans le volet");
 
   dialog = await chooseQuick("Faire pivoter", source);
-  await dialog
-    .getByLabel("Destination de l’action rapide", { exact: true })
-    .fill(destination);
+  await quickDestination(dialog, destination);
   await dialog.getByRole("button", { name: "À droite", exact: true }).click();
   await dialog
     .getByRole("button", { name: "Créer la copie", exact: true })
@@ -209,9 +215,7 @@ export async function runFinderJourney({
   dialog = await chooseQuick("Raccourcir", clip);
   await dialog.getByLabel("Début de l’extrait", { exact: true }).fill("0.5");
   await dialog.getByLabel("Fin de l’extrait", { exact: true }).fill("1.5");
-  await dialog
-    .getByLabel("Destination de l’action rapide", { exact: true })
-    .fill(destination);
+  await quickDestination(dialog, destination);
   await dialog
     .getByRole("button", { name: "Créer la copie", exact: true })
     .click();
@@ -240,9 +244,7 @@ export async function runFinderJourney({
     .getByRole("button", { name: "Créer un PDF", exact: true })
     .click();
   dialog = page.getByRole("dialog").last();
-  await dialog
-    .getByLabel("Destination de l’action rapide", { exact: true })
-    .fill(destination);
+  await quickDestination(dialog, destination);
   await dialog
     .getByRole("button", { name: "Créer le PDF", exact: true })
     .click();
@@ -268,9 +270,7 @@ export async function runFinderJourney({
   await canvas.press("ArrowRight");
   await canvas.press("ArrowDown");
   await canvas.press("Enter");
-  await dialog
-    .getByLabel("Destination de l’action rapide", { exact: true })
-    .fill(destination);
+  await quickDestination(dialog, destination);
   for (const theme of ["light", "dark"]) {
     await page.evaluate(
       (theme) => (document.documentElement.dataset.theme = theme),
@@ -330,9 +330,7 @@ export async function runFinderJourney({
     .fill("Annotation locale");
   await dialog.getByLabel("Zone d’annotation", { exact: true }).focus();
   await dialog.getByLabel("Zone d’annotation", { exact: true }).press("Enter");
-  await dialog
-    .getByLabel("Destination de l’action rapide", { exact: true })
-    .fill(destination);
+  await quickDestination(dialog, destination);
   await page.screenshot({
     path: "test-results/finder-markup-pdf.png",
     fullPage: true,

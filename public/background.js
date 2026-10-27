@@ -9,6 +9,7 @@ let native = null;
 const routes = new Map();
 const watches = new Map();
 const terminalOwners = new Map();
+const remoteTerminalClients = new Set();
 let organizationReady = Promise.resolve();
 let organizationSerial = Promise.resolve();
 function organizationError(error) {
@@ -93,7 +94,7 @@ function connect() {
       if (route.terminalOwner && !clients.has(route.client)) {
         native?.postMessage({
           id: crypto.randomUUID(),
-          action: "TERMINAL_CLOSE_OWNER",
+          action: route.terminalAction || "TERMINAL_CLOSE_OWNER",
           payload: { owner: route.terminalOwner },
         });
         return;
@@ -127,7 +128,10 @@ chrome.runtime.onConnect.addListener((client) => {
   clients.add(client);
   client.onMessage.addListener((message) => {
     if (!message.id || typeof message.action !== "string") return;
-    if (message.action.startsWith("TERMINAL_")) {
+    if (
+      message.action.startsWith("TERMINAL_") ||
+      message.action.startsWith("REMOTE_")
+    ) {
       let allowed = false;
       try {
         const url = new URL(client.sender?.url || "");
@@ -146,6 +150,8 @@ chrome.runtime.onConnect.addListener((client) => {
       }
       if (!terminalOwners.has(client))
         terminalOwners.set(client, crypto.randomUUID());
+      if (message.action.startsWith("REMOTE_TERMINAL_"))
+        remoteTerminalClients.add(client);
       message.payload = {
         ...message.payload,
         owner: terminalOwners.get(client),
@@ -176,9 +182,14 @@ chrome.runtime.onConnect.addListener((client) => {
     routes.set(id, {
       client,
       id: message.id,
-      terminalOwner:
-        message.action === "TERMINAL_OPEN"
-          ? terminalOwners.get(client)
+      terminalOwner: ["TERMINAL_OPEN", "REMOTE_TERMINAL_OPEN"].includes(
+        message.action,
+      )
+        ? terminalOwners.get(client)
+        : undefined,
+      terminalAction:
+        message.action === "REMOTE_TERMINAL_OPEN"
+          ? "REMOTE_TERMINAL_CLOSE_OWNER"
           : undefined,
     });
     if (message.action === "FS_WATCH") {
@@ -212,6 +223,12 @@ chrome.runtime.onConnect.addListener((client) => {
     watches.delete(client);
     const owner = terminalOwners.get(client);
     terminalOwners.delete(client);
+    if (native && owner && remoteTerminalClients.delete(client))
+      native.postMessage({
+        id: crypto.randomUUID(),
+        action: "REMOTE_TERMINAL_CLOSE_OWNER",
+        payload: { owner },
+      });
     if (native && owner)
       native.postMessage({
         id: crypto.randomUUID(),

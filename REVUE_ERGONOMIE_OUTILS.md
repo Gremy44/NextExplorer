@@ -18,6 +18,12 @@ Les plafonds du scan restent inchangés : voir [le guide de l’espace disque](A
 
 ## Comment faire la revue
 
+Lot du 26 octobre 2026 : les **Actions rapides** utilisent désormais un atelier
+commun, ouvert directement sur un outil adapté. Rotation avec aperçu, annotation
+sans perte du travail lors du changement d’outil, ordre PDF au glisser-déposer et
+bornes d’extrait depuis la lecture. Le dossier courant est proposé et les options
+de sortie sont repliables. [Essais à cocher](AMELIORATIONS_ERGONOMIE.md#actions-rapides--atelier-du-26-octobre-2026).
+
 Dans l’explorateur complet, **Ctrl+K** ouvre la palette : tapez le nom de l’outil indiqué. Le clic droit d’un fichier présente aussi les actions adaptées à la sélection. Les commandes indisponibles dépendent du type de fichier, de la connexion au compagnon et des moteurs installés. Les accès du panneau sont parfois regroupés sous **Organiser ce dossier**, **Examiner** ou le menu **…**.
 
 Pour les opérations qui changent des fichiers, utilisez un dossier de copies de test. Commencez par UX-22, puis choisissez un numéro ; nous corrigerons le parcours correspondant avant de passer au suivant.

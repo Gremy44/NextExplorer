@@ -25,6 +25,7 @@ type terminalInput struct {
 type terminalSession struct {
 	mu                                        sync.Mutex
 	id, owner, path, pending, syncing, marker string
+	remoteID                                  string
 	process                                   terminalProcess
 	input                                     chan terminalInput
 	stop                                      chan struct{}
@@ -130,7 +131,18 @@ func (h *Host) terminal(p Payload, action string) (any, error) {
 			s.pending = ""
 			return true, nil
 		}
-		directory, err := consoleDirectory(p.Path)
+		var directory string
+		var err error
+		if s.remoteID != "" {
+			var id string
+			id, _, err = parseRemoteLocation(p.Path)
+			if err == nil && id != s.remoteID {
+				err = fmt.Errorf("la console SSH appartient à un autre serveur")
+			}
+			directory = p.Path
+		} else {
+			directory, err = consoleDirectory(p.Path)
+		}
 		if err != nil {
 			return nil, err
 		}
@@ -158,7 +170,7 @@ func (s *terminalSession) syncDirectory() {
 	if s.pending == "" || s.closed {
 		return
 	}
-	if strings.EqualFold(s.pending, s.path) {
+	if s.pending == s.path || (s.remoteID == "" && strings.EqualFold(s.pending, s.path)) {
 		s.pending = ""
 		return
 	}
@@ -166,6 +178,14 @@ func (s *terminalSession) syncDirectory() {
 		return
 	}
 	command := " Set-Location -LiteralPath '" + strings.ReplaceAll(s.pending, "'", "''") + "' # NextExplorer\r"
+	if s.remoteID != "" {
+		_, directory, err := parseRemoteLocation(s.pending)
+		if err != nil {
+			s.error = err.Error()
+			return
+		}
+		command = " cd -- " + shellQuote(directory) + "\r"
+	}
 	if s.enqueue(terminalInput{data: command}) == nil {
 		s.atPrompt = false
 		s.syncing = s.pending
@@ -239,8 +259,16 @@ func (s *terminalSession) receive(data []byte) {
 		}
 		location, err := base64.StdEncoding.DecodeString(string(s.parsing[len(s.marker) : len(s.marker)+end]))
 		if err == nil && len(location) <= 8192 {
+			if s.remoteID != "" && (!strings.HasPrefix(string(location), "/") || strings.ContainsAny(string(location), "\x00\r\n\\")) {
+				s.error = "Le shell a renvoyé un chemin distant invalide."
+				s.parsing = s.parsing[len(s.marker)+end+1:]
+				continue
+			}
 			s.path = string(location)
-			if s.syncing != "" && !strings.EqualFold(s.syncing, s.path) {
+			if s.remoteID != "" {
+				s.path = remoteLocation(s.remoteID, string(location))
+			}
+			if s.syncing != "" && s.syncing != s.path && (s.remoteID != "" || !strings.EqualFold(s.syncing, s.path)) {
 				s.error = "Le changement de dossier a échoué ; vérifiez les droits et l’existence du dossier."
 			}
 			s.syncing = ""

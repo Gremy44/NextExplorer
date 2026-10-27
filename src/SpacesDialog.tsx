@@ -1,3 +1,4 @@
+import { Help } from "./Help";
 import { useEffect, useRef, useState } from "react";
 import { DRIVES_PATH } from "./disk-space";
 import {
@@ -130,15 +131,15 @@ export function SpacesDialog({
       className="spaces-dialog"
       aria-label="Espaces enregistrés"
     >
-      <p>
+      <Help>
         Gardez ensemble vos dossiers ouverts, votre collecte et les liens
         épinglés. Les fichiers restent à leur emplacement.
-      </p>
-      <p className="muted">
+      </Help>
+      <Help>
         L’espace suivi donne accès à ses tâches dans cette vue. Les dossiers, la
         collecte et les pages restent indépendants ; utilisez Actualiser pour
         enregistrer leurs changements.
-      </p>
+      </Help>
       {followedId && (
         <button
           type="button"

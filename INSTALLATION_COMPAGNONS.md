@@ -1,12 +1,31 @@
 # Installation simple des compagnons NextExplorer
 
+**Sources du 24 octobre, sans nouvel EXE :** enregistrement corrigé pour préserver
+les clés existantes et leurs permissions ; test dédié intégré à la recette.
+Refus d’écriture et récupération après retrait partiel vérifiés avec le vrai
+registre ; choix explicite de réparation vérifié. Mise à jour avec copie active
+de 200 fichiers et récupération explicite d’une tâche interrompue réussies.
+Le Setup 1.0.6 déjà généré reste inchangé et ne contient pas ce correctif.
+[Rapport des sources et portée](VALIDATION_WINDOWS_NEUF.md).
+Le véritable profil Windows accentué reste non qualifié : échec d’installation
+de Windows dans la VM dédiée, avant tout lancement du produit. Les cas d’écriture,
+de réparation ambiguë et de mise à jour active ciblés ont été exécutés avec les
+sources et binaires existants ; le futur EXE corrigé reste à qualifier après build.
+
 Décision de conception du 14 septembre 2026, suivi actualisé le 18 septembre. Ce document décrit l’installateur cible et distingue les briques déjà développées ci-dessous.
 
-**État courant, 20 octobre 2026 :** préversion 1.0.3 publiée avec connexion guidée,
+**État courant, 22 octobre 2026 :** préversion 1.0.3 publiée avec connexion guidée,
 identité Store officielle et présentation des moteurs ; soumise au Chrome Web
 Store, en attente d’examen avec publication automatique après approbation.
-Le [kit de recette](RECETTE_INSTALLATEUR.md) contient l’EXE public exact. Tests
-isolés réussis ; J1.7 sur Windows propre et pilote utilisateur restent ouverts.
+Le candidat local 1.0.6 a passé le parcours principal dans une VM Windows 11
+isolée avec Chrome/Edge, compte standard, registre et Native Messaging réels :
+[résultats et limites](VALIDATION_WINDOWS_NEUF.md). Le [kit de recette](RECETTE_INSTALLATEUR.md)
+contient cet EXE exact. Cas complémentaires J1.7 et pilote utilisateur restent ouverts.
+Le 24 octobre, la mise à jour au repos 1.0.3 → 1.0.6 a aussi réussi dans le même
+profil Edge : sources/fichiers accentués, ancien runtime et préférences préservés.
+Complément : conflit Edge étranger bloqué, désinstallations refusées sans altération
+si le script manque ou échoue (`exit 42`), puis paquet réparé et connexion/lecture
+réelles vérifiées dans Edge 156.0.4314.42.
 Les points ci-dessous conservent l’historique de validation des briques.
 
 **Périmètre actualisé le 9 octobre 2026 :** l'installateur sert les traitements de fichiers locaux et les parcours navigateur. J6 est retiré : aucun pack de clients cloud, FTP ou de nouvelles intégrations tierces à préparer. Les moteurs locaux nécessaires restent les seuls composants fonctionnels à distribuer selon les usages retenus.
@@ -18,12 +37,16 @@ Les points ci-dessous conservent l’historique de validation des briques.
 - **J1.3 — Validé localement :** le script installe sous `%LOCALAPPDATA%\Programs\NextExplorer`, avec un manifeste stable et une copie distincte par installation. Compagnon, politique de sécurité et moteurs présents sont copiés ; un paquet léger conserve les moteurs antérieurs. Tests de chemins accentués, déplacement du paquet source, HELLO réel, réinstallation, retour arrière sur échec d’enregistrement et retrait sélectif des enregistrements réussis. Le registre est simulé dans ces tests ; validation avec Chrome installé et machine propre restante. Les anciennes copies restent sur disque.
 - **J1.4 — Validé localement :** `scripts/diagnose-host.ps1` contrôle la structure de l’installation et les enregistrements du navigateur choisi. Les erreurs proposent une action ; les moteurs optionnels absents restent informatifs. Rapport JSON sans chemins personnels, aucune modification et aucun lancement de programme. Tests de fichiers réels et registre simulé réussis, comprenant l’absence de modifications et de divulgation de chemins. La connexion et le protocole restent vérifiés dans l’extension.
 - **J1.5 — Validé localement :** `repair-host.ps1` affiche l’aperçu puis applique les corrections avec `-Apply`. Sauvegarde locale, restauration d’un manifeste endommagé, récupération des moteurs sans choix implicite en cas d’ambiguïté, conservation des enregistrements étrangers et retour arrière sur échec. Tests de réparation et diagnostic réussis, avec fichiers réels, HELLO natif et registre simulé ; la recette Windows complète reste nécessaire.
-- **J1.6 — En recette :** `release/NextExplorer-Setup.exe`, assistant Inno Setup français par utilisateur, navigateur choisi, aperçu et réparation. Paquet stable et raccourci de maintenance ; compagnon déjà cohérent conservé. Préparation/application et HELLO testés avec registre simulé ; aperçu graphique inspecté dans un scénario isolé et conflit réel préservé. EXE non signé, extension chargée manuellement, installation/désinstallation complète encore à valider.
-- **J1.7 — Kit préparé, recette réelle à exécuter :** [procédure](RECETTE_INSTALLATEUR.md) et `npm run setup:acceptance` produisent `release/recette-windows`, avec EXE, SHA256 et contrôleur des preuves. Le contrôleur vérifie fichiers et registre ; connexion navigateur et écrans nécessitent des preuves séparées. Le poste Windows 11 Famille ne dispose pas de Sandbox détecté. Signature, téléchargements vérifiés et nettoyage des anciennes copies restent à construire.
+- **J1.6 — Parcours principal validé sur Windows isolé :** `release/NextExplorer-1.0.6-Setup.exe`, assistant français par utilisateur, aperçu, licence et maintenance. Installation, réinstallation saine, réparation et désinstallation exécutées sous compte standard avec le vrai registre. EXE non signé ; extension chargée manuellement dans Chrome et Edge.
+- **J1.7 — Recette principale réalisée, compléments ouverts :** [procédure](RECETTE_INSTALLATEUR.md), [rapport et preuves](VALIDATION_WINDOWS_NEUF.md). VM Windows 11, Chrome/Edge officiels, lecture réelle du témoin et reconnexion après fermeture ; annulations, entrée Windows et raccourcis contrôlés. Panneau natif Edge et conservation d’un enregistrement Chrome étranger vérifiés. `npm run setup:acceptance` prépare le kit versionné ; contrôleur avec `-Browser Edge`. Compte avec accents, mises à jour avec tâches actives/interrompues, défauts d’écriture et réparations ambiguës restent à qualifier ; signature et réputation de téléchargement sont distinctes.
 
 ## Solution retenue pour la première distribution
 
 Une extension distribuée par sa boutique et **un seul installateur Windows**, regroupant le compagnon et la gestion des moteurs. Choix du propriétaire : aucune dépense de signature ; l’EXE reste non signé et cela est indiqué dans les téléchargements. Go et Node ne sont pas nécessaires à l’utilisation. Le paquet léger n’embarque pas les moteurs ; leur préparation reste avancée dans la préversion, expliquée dans les réglages et le guide public. La gestion intégrée des téléchargements de moteurs reste une amélioration future, pas un prérequis déclaré livré.
+
+Le candidat 1.0.6 prépare la signature horodatée avec un certificat reconnu déjà
+disponible, sans achat ni certificat autosigné. Aucun n’est présent sur le poste
+de build : l’EXE reste non signé. [État, contrôles et piste MSIX gratuite](SIGNATURE_WINDOWS.md).
 
 Choix technique proposé : **Inno Setup**, installation par utilisateur avec `PrivilegesRequired=lowest`, dans `%LOCALAPPDATA%\Programs\NextExplorer`. Il sait produire un EXE, gérer fichiers/registre et désinstallation ; vérifier les conditions commerciales de la version retenue et les intégrer au budget. Une installation sans élévation reste soumise aux politiques du PC. [Inno Setup](https://jrsoftware.org/isinfo.php), [droits d'installation](https://jrsoftware.org/ishelp/topic_setup_privilegesrequired.htm).
 

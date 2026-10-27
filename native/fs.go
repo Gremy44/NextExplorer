@@ -13,6 +13,8 @@ import (
 	"strings"
 )
 
+var releaseVersion = "development"
+
 type Entry struct {
 	Name  string `json:"name"`
 	Path  string `json:"path"`
@@ -172,7 +174,7 @@ func hello() M {
 			}
 		}
 	}
-	return M{"version": "1.0.0", "protocolVersion": protocolVersion, "platform": runtime.GOOS, "home": home, "roots": roots, "aliases": homeAliases(home), "tools": toolCapabilities(), "features": M{"imageSamples": true, "mediaStream": true, "checkedHash": true, "nativeDrag": runtime.GOOS == "windows", "nativeDragVersion": 2, "transferMerge": true, "operationJournal": true, "transferUndo": true, "zipExtract": runtime.GOOS == "windows", "archiveExtract": runtime.GOOS == "windows", "extractMerge": runtime.GOOS == "windows"}}
+	return M{"version": releaseVersion, "protocolVersion": protocolVersion, "platform": runtime.GOOS, "home": home, "roots": roots, "aliases": homeAliases(home), "tools": toolCapabilities(), "features": M{"imageSamples": true, "mediaStream": true, "checkedHash": true, "nativeDrag": runtime.GOOS == "windows", "nativeDragVersion": 2, "transferMerge": true, "operationJournal": true, "transferUndo": true, "zipExtract": runtime.GOOS == "windows", "archiveExtract": runtime.GOOS == "windows", "extractMerge": runtime.GOOS == "windows"}}
 }
 func readChunk(p Payload) (any, error) {
 	a, e := validPath(p.Path)

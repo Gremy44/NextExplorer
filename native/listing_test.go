@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"fmt"
+	"os"
 	"path/filepath"
 	"testing"
 )
@@ -29,5 +30,8 @@ func TestListingSnapshotSurvivesDirectoryChanges(t *testing.T) {
 	last := r.(M)
 	if last["total"] != 520 || len(last["entries"].([]Entry)) != 20 || last["entries"].([]Entry)[0].Name != "0500.txt" {
 		t.Fatal("unstable snapshot", last)
+	}
+	if _, err := h.list(Payload{Path: dir + string(os.PathSeparator), Offset: 500, Snapshot: first["snapshot"].(string)}); err != nil {
+		t.Fatal("equivalent local directory rejected", err)
 	}
 }

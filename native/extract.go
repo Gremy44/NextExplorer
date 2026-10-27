@@ -35,6 +35,15 @@ func (j *Job) extract(p Payload) (any, error) {
 	if len(p.Paths) != 1 {
 		return nil, fmt.Errorf("sélectionnez une seule archive ZIP, 7z ou RAR")
 	}
+	if len(p.Members) > 0 { if err := validateMembers(p.Members); err != nil {
+		return nil, err
+	} }
+	if p.Expected != nil {
+		actual, err := statEntry(p.Paths[0])
+		if err != nil || actual != *p.Expected {
+			return nil, fmt.Errorf("Archive modifiée depuis son ouverture")
+		}
+	}
 	ext := strings.ToLower(filepath.Ext(p.Paths[0]))
 	if ext != ".zip" && ext != ".7z" && ext != ".rar" {
 		return nil, fmt.Errorf("format d'archive non pris en charge")
@@ -137,6 +146,23 @@ func (j *Job) extract(p Payload) (any, error) {
 			return nil, fmt.Errorf("ZIP limité à 256 Mio par entrée et 1 Gio au total")
 		}
 		total += f.UncompressedSize64
+	}
+	if len(p.Members) > 0 {
+		selected := []*zip.File{}
+		inventory := make([]engineEntry, 0, len(reader.File))
+		for _, f := range reader.File { inventory = append(inventory, engineEntry{f.Name, f.UncompressedSize64, f.FileInfo().IsDir()}) }
+		if _, err := selectArchiveEntries(inventory, p.Members); err != nil { return nil, err }
+		total = 0
+		for _, f := range reader.File {
+			if memberSelected(f.Name, p.Members) {
+				selected = append(selected, f)
+				total += f.UncompressedSize64
+			}
+		}
+		if len(selected) == 0 {
+			return nil, fmt.Errorf("Aucune entrée sélectionnée dans l’archive")
+		}
+		reader.File = selected
 	}
 	j.mu.Lock()
 	j.Total = int64(total)

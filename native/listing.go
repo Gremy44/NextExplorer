@@ -12,25 +12,45 @@ type ListingSnapshot struct {
 }
 
 func (h *Host) list(p Payload) (any, error) {
+	return h.paginatedListing(p, func() (M, error) {
+		all := p
+		all.Limit = -1
+		all.Offset = 0
+		value, err := listDir(all)
+		if err != nil {
+			return nil, err
+		}
+		return value.(M), nil
+	})
+}
+func (h *Host) paginatedListing(p Payload, load func() (M, error)) (any, error) {
+	requested := p.Path
+	if !isRemotePath(requested) {
+		var err error
+		requested, err = validPath(requested)
+		if err != nil {
+			return nil, err
+		}
+	}
 	var data M
 	key := p.Snapshot
 	if key != "" {
 		h.mu.Lock()
 		snapshot, ok := h.listings[key]
 		h.mu.Unlock()
-		if !ok {
+		if !ok || time.Since(snapshot.created) > 5*time.Minute || snapshot.data["currentPath"] != requested {
 			return nil, fmt.Errorf("liste expirée : actualisez le dossier")
 		}
 		data = snapshot.data
 	} else {
-		all := p
-		all.Limit = -1
-		all.Offset = 0
-		v, e := listDir(all)
+		if load == nil {
+			return nil, fmt.Errorf("liste expirée : actualisez le dossier")
+		}
+		v, e := load()
 		if e != nil {
 			return nil, e
 		}
-		data = v.(M)
+		data = v
 		key = randomID()
 		h.mu.Lock()
 		for id, s := range h.listings {

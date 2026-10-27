@@ -1,7 +1,8 @@
 import { bridge } from "./bridge";
 import { writeChunks } from "./web";
 import { sameFamilyFile } from "./file-families";
-import type { Entry } from "./types";
+import type { Entry, Listing } from "./types";
+import { quickCopyName } from "./quick-actions";
 import type { DocumentSource, DocumentOverlay } from "./document-operations";
 export const DOCUMENT_FILE_LIMIT = 32 * 1024 * 1024;
 export async function readDocument(entry: Entry, signal: AbortSignal) {
@@ -116,6 +117,20 @@ export async function saveDocument(
 ) {
   if (!data.length || data.length > DOCUMENT_FILE_LIMIT)
     throw new Error("Copie limitée à 32 Mio");
+  const existing = await bridge.request<Listing>("FS_LIST_DIR", {
+    path: destination,
+    filter: name.replace(/\.[^.]+$/, ""),
+    showHidden: true,
+    limit: 1000,
+  });
+  if (existing.truncated)
+    throw new Error(
+      "Trop de noms similaires : choisissez un autre nom de copie.",
+    );
+  name = quickCopyName(
+    name,
+    existing.entries.map((entry) => entry.name),
+  );
   const chunks = [];
   for (let offset = 0; offset < data.length; offset += 384 * 1024)
     chunks.push(data.slice(offset, offset + 384 * 1024));

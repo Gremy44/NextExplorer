@@ -53,24 +53,16 @@ informations répétées. Les listes virtualisées gardent leurs dimensions de l
 - Les fenêtres gardent un titre, un contenu défilant et un pied d’actions visible.
 - Les réglages d’apparence utilisent deux colonnes sur grand écran, une sur petit écran.
 
-## Panneau flottant — concept à valider
+## Panneau latéral — retour natif en 1.0.6
 
 L’API [sidePanel de Chrome](https://developer.chrome.com/docs/extensions/reference/api/sidePanel)
 place le panneau à côté du site ; son fond ne peut pas laisser apparaître la page
 comme si les deux occupaient la même surface.
 
-L’aperçu `07-concept-flottant.png` montre les composants réels superposés à une
-page fictive, uniquement dans le script de présentation. Il ne s’agit pas d’une
-extension injectée sur des sites. Le rendu de verre peut ainsi être évalué avant
-de changer l’architecture.
-
-Un mode réellement flottant demanderait une intégration dans la page via un
-[content script](https://developer.chrome.com/docs/extensions/develop/concepts/content-scripts),
-avec interface privilégiée isolée et vérification des échanges. Il faudra
-préserver la confidentialité des noms/chemins locaux, la navigation clavier,
-le glisser-déposer natif et le repli vers le panneau Chrome sur les pages
-incompatibles. Aucune permission ni exposition de fichiers supplémentaire
-n’est ajoutée par cette étude visuelle.
+Après le blocage signalé avec l’iframe 1.0.5, le clic sur l’icône rétablit le
+panneau natif comme `Alt+E`. Sa hauteur suit la fenêtre, y compris sous 440 px.
+La superposition et les ressources accessibles aux sites sont retirées ; les
+surfaces verre restent dans l’interface. Le panneau ne floute donc pas le site.
 
 ## Aperçus et vérification
 
@@ -78,7 +70,8 @@ Galerie locale : `release/visual-preview/index.html`.
 Trois vues principales sont produites depuis les composants réels et des fichiers
 synthétiques : explorateur, panneau latéral et dialogue. Captures complémentaires
 pour les réglages, le thème clair, les petites largeurs, le double panneau et le
-concept flottant. La galerie distingue explicitement ce concept des fonctions livrées.
+concept flottant. Cette dernière capture reste une maquette ; la version 1.0.6
+utilise le panneau natif.
 
 Régénération : `node scripts/browser-test.mjs --visual-only`.
 Les captures initiales sont dans `release/visual-preview/before/` ; ne pas utiliser
@@ -106,6 +99,5 @@ Validation du 20 octobre 2026 :
   sélecteur étroit, création de dossier, réglages et concept flottant.
 
 Preuves dans `test-results/visual-{check,build,regression,preview}.log`.
-Pas de nouvelle recette installateur : compagnon et installateur non modifiés.
-Pas de publication ; l’intégration réelle du panneau flottant et ses tests
-sur des sites tiers restent à développer.
+La tentative de panneau flottant 1.0.5 est retirée en 1.0.6. La maquette de
+galerie reste une capture ; le runtime revient au panneau natif.

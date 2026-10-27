@@ -1,3 +1,4 @@
+import { Help } from "./Help";
 import { useEffect, useRef, useState } from "react";
 import {
   ArrowRight,
@@ -32,6 +33,8 @@ export function ConversionDialog({
   favorites,
   onClose,
   onStart,
+  onBusy,
+  onEntriesReady,
 }: {
   paths: string[];
   destination: string;
@@ -40,6 +43,8 @@ export function ConversionDialog({
   favorites: { name: string; path: string }[];
   onClose: () => void;
   onStart: (payload: Record<string, unknown>) => Promise<void>;
+  onBusy?: (busy: boolean) => void;
+  onEntriesReady?: (entries: Entry[]) => void;
 }) {
   const [entries, setEntries] = useState<Entry[]>([]),
     [unavailable, setUnavailable] = useState<string[]>([]),
@@ -97,6 +102,7 @@ export function ConversionDialog({
       if (stopped) return;
       setEncoders(supported);
       setEntries(files);
+      onEntriesReady?.(files);
       setUnavailable(missing);
       setKind(nextKind);
       setOptions(
@@ -144,6 +150,7 @@ export function ConversionDialog({
         const form = event.currentTarget,
           data = new FormData(form);
         setBusy(true);
+        onBusy?.(true);
         setError("");
         void (async () => {
           try {
@@ -185,6 +192,7 @@ export function ConversionDialog({
             if (live.current) setError((e as Error).message);
           } finally {
             if (live.current) setBusy(false);
+            onBusy?.(false);
           }
         })();
       }}
@@ -349,10 +357,10 @@ export function ConversionDialog({
                         <ArrowRight size={16} />
                         <strong>.{options.format}</strong>
                       </div>
-                      <p className="muted">
+                      <Help>
                         Les noms sont conservés. Si une copie existe déjà, un
                         numéro est ajouté.
-                      </p>
+                      </Help>
                     </section>
                     <section className="conversion-section">
                       <h3>

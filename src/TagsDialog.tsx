@@ -1,3 +1,4 @@
+import { Help } from "./Help";
 import { useEffect, useState } from "react";
 import { Plus, Tag, Trash2 } from "lucide-react";
 import { storageUpdate } from "./bridge";
@@ -48,11 +49,11 @@ export function TagsDialog({
   }
   return (
     <section className="organization-dialog">
-      <p>
+      <Help>
         Les tags restent dans ce profil et ne modifient pas les fichiers. Ils
         suivent les renommages et déplacements réalisés ici ; les changements
         externes nécessitent une nouvelle association.
-      </p>
+      </Help>
       <p>
         {selection.length} élément(s) sélectionné(s) · 32 tags et 2 000 chemins
         maximum.

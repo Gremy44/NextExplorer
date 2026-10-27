@@ -37,6 +37,11 @@ assert.equal(
 );
 assert.ok(manifest.permissions.includes("nativeMessaging"));
 assert.equal(manifest.background.service_worker, "background.js");
+assert.equal(
+  manifest.web_accessible_resources,
+  undefined,
+  "UI must stay private to the extension",
+);
 for (const file of [
   "dist/index.html",
   "dist/background.js",
@@ -96,6 +101,13 @@ const fonts = JSON.parse(
   await readFile("public/fonts/provenance.json", "utf8"),
 );
 for (const directory of ["dist", "release/NextExplorer/dist"]) {
+  assert.equal((await readdir(directory)).includes("floating-panel.js"), false);
+  assert.ok(
+    (await readdir(`${directory}/assets`)).every(
+      (file) => !file.endsWith(".map"),
+    ),
+    "No debug source maps in distributable assets",
+  );
   assert.deepEqual(
     JSON.parse(await readFile(`${directory}/fonts/provenance.json`, "utf8")),
     fonts,
@@ -113,6 +125,11 @@ for (const directory of ["dist", "release/NextExplorer/dist"]) {
     "nordtheme-palette",
     "altercation-palette",
     "Gogh-Co-palette-MIT",
+    "Go-pkg-sftp",
+    "Go-jlaffaye-ftp",
+    "Go-kr-fs",
+    "Go-x-crypto",
+    "Go-x-sys",
   ])
     assert.ok((await stat(`${directory}/licenses/${license}.txt`)).size > 0);
 }

@@ -1,6 +1,7 @@
 import {
   useCallback,
   useEffect,
+  useLayoutEffect,
   useRef,
   Fragment,
   useState,
@@ -12,6 +13,7 @@ import {
 import {
   ArrowDownToLine,
   ArrowRight,
+  ArrowLeft,
   ArrowRightLeft,
   Archive,
   ArchiveRestore,
@@ -46,6 +48,8 @@ import {
   Trash2,
   WandSparkles,
   Workflow,
+  Server,
+  ArrowRightLeft as CompareIcon,
   X,
 } from "lucide-react";
 import {
@@ -56,6 +60,19 @@ import {
   storageSubscribe,
 } from "./bridge";
 import { BrowserCompanion } from "./BrowserCompanion";
+import { NavigationSidebar, NavigationSection } from "./NavigationSidebar";
+import { RemoteConnections } from "./RemoteConnections";
+import { RemoteComparison } from "./RemoteComparison";
+import { RemoteEntryDialog } from "./RemoteEntryDialog";
+import {
+  isRemote,
+  remotePath,
+  remoteLocation,
+  remoteActions,
+  type RemoteServer,
+} from "./remote";
+import { interfaceMetrics, moveTab, tabDropIndex } from "./interface-layout";
+import { Help, useOptionalTooltips } from "./Help";
 import { ConnectionSetup } from "./ConnectionSetup";
 import { FolderPicker } from "./FolderPicker";
 import { restoreViewMode, type ViewMode } from "./FileView";
@@ -110,7 +127,6 @@ import { restoreSpaces, spacesKey, type HybridSpace } from "./spaces";
 import { CollectionCheck } from "./CollectionCheck";
 import { InsertionHistory } from "./InsertionHistory";
 import { PrepareImagesDialog } from "./PrepareImagesDialog";
-import { ConversionDialog } from "./ConversionDialog";
 import { conversionKind } from "./media-conversion";
 import {
   downloadSuggestion,
@@ -124,6 +140,7 @@ import { TagsDialog } from "./TagsDialog";
 import { TagPicker } from "./TagPicker";
 import { TaggedFilesDialog } from "./TaggedFilesDialog";
 import { PreferencesDialog } from "./PreferencesDialog";
+import { DocumentDialog } from "./DocumentDialog";
 import { EngineStatus } from "./EngineStatus";
 import { HomeDialog } from "./HomeDialog";
 import {
@@ -149,7 +166,7 @@ import {
 import { SpaceAnalysis } from "./SpaceAnalysis";
 import { DriveCapacity } from "./DrivesView";
 import { QuickActions } from "./QuickActions";
-import { quickActions, type QuickAction } from "./quick-actions";
+import { defaultQuickAction, type QuickAction } from "./quick-actions";
 const QuickActionDialog = lazy(() =>
   import("./QuickActionDialog").then((module) => ({
     default: module.QuickActionDialog,
@@ -159,6 +176,7 @@ import { fileKey } from "./file-families";
 
 const jobIcons: Record<string, ReactNode> = {
   transfer: <ArrowRightLeft size={18} />,
+  remote: <Server size={18} />,
   convert: <RefreshCw size={18} />,
   recipe: <Workflow size={18} />,
   zip: <Archive size={18} />,
@@ -182,6 +200,7 @@ const fresh = (viewMode: ViewMode = "details"): PaneState => ({
   loading: false,
 });
 type WorkspaceTab = {
+  id: string;
   panes: PaneState[];
   active: number;
   dual: boolean;
@@ -191,6 +210,7 @@ type Workspace = { tabs: WorkspaceTab[]; current: number };
 const workspaceKey = (panel: boolean) =>
   `nextexplorer:tabs:${panel ? "panel" : "page"}`;
 const newTab = (path = "", viewMode: ViewMode = "details"): WorkspaceTab => ({
+  id: crypto.randomUUID(),
   panes: [
     { ...fresh(viewMode), path },
     { ...fresh(viewMode), path },
@@ -211,6 +231,7 @@ function restoreWorkspace(panel: boolean): Workspace {
     if (Array.isArray(saved?.tabs) && saved.tabs.length) {
       const tabs = saved.tabs.map(
         (tab: any): WorkspaceTab => ({
+          id: crypto.randomUUID(),
           panes: [0, 1].map((i) => {
             const pane = tab?.panes?.[i];
             return {
@@ -378,7 +399,8 @@ function Field({ label, children }: { label: string; children: ReactNode }) {
   );
 }
 export function App() {
-  const panel = new URLSearchParams(location.search).has("panel");
+  const params = new URLSearchParams(location.search);
+  const panel = params.has("panel");
   const [hello, setHello] = useState<Hello | null>(null);
   const [connecting, setConnecting] = useState(true);
   const [connectionError, setConnectionError] = useState("");
@@ -399,6 +421,7 @@ export function App() {
   const [hidden, setHidden] = useState(false);
   const [preferences, setPreferences] =
     useState<Preferences>(defaultPreferences);
+  useOptionalTooltips(preferences.tooltips);
   const [tags, setTags] = useState<TagStore>(emptyTags);
   const [appearances, setAppearances] = useState<FolderAppearances>({});
   const [volumes, setVolumes] = useState<Volume[]>([]);
@@ -413,6 +436,50 @@ export function App() {
   const scanJobs = useRef(new Map<string, string>());
   const analysisGeneration = useRef(0);
   const closedTabs = useRef<WorkspaceTab[]>([]);
+  const draggedTab = useRef<number | null>(null);
+  const dragStep = useRef(0);
+  const [tabDrag, setTabDrag] = useState<{
+    from: number;
+    to: number;
+    step: number;
+  } | null>(null);
+  const tabElements = useRef(new Map<string, HTMLDivElement>());
+  const tabPositions = useRef(new Map<string, DOMRect>());
+  const captureTabPositions = () => {
+    tabPositions.current = new Map(
+      [...tabElements.current].map(([id, element]) => [
+        id,
+        element.getBoundingClientRect(),
+      ]),
+    );
+  };
+  useLayoutEffect(() => {
+    if (draggedTab.current !== null) {
+      captureTabPositions();
+      return;
+    }
+    const positions = new Map<string, DOMRect>();
+    const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    for (const [id, element] of tabElements.current) {
+      for (const animation of element.getAnimations())
+        if (animation.id === "tab-reorder") animation.cancel();
+      const bounds = element.getBoundingClientRect();
+      positions.set(id, bounds);
+      const previous = tabPositions.current.get(id);
+      const offset = previous ? previous.left - bounds.left : 0;
+      if (!reduced && Math.abs(offset) > 1) {
+        const animation = element.animate(
+          [
+            { transform: `translateX(${offset}px)` },
+            { transform: "translateX(0)" },
+          ],
+          { duration: 180, easing: "cubic-bezier(.2,.7,.2,1)" },
+        );
+        animation.id = "tab-reorder";
+      }
+    }
+    tabPositions.current = positions;
+  }, [tabs, !!tabDrag]);
   const scrollPositions = useRef(
     new Map<string, { scrollTop: number; selected: Entry[] }>(),
   );
@@ -485,6 +552,36 @@ export function App() {
     if (bounds) resizeJobs(bounds.right - clientX - 8);
   }
   const [preview, setPreview] = useState<Entry | null>(null);
+  const [documentTool, setDocumentTool] = useState<{
+    entry: Entry;
+    mode: "edit" | "versions";
+  } | null>(null);
+  function openDocument(entry: Entry, mode: "edit" | "versions") {
+    if (!hello?.features?.documentTools) {
+      notify(
+        "Mettez à jour le compagnon Windows pour utiliser l’éditeur et les versions.",
+        true,
+      );
+      return;
+    }
+    setPreview(null);
+    setDocumentTool({ entry, mode });
+  }
+  function extractMembers(entry: Entry, members: string[], expected: Entry) {
+    if (!hello?.features?.documentTools) {
+      notify("Mettez à jour le compagnon pour extraire une sélection.", true);
+      return;
+    }
+    const parent = entry.path
+      .replace(/[\\/][^\\/]+$/, "")
+      .replace(/^([A-Za-z]:)$/, "$1\\");
+    setPreview(null);
+    showDialog("extract", {
+      paths: [entry.path],
+      destination: parent,
+      value: { members, expected },
+    });
+  }
   const [detailsExpanded, setDetailsExpanded] = useState(false);
   const [detailsOpen, setDetailsOpen] = useState(() => {
     try {
@@ -499,6 +596,42 @@ export function App() {
     } catch {}
   }, [detailsOpen]);
   const [dialog, setDialog] = useState<Dialog | null>(null);
+  const [remoteManager, setRemoteManager] = useState<string | null>(null);
+  const [remoteCompare, setRemoteCompare] = useState(false);
+  const [remoteOperation, setRemoteOperation] = useState<{
+    entry: Entry;
+    mode: "delete" | "permissions";
+  } | null>(null);
+  const [remoteServers, setRemoteServers] = useState<RemoteServer[]>([]);
+  const loadRemoteServers = useCallback(() => {
+    if (preferences.remoteEnabled && hello?.features?.remoteVersion)
+      void bridge
+        .request<RemoteServer[]>("REMOTE_PROFILES")
+        .then(setRemoteServers)
+        .catch(() => setRemoteServers([]));
+  }, [preferences.remoteEnabled, hello?.features?.remoteVersion]);
+  useEffect(loadRemoteServers, [loadRemoteServers]);
+  const remoteWasEnabled = useRef(false);
+  useEffect(() => {
+    if (remoteWasEnabled.current && !preferences.remoteEnabled) {
+      setPreview(null);
+      setRemoteManager(null);
+      setRemoteCompare(false);
+      setRemoteOperation(null);
+      setWorkspace((old) => ({
+        ...old,
+        tabs: old.tabs.map((tab) => ({
+          ...tab,
+          panes: tab.panes.map((p) =>
+            isRemote(p.path)
+              ? { ...fresh(preferences.defaultView), path: hello?.home || "" }
+              : p,
+          ),
+        })),
+      }));
+    }
+    remoteWasEnabled.current = preferences.remoteEnabled;
+  }, [preferences.remoteEnabled]);
   const [undoReview, setUndoReview] = useState<{
     jobId: string;
     report: UndoReport;
@@ -524,6 +657,9 @@ export function App() {
     rows: { from: string; to: string; name: string; error: string }[];
   } | null>(null);
   const pane = panes[active];
+  const remoteTransfer =
+    dialog?.kind === "transfer" &&
+    (isRemote(dialog.destination || pane.path) || dialog.paths?.some(isRemote));
   const notify = useCallback(
     (text: string, error = false) => setToast({ text, error }),
     [],
@@ -586,6 +722,10 @@ export function App() {
   };
   const navigate = (path: string, i = active, remember = true) => {
     const resolved = hello?.aliases[path] || path;
+    if (isRemote(resolved) && !preferences.remoteEnabled) {
+      notify("Activez les dossiers distants dans Réglages > Connexions.", true);
+      return;
+    }
     if (resolved === panes[i].path) return;
     update(i, {
       path: resolved,
@@ -722,6 +862,7 @@ export function App() {
       const last = await storageGet<string | null>("lastPath", null);
       controller.signal.throwIfAborted();
       let path = typeof last === "string" && last ? last : h.home;
+      if (isRemote(path) && !startupPreferences.remoteEnabled) path = h.home;
       try {
         await bridge.request("FS_STAT", { path });
       } catch {
@@ -1020,6 +1161,14 @@ export function App() {
     return () => media.removeEventListener("change", apply);
   }, [theme, preferences.accent]);
   useEffect(() => {
+    const root = document.documentElement;
+    const { scale, text } = interfaceMetrics(preferences);
+    root.style.setProperty("--ui-scale", String(scale));
+    root.style.setProperty("--text-scale", String(text));
+    root.dataset.density = preferences.density;
+    root.dataset.menuSize = preferences.menuSize;
+  }, [preferences.density, preferences.textSize, preferences.menuSize]);
+  useEffect(() => {
     document.documentElement.dataset.theme =
       theme === "system"
         ? matchMedia("(prefers-color-scheme: dark)").matches
@@ -1052,6 +1201,13 @@ export function App() {
       }
       update(i, { loading: true });
       try {
+        if (
+          isRemote(p.path) &&
+          (!preferences.remoteEnabled || !hello.features?.remoteVersion)
+        )
+          throw new Error(
+            "Activez les dossiers distants et mettez à jour le compagnon pour ouvrir ce serveur.",
+          );
         let offset = 0;
         let snapshot = "";
         let entries: Entry[] = [];
@@ -1116,6 +1272,7 @@ export function App() {
     dual,
     current,
     preferences.foldersFirst,
+    preferences.remoteEnabled,
   ]);
   useEffect(() => {
     if (hello && panes[0].path)
@@ -1124,7 +1281,7 @@ export function App() {
           paths: panes
             .slice(0, dual ? 2 : 1)
             .map((p) => p.path)
-            .filter((path) => path !== DRIVES_PATH),
+            .filter((path) => path !== DRIVES_PATH && !isRemote(path)),
         })
         .catch((e) => notify(e.message, true));
   }, [hello, panes[0].path, panes[1].path, dual, current]);
@@ -1365,6 +1522,7 @@ export function App() {
     }
   }
   function showDialog(kind: string, extra: Partial<Dialog> = {}) {
+    if (kind === "quick") setToast(null);
     setExtractMerge(false);
     setFormError("");
     setDialog({
@@ -1384,6 +1542,10 @@ export function App() {
   async function openEntry(entry: Entry) {
     if (entry.type === "directory") {
       navigate(entry.path);
+      return;
+    }
+    if (isRemote(entry.path)) {
+      setPreview(entry);
       return;
     }
     if (entry.name.endsWith(".session.json")) {
@@ -1406,6 +1568,24 @@ export function App() {
   function action(a: string, paths?: string[]) {
     const selected = paths || pane.selected.map((e) => e.path);
     const first = pane.selected[0];
+    if (
+      (isRemote(pane.path) || selected.some(isRemote)) &&
+      !preferences.remoteEnabled &&
+      !["home", "settings", "drives"].includes(a)
+    ) {
+      notify("Activez les dossiers distants dans Réglages > Connexions.", true);
+      return;
+    }
+    if (
+      (isRemote(pane.path) || selected.some(isRemote)) &&
+      !remoteActions.has(a)
+    ) {
+      notify(
+        "Cet outil s’utilise sur une copie locale. Copiez le fichier dans un dossier local avec le double panneau.",
+        true,
+      );
+      return;
+    }
     if (
       pane.path === DRIVES_PATH &&
       !["home", "settings", "tags", "drives"].includes(a)
@@ -1442,11 +1622,27 @@ export function App() {
       return;
     }
     switch (a) {
+      case "remote-delete":
+      case "remote-permissions":
+        if (pane.selected.length !== 1) {
+          notify("Sélectionnez un seul élément distant.", true);
+          return;
+        }
+        setRemoteOperation({
+          entry: pane.selected[0],
+          mode: a === "remote-delete" ? "delete" : "permissions",
+        });
+        break;
       case "tag-picker":
         showDialog("tag-picker", { value: { entries: [...pane.selected] } });
         break;
       case "quick":
-        showDialog("quick", { value: { entries: [...pane.selected] } });
+        showDialog("quick", {
+          value: {
+            action: defaultQuickAction(pane.selected, hello),
+            entries: [...pane.selected],
+          },
+        });
         break;
       case "drives":
         navigate(DRIVES_PATH);
@@ -1474,7 +1670,12 @@ export function App() {
         if (clipboard)
           showDialog("transfer", {
             paths: clipboard.paths,
-            value: { mode: clipboard.mode },
+            value: {
+              mode:
+                isRemote(pane.path) || clipboard.paths.some(isRemote)
+                  ? "copy"
+                  : clipboard.mode,
+            },
           });
         else notify("Aucun fichier copié");
         break;
@@ -1532,7 +1733,11 @@ export function App() {
   }
   useEffect(() => {
     const key = (e: KeyboardEvent) => {
-      if ((e.target as HTMLElement).closest(".console-pane")) return;
+      if (
+        (e.target as HTMLElement).closest(".console-pane") ||
+        document.querySelector(".document-dialog")
+      )
+        return;
       // Removing a focused basket row can move focus to the document body.
       if (stashReview || captureOpen) {
         if (e.key === "Escape") setStashReview(false);
@@ -1613,14 +1818,40 @@ export function App() {
     if (internal) {
       try {
         const paths = JSON.parse(internal);
+        if (
+          !Array.isArray(paths) ||
+          !paths.length ||
+          paths.length > 1000 ||
+          paths.some((value) => typeof value !== "string")
+        )
+          throw new Error("Sélection invalide");
+        if (
+          !preferences.remoteEnabled &&
+          (isRemote(path) || paths.some(isRemote))
+        ) {
+          notify("Activez les dossiers distants dans les réglages.", true);
+          return;
+        }
         showDialog("transfer", {
           paths,
           destination: path,
-          value: { mode: e.ctrlKey ? "copy" : "move" },
+          value: {
+            mode:
+              e.ctrlKey || isRemote(path) || paths.some(isRemote)
+                ? "copy"
+                : "move",
+          },
         });
       } catch {
         notify("Sélection invalide", true);
       }
+      return;
+    }
+    if (isRemote(path)) {
+      notify(
+        "Pour envoyer des fichiers, ouvrez leur dossier local dans le second panneau puis glissez-les vers le serveur.",
+        true,
+      );
       return;
     }
     if (e.dataTransfer.files.length) {
@@ -1712,7 +1943,17 @@ export function App() {
         case "rename":
           await run(
             "FS_RENAME",
-            { path: paths[0], name: str("name") },
+            {
+              path: paths[0],
+              name: str("name"),
+              ...(isRemote(paths[0])
+                ? {
+                    expected: pane.selected.find(
+                      (entry) => entry.path === paths[0],
+                    ),
+                  }
+                : {}),
+            },
             "Fichier renommé",
           );
           break;
@@ -1813,6 +2054,8 @@ export function App() {
               merge: checked("merge"),
               password: str("password"),
               paused: checked("paused"),
+              members: dialog.value?.members,
+              expected: dialog.value?.expected,
             },
           );
           break;
@@ -2112,7 +2355,7 @@ export function App() {
           style={{ "--jobs-width": `${visibleJobsWidth}px` } as CSSProperties}
         >
           {!panel && sidebar && (
-            <aside className="sidebar">
+            <NavigationSidebar>
               <div className="sidebar-top">
                 <span>Explorateur</span>
                 <button
@@ -2160,150 +2403,197 @@ export function App() {
                   <span className="count">{running.length}</span>
                 )}
               </button>
-              <div className="nav-section">
-                <span>Accès rapide</span>
-                <button
-                  title="Épingler le dossier actif"
-                  disabled={!hello}
-                  hidden={preferences.hiddenActions.includes("favorite")}
-                  onClick={() => action("favorite")}
-                >
-                  <Plus size={13} />
-                </button>
-              </div>
-              {hello &&
-                Object.entries(hello.aliases)
-                  .filter(([k]) => ["~dl", "~desk", "~docs"].includes(k))
-                  .map(([k, p]) => (
-                    <button
-                      key={k}
-                      className="nav-item"
-                      onClick={() => navigate(p)}
-                    >
-                      <FolderIcon path={p} size={16} />
-                      {
+              <NavigationSection
+                id="quick"
+                label="Accès rapide"
+                action={
+                  <button
+                    title="Épingler le dossier actif"
+                    disabled={!hello}
+                    hidden={preferences.hiddenActions.includes("favorite")}
+                    onClick={() => action("favorite")}
+                  >
+                    <Plus size={13} />
+                  </button>
+                }
+              >
+                {hello &&
+                  Object.entries(hello.aliases)
+                    .filter(([k]) => ["~dl", "~desk", "~docs"].includes(k))
+                    .map(([k, p]) => (
+                      <button
+                        key={k}
+                        className="nav-item"
+                        onClick={() => navigate(p)}
+                      >
+                        <FolderIcon path={p} size={16} />
                         {
-                          "~dl": "Téléchargements",
-                          "~desk": "Bureau",
-                          "~docs": "Documents",
-                        }[k]
+                          {
+                            "~dl": "Téléchargements",
+                            "~desk": "Bureau",
+                            "~docs": "Documents",
+                          }[k]
+                        }
+                        <span className="shortcut">{k}</span>
+                      </button>
+                    ))}
+                {favorites.map((f) => (
+                  <button
+                    className={
+                      "nav-item " + (pane.path === f.path ? "current" : "")
+                    }
+                    key={f.path}
+                    onClick={() => navigate(f.path)}
+                    title={f.path}
+                    onContextMenu={(e) => {
+                      e.preventDefault();
+                      const next = favorites.filter((v) => v.path !== f.path);
+                      setFavorites(next);
+                      storageSet("favorites", next);
+                    }}
+                  >
+                    {appearances[fileKey(f.path)] ? (
+                      <FolderIcon path={f.path} size={16} />
+                    ) : (
+                      <Star size={15} />
+                    )}
+                    <span className="truncate">{f.name}</span>
+                  </button>
+                ))}
+              </NavigationSection>
+              <NavigationSection id="places" label="Emplacements">
+                <button
+                  className={
+                    "nav-item " + (pane.path === DRIVES_PATH ? "current" : "")
+                  }
+                  onClick={() => navigate(DRIVES_PATH)}
+                >
+                  <Monitor size={17} />
+                  Ce PC
+                </button>
+                {hello?.roots.map((r) => (
+                  <button
+                    className={
+                      "nav-item " + (pane.path === r.path ? "current" : "")
+                    }
+                    key={r.path}
+                    onClick={() => navigate(r.path)}
+                  >
+                    <HardDrive size={17} />
+                    <span className="nav-drive">
+                      <span>{r.name}</span>
+                      <DriveCapacity
+                        volume={
+                          volumes.find(
+                            (v) => fileKey(v.path) === fileKey(r.path),
+                          ) || (r as Volume)
+                        }
+                      />
+                    </span>
+                  </button>
+                ))}
+              </NavigationSection>
+              {preferences.remoteEnabled && (
+                <NavigationSection
+                  id="servers"
+                  label="Serveurs"
+                  action={
+                    <button
+                      title="Gérer les connexions"
+                      onClick={() => setRemoteManager("")}
+                    >
+                      <Plus size={13} />
+                    </button>
+                  }
+                >
+                  {remoteServers.map(({ profile, connected }) => (
+                    <button
+                      className={
+                        "nav-item " +
+                        (isRemote(pane.path) &&
+                        remotePath(pane.path).id === profile.id
+                          ? "current"
+                          : "")
                       }
-                      <span className="shortcut">{k}</span>
+                      key={profile.id}
+                      title={`${profile.protocol.toUpperCase()} · ${profile.username}@${profile.host}`}
+                      onClick={() =>
+                        connected
+                          ? navigate(remoteLocation(profile.id, profile.root))
+                          : setRemoteManager(profile.id)
+                      }
+                    >
+                      <Server size={16} />
+                      <span className="truncate">{profile.label}</span>
+                      <span
+                        className={connected ? "remote-connected" : "muted"}
+                      >
+                        ●
+                      </span>
                     </button>
                   ))}
-              {favorites.map((f) => (
-                <button
-                  className={
-                    "nav-item " + (pane.path === f.path ? "current" : "")
-                  }
-                  key={f.path}
-                  onClick={() => navigate(f.path)}
-                  title={f.path}
-                  onContextMenu={(e) => {
-                    e.preventDefault();
-                    const next = favorites.filter((v) => v.path !== f.path);
-                    setFavorites(next);
-                    storageSet("favorites", next);
-                  }}
-                >
-                  {appearances[fileKey(f.path)] ? (
-                    <FolderIcon path={f.path} size={16} />
-                  ) : (
-                    <Star size={15} />
-                  )}
-                  <span className="truncate">{f.name}</span>
+                  <button
+                    className="nav-item"
+                    onClick={() => setRemoteManager("")}
+                  >
+                    <Plus size={16} /> Ajouter un serveur
+                  </button>
+                </NavigationSection>
+              )}
+              <NavigationSection id="organization" label="Organisation">
+                <button className="nav-item" onClick={() => showDialog("tags")}>
+                  <Layers size={17} />
+                  Tags
                 </button>
-              ))}
-              <div className="nav-section">
-                <span>Emplacements</span>
-                <HardDrive size={13} />
-              </div>
-              <button
-                className={
-                  "nav-item " + (pane.path === DRIVES_PATH ? "current" : "")
-                }
-                onClick={() => navigate(DRIVES_PATH)}
-              >
-                <Monitor size={17} />
-                Ce PC
-              </button>
-              {hello?.roots.map((r) => (
+                {tags.labels.map((tag) => (
+                  <button
+                    key={tag.id}
+                    className="nav-item"
+                    onClick={() =>
+                      showDialog("tagged", { value: { tag: tag.id } })
+                    }
+                  >
+                    <span className={"tag-dot tag-" + tag.color} /> {tag.name}
+                  </button>
+                ))}
+              </NavigationSection>
+              <NavigationSection id="tools" label="Outils">
                 <button
-                  className={
-                    "nav-item " + (pane.path === r.path ? "current" : "")
-                  }
-                  key={r.path}
-                  onClick={() => navigate(r.path)}
-                >
-                  <HardDrive size={17} />
-                  <span className="nav-drive">
-                    <span>{r.name}</span>
-                    <DriveCapacity
-                      volume={
-                        volumes.find(
-                          (v) => fileKey(v.path) === fileKey(r.path),
-                        ) || (r as Volume)
-                      }
-                    />
-                  </span>
-                </button>
-              ))}
-              <div className="nav-section">
-                <span>Organisation</span>
-              </div>
-              <button className="nav-item" onClick={() => showDialog("tags")}>
-                <Layers size={17} />
-                Tags
-              </button>
-              {tags.labels.map((tag) => (
-                <button
-                  key={tag.id}
                   className="nav-item"
-                  onClick={() =>
-                    showDialog("tagged", { value: { tag: tag.id } })
-                  }
+                  disabled={!hello}
+                  hidden={preferences.hiddenActions.includes("scan")}
+                  onClick={() => action("scan")}
                 >
-                  <span className={"tag-dot tag-" + tag.color} /> {tag.name}
+                  <LayoutPanelLeft size={16} />
+                  Espace disque
                 </button>
-              ))}
-              <div className="nav-section">
-                <span>Outils</span>
-              </div>
-              <button
-                className="nav-item"
-                disabled={!hello}
-                hidden={preferences.hiddenActions.includes("scan")}
-                onClick={() => action("scan")}
-              >
-                <LayoutPanelLeft size={16} />
-                Espace disque
-              </button>
-              <button
-                className="nav-item"
-                disabled={!hello}
-                hidden={preferences.hiddenActions.includes("duplicates")}
-                onClick={() => action("duplicates")}
-              >
-                <Copy size={16} />
-                Doublons
-              </button>
-              <button
-                className="nav-item"
-                disabled={!hello}
-                hidden={preferences.hiddenActions.includes("groups")}
-                onClick={() => action("groups")}
-              >
-                <Layers size={16} /> Groupes de fichiers
-              </button>
-              <button
-                className="nav-item"
-                disabled={!hello}
-                hidden={preferences.hiddenActions.includes("trashList")}
-                onClick={() => showDialog("trashList")}
-              >
-                <Trash2 size={16} />
-                Corbeille
-              </button>
+                <button
+                  className="nav-item"
+                  disabled={!hello}
+                  hidden={preferences.hiddenActions.includes("duplicates")}
+                  onClick={() => action("duplicates")}
+                >
+                  <Copy size={16} />
+                  Doublons
+                </button>
+                <button
+                  className="nav-item"
+                  disabled={!hello}
+                  hidden={preferences.hiddenActions.includes("groups")}
+                  onClick={() => action("groups")}
+                >
+                  <Layers size={16} /> Groupes de fichiers
+                </button>
+                <button
+                  className="nav-item"
+                  disabled={!hello}
+                  hidden={preferences.hiddenActions.includes("trashList")}
+                  onClick={() => showDialog("trashList")}
+                >
+                  <Trash2 size={16} />
+                  Corbeille
+                </button>
+              </NavigationSection>
               <div className="sidebar-bottom">
                 <ShieldCheck size={19} />
                 <div>
@@ -2311,7 +2601,7 @@ export function App() {
                   <span>Traitement local, sans cloud</span>
                 </div>
               </div>
-            </aside>
+            </NavigationSidebar>
           )}
           <main>
             {followedSpace && (
@@ -2343,31 +2633,116 @@ export function App() {
                   className="tabs-scroll"
                   role="tablist"
                   aria-label="Onglets de dossiers"
+                  data-dragging={tabDrag ? "true" : undefined}
+                  onScroll={captureTabPositions}
+                  onDragOver={(event) => {
+                    const from = draggedTab.current;
+                    if (from === null) return;
+                    event.preventDefault();
+                    event.dataTransfer.dropEffect = "move";
+                    const to = tabDropIndex(
+                      event.clientX,
+                      event.currentTarget.getBoundingClientRect().left,
+                      event.currentTarget.scrollLeft,
+                      dragStep.current,
+                      tabs.length,
+                    );
+                    if (to >= 0)
+                      setTabDrag((old) =>
+                        old?.to === to
+                          ? old
+                          : { from, to, step: dragStep.current },
+                      );
+                  }}
+                  onDragLeave={(event) => {
+                    const bounds = event.currentTarget.getBoundingClientRect();
+                    if (
+                      event.clientX < bounds.left ||
+                      event.clientX > bounds.right ||
+                      event.clientY < bounds.top ||
+                      event.clientY > bounds.bottom
+                    )
+                      setTabDrag(null);
+                  }}
+                  onDrop={(event) => {
+                    const from = draggedTab.current;
+                    if (from === null) return;
+                    event.preventDefault();
+                    const to = tabDropIndex(
+                      event.clientX,
+                      event.currentTarget.getBoundingClientRect().left,
+                      event.currentTarget.scrollLeft,
+                      dragStep.current,
+                      tabs.length,
+                    );
+                    captureTabPositions();
+                    setWorkspace((old) => moveTab(old, from, to));
+                    draggedTab.current = null;
+                    setTabDrag(null);
+                  }}
                 >
                   {tabs.map((tab, index) => {
                     const path = tab.panes[tab.active].path;
+                    const tabName = (location: string) => {
+                      if (!isRemote(location))
+                        return basename(location) || "Mes fichiers";
+                      const { id, directory } = remotePath(location);
+                      const server =
+                        remoteServers.find((server) => server.profile.id === id)
+                          ?.profile.label || "Serveur";
+                      return directory === "/"
+                        ? server
+                        : `${server} · ${basename(location)}`;
+                    };
                     const label = tab.dual
-                      ? `${basename(tab.panes[0].path)} · ${basename(tab.panes[1].path)}`
-                      : basename(path) || "Mes fichiers";
+                      ? `${tabName(tab.panes[0].path)} · ${tabName(tab.panes[1].path)}`
+                      : tabName(path);
                     return (
                       <div
                         className={
                           "workspace-tab" +
-                          (current === index ? " current" : "")
+                          (current === index ? " current" : "") +
+                          (tabDrag?.from === index ? " dragging" : "")
                         }
-                        key={index}
+                        key={tab.id}
+                        data-tab-id={tab.id}
+                        ref={(element) => {
+                          if (element) tabElements.current.set(tab.id, element);
+                          else tabElements.current.delete(tab.id);
+                        }}
+                        style={
+                          {
+                            "--tab-drag-offset": tabDrag
+                              ? `${(index === tabDrag.from ? tabDrag.to - tabDrag.from : tabDrag.from < tabDrag.to && index > tabDrag.from && index <= tabDrag.to ? -1 : tabDrag.from > tabDrag.to && index < tabDrag.from && index >= tabDrag.to ? 1 : 0) * tabDrag.step}px`
+                              : "0px",
+                          } as CSSProperties
+                        }
                       >
-                        {tabs.length > 1 && (
-                          <button
-                            className="tab-close"
-                            aria-label={`Fermer l’onglet ${label}`}
-                            onClick={() => closeTab(index)}
-                          >
-                            <X size={15} />
-                          </button>
-                        )}
                         <button
                           className="tab-select"
+                          draggable
+                          onDragStart={(event) => {
+                            draggedTab.current = index;
+                            dragStep.current =
+                              event.currentTarget.parentElement!.getBoundingClientRect()
+                                .width + 4;
+                            setTabDrag({
+                              from: index,
+                              to: index,
+                              step: dragStep.current,
+                            });
+                            event.dataTransfer.effectAllowed = "move";
+                            event.dataTransfer.setData(
+                              "application/x-nextexplorer-tab",
+                              String(index),
+                            );
+                          }}
+                          onDragEnd={() => {
+                            if (draggedTab.current !== null)
+                              captureTabPositions();
+                            draggedTab.current = null;
+                            setTabDrag(null);
+                          }}
                           role="tab"
                           id={`folder-tab-${index}`}
                           aria-controls="active-tab-panel"
@@ -2428,9 +2803,22 @@ export function App() {
                             );
                           }}
                         >
-                          <Folder size={15} />
+                          {isRemote(path) ? (
+                            <Server size={15} />
+                          ) : (
+                            <Folder size={15} />
+                          )}
                           <span>{label}</span>
                         </button>
+                        {tabs.length > 1 && (
+                          <button
+                            className="tab-close"
+                            aria-label={`Fermer l’onglet ${label}`}
+                            onClick={() => closeTab(index)}
+                          >
+                            <X size={15} />
+                          </button>
+                        )}
                       </div>
                     );
                   })}
@@ -2448,6 +2836,7 @@ export function App() {
                             ...old.tabs,
                             {
                               ...old.tabs[old.current],
+                              id: crypto.randomUUID(),
                               panes: old.tabs[old.current].panes.map((p) => ({
                                 ...p,
                                 listing: null,
@@ -2459,39 +2848,29 @@ export function App() {
                         }))
                       }
                     >
-                      Dupliquer l’onglet
+                      <Copy size={16} /> Dupliquer l’onglet
                     </button>
                     <button
                       type="button"
                       disabled={current === 0}
                       onClick={() =>
-                        setWorkspace((old) => {
-                          const next = [...old.tabs];
-                          [next[current - 1], next[current]] = [
-                            next[current],
-                            next[current - 1],
-                          ];
-                          return { tabs: next, current: current - 1 };
-                        })
+                        setWorkspace((old) =>
+                          moveTab(old, old.current, old.current + -1),
+                        )
                       }
                     >
-                      Déplacer à gauche
+                      <ArrowLeft size={16} /> Déplacer à gauche
                     </button>
                     <button
                       type="button"
                       disabled={current === tabs.length - 1}
                       onClick={() =>
-                        setWorkspace((old) => {
-                          const next = [...old.tabs];
-                          [next[current + 1], next[current]] = [
-                            next[current],
-                            next[current + 1],
-                          ];
-                          return { tabs: next, current: current + 1 };
-                        })
+                        setWorkspace((old) =>
+                          moveTab(old, old.current, old.current + 1),
+                        )
                       }
                     >
-                      Déplacer à droite
+                      <ArrowRight size={16} /> Déplacer à droite
                     </button>
                     <button
                       type="button"
@@ -2505,7 +2884,7 @@ export function App() {
                           }));
                       }}
                     >
-                      Rouvrir l’onglet fermé
+                      <History size={16} /> Rouvrir l’onglet fermé
                     </button>
                   </div>
                 </details>
@@ -2598,6 +2977,48 @@ export function App() {
                 </div>
               </div>
             )}
+            {preferences.remoteEnabled &&
+              (isRemote(pane.path) ||
+                (dual && panes.some((p) => isRemote(p.path)))) && (
+                <div className="remote-toolbar">
+                  <Server size={15} />
+                  <span>
+                    {isRemote(pane.path)
+                      ? (() => {
+                          const server = remoteServers.find(
+                            (server) =>
+                              server.profile.id === remotePath(pane.path).id,
+                          );
+                          return server
+                            ? `${server.profile.protocol.toUpperCase()} · ${server.profile.label} · ${server.profile.username}@${server.profile.host}`
+                            : "Dossier distant";
+                        })()
+                      : "Dossier local"}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setRemoteManager(
+                        isRemote(pane.path) ? remotePath(pane.path).id : "",
+                      )
+                    }
+                  >
+                    Connexions
+                  </button>
+                  {dual && (
+                    <button
+                      type="button"
+                      disabled={panes.some(
+                        (p) => p.loading || !p.listing || !!p.filter,
+                      )}
+                      title="Compare les dossiers affichés sans filtre par nom"
+                      onClick={() => setRemoteCompare(true)}
+                    >
+                      <CompareIcon size={15} /> Comparer
+                    </button>
+                  )}
+                </div>
+              )}
             {panel ? (
               <BrowserCompanion
                 hello={hello}
@@ -2742,6 +3163,14 @@ export function App() {
                           />
                         )}
                         <Pane
+                          remoteProtocol={
+                            isRemote(p.path)
+                              ? remoteServers.find(
+                                  (server) =>
+                                    server.profile.id === remotePath(p.path).id,
+                                )?.profile.protocol
+                              : undefined
+                          }
                           pane={p}
                           active={active === i}
                           onActive={() =>
@@ -2793,9 +3222,29 @@ export function App() {
                   </div>
                   {
                     <DetailsPane
+                      onExtract={extractMembers}
+                      onGallery={setPreview}
+                      onDocument={openDocument}
                       visible={detailsOpen}
                       path={pane.path === DRIVES_PATH ? "" : pane.path}
                       consoleAvailable={!!hello?.features?.consoleVersion}
+                      remoteAvailable={
+                        preferences.remoteEnabled &&
+                        !!hello?.features?.remoteVersion &&
+                        isRemote(pane.path) &&
+                        remoteServers.find(
+                          (server) =>
+                            server.profile.id === remotePath(pane.path).id,
+                        )?.profile.protocol === "sftp"
+                      }
+                      remoteName={
+                        isRemote(pane.path)
+                          ? remoteServers.find(
+                              (server) =>
+                                server.profile.id === remotePath(pane.path).id,
+                            )?.profile.label
+                          : undefined
+                      }
                       expanded={detailsExpanded}
                       onExpandedChange={setDetailsExpanded}
                       entries={pane.selected.map(
@@ -2810,14 +3259,14 @@ export function App() {
                         setDetailsOpen(false);
                       }}
                       onError={(message) => notify(message, true)}
-                      onConvert={
-                        hello?.tools.magick
-                          ? (entry) =>
-                              showDialog("convert", {
-                                paths: [entry.path],
-                                value: { format: "png" },
-                              })
-                          : undefined
+                      onConvert={(entry) =>
+                        showDialog("convert", {
+                          paths: [entry.path],
+                          value: {
+                            format:
+                              conversionKind(entry) === "video" ? "mp4" : "png",
+                          },
+                        })
                       }
                       onTags={() => action("tag-picker")}
                       onCustomize={() => action("appearance")}
@@ -2841,8 +3290,25 @@ export function App() {
                         ? `${pane.selected.length} sélectionné(s)`
                         : "Éléments copiés"}
                     </span>
-                    {pane.selected.length > 0 && (
+                    {pane.selected.length > 0 && isRemote(pane.path) && (
                       <>
+                        <button onClick={() => action("copy")}>
+                          <Copy size={15} /> Copier
+                        </button>
+                        <button onClick={() => action("rename")}>
+                          Renommer
+                        </button>
+                      </>
+                    )}
+                    {pane.selected.length > 0 && !isRemote(pane.path) && (
+                      <>
+                        {!preferences.hiddenActions.includes("quick") &&
+                          defaultQuickAction(pane.selected, hello) && (
+                            <button onClick={() => action("quick")}>
+                              <WandSparkles size={15} />
+                              Actions rapides
+                            </button>
+                          )}
                         <button onClick={() => collect()}>
                           <Plus size={15} />
                           Collecter
@@ -3119,6 +3585,7 @@ export function App() {
                               extract: "Extraction d’archive",
                               scan: "Analyse du disque",
                               quick: "Action rapide",
+                              remote: "Transfert distant",
                               duplicates: "Recherche de doublons",
                               metadata: "Métadonnées",
                               download: "Téléchargement",
@@ -3148,11 +3615,16 @@ export function App() {
                       />
                       <div className="job-info">
                         <span>
-                          {["transfer", "download", "extract"].includes(j.kind)
+                          {[
+                            "transfer",
+                            "remote",
+                            "download",
+                            "extract",
+                          ].includes(j.kind)
                             ? `${size(j.done)} / ${size(j.total)}`
                             : `${j.done} traité(s)`}
                         </span>
-                        {j.kind === "transfer" && (
+                        {["transfer", "remote"].includes(j.kind) && (
                           <span>
                             {size(Math.round(j.speed))}/s · {Math.ceil(j.eta)} s
                           </span>
@@ -3175,7 +3647,7 @@ export function App() {
                         </p>
                       )}
                       {j.audit &&
-                        (j.kind === "transfer" ||
+                        (["transfer", "remote"].includes(j.kind) ||
                           (j.kind === "extract" &&
                             j.audit.copied + j.audit.skipped > 0)) && (
                           <details>
@@ -3183,11 +3655,17 @@ export function App() {
                               {j.audit.copied} copié(s), {j.audit.moved}{" "}
                               déplacé(s), {j.audit.skipped} ignoré(s)
                             </summary>
-                            <p>
+                            <p hidden={j.kind === "remote"}>
                               {j.audit.sourceRetained} copie(s) avec source non
                               supprimée. Un dossier ignoré compte comme un
                               élément.
                             </p>
+                            {j.kind === "remote" && (
+                              <p>
+                                Copies vérifiées SHA-256. Les fichiers sources
+                                restent en place.
+                              </p>
+                            )}
                             {(j.audit.entries || []).map((entry, i) => (
                               <p key={i} style={{ overflowWrap: "anywhere" }}>
                                 <strong>
@@ -3411,6 +3889,12 @@ export function App() {
         {preview && (
           <Preview
             entry={preview}
+            onExtract={(members, expected) =>
+              extractMembers(preview, members, expected)
+            }
+            siblings={pane.listing?.entries || []}
+            onNavigate={setPreview}
+            onDocument={(mode) => openDocument(preview, mode)}
             actions={
               <>
                 <QuickActions
@@ -3456,17 +3940,28 @@ export function App() {
             onClose={() => setPreview(null)}
             onError={(s) => notify(s, true)}
             onConvert={
-              hello?.tools.magick
+              conversionKind(preview)
                 ? () => {
                     const path = preview.path;
                     setPreview(null);
                     showDialog("convert", {
                       paths: [path],
-                      value: { format: "png" },
+                      value: {
+                        format:
+                          conversionKind(preview) === "video" ? "mp4" : "png",
+                      },
                     });
                   }
                 : undefined
             }
+          />
+        )}
+        {documentTool && (
+          <DocumentDialog
+            entry={documentTool.entry}
+            initial={documentTool.mode}
+            onClose={() => setDocumentTool(null)}
+            onSaved={refresh}
           />
         )}
         {pendingCapture && captureOpen && (
@@ -4023,6 +4518,70 @@ export function App() {
             </div>
           </Modal>
         )}
+        {preferences.remoteEnabled && remoteManager !== null && (
+          <Modal
+            title="Dossiers distants"
+            wide
+            onClose={() => setRemoteManager(null)}
+          >
+            <div className="modal-content">
+              <RemoteConnections
+                available={!!hello?.features?.remoteVersion}
+                initialID={remoteManager}
+                onChanged={loadRemoteServers}
+                onOpen={(path) => {
+                  openTab(path);
+                  setRemoteManager(null);
+                  refresh();
+                }}
+              />
+            </div>
+          </Modal>
+        )}
+        {remoteCompare && (
+          <Modal
+            title="Comparer les dossiers"
+            wide
+            onClose={() => setRemoteCompare(false)}
+          >
+            <div className="modal-content">
+              <RemoteComparison
+                source={pane.listing?.entries || []}
+                destination={panes[active === 0 ? 1 : 0].listing?.entries || []}
+                from={pane.path}
+                to={panes[active === 0 ? 1 : 0].path}
+                onCopy={(paths) => {
+                  setRemoteCompare(false);
+                  showDialog("transfer", {
+                    paths,
+                    destination: panes[active === 0 ? 1 : 0].path,
+                    value: { mode: "copy" },
+                  });
+                }}
+              />
+            </div>
+          </Modal>
+        )}
+        {remoteOperation && (
+          <Modal
+            title={
+              remoteOperation.mode === "delete"
+                ? "Supprimer du serveur"
+                : "Permissions Unix"
+            }
+            onClose={() => setRemoteOperation(null)}
+          >
+            <div className="modal-content">
+              <RemoteEntryDialog
+                {...remoteOperation}
+                onDone={() => {
+                  setRemoteOperation(null);
+                  refresh();
+                }}
+              />
+            </div>
+          </Modal>
+        )}
         {dialog && (
           <Modal
             title={
@@ -4056,14 +4615,7 @@ export function App() {
                   "tag-picker": "Modifier les tags",
                   tagged: "Fichiers et dossiers tagués",
                   appearance: "Personnaliser les dossiers",
-                  quick: dialog.value?.action
-                    ? {
-                        rotate: "Faire pivoter",
-                        annotate: "Annoter",
-                        trim: "Raccourcir",
-                        "pdf-create": "Créer un PDF",
-                      }[dialog.value.action as QuickAction]
-                    : "Actions rapides",
+                  quick: "Actions rapides",
                   home: "Accueil",
                   trashList: "Corbeille NextExplorer",
                   output: dialog.value?.title,
@@ -4096,15 +4648,22 @@ export function App() {
                       hello={hello}
                       favorites={favorites}
                       onClose={() => setDialog(null)}
-                      onComplete={() => {
+                      onComplete={(path) => {
                         refresh();
-                        notify("Copie enregistrée");
+                        notify(`Copie enregistrée : ${basename(path)}`);
                       }}
                       onJob={() => {
                         setJobsOpen(true);
                         notify("Action ajoutée à l’activité");
                       }}
                       onBusy={setBusy}
+                      onConvertStart={async (payload) => {
+                        await run(
+                          payload.archive ? "RECIPE" : "CONVERT",
+                          payload,
+                        );
+                        setDialog(null);
+                      }}
                     />
                   </Suspense>
                 ) : (
@@ -4115,8 +4674,10 @@ export function App() {
                       onAction={openQuickAction}
                       onConvert={() => action("convert")}
                     />
-                    {!quickActions(dialog.value?.entries || [], hello)
-                      .length && (
+                    {!defaultQuickAction(
+                      dialog.value?.entries || [],
+                      hello,
+                    ) && (
                       <p>
                         Aucune action rapide pour cette sélection. Choisissez
                         des images, des PDF ou un média.
@@ -4126,23 +4687,41 @@ export function App() {
                 )}
               </div>
             ) : dialog.kind === "convert" ? (
-              <ConversionDialog
-                paths={dialog.paths || []}
-                destination={dialog.destination || pane.path}
-                initialFormat={dialog.value?.format}
-                hello={hello}
-                favorites={favorites}
-                onClose={() => setDialog(null)}
-                onStart={async (payload) => {
-                  setBusy(true);
-                  try {
-                    await run(payload.archive ? "RECIPE" : "CONVERT", payload);
-                    setDialog(null);
-                  } finally {
-                    setBusy(false);
-                  }
-                }}
-              />
+              <div className="modal-content">
+                <Suspense fallback={<p role="status">Ouverture de l’outil…</p>}>
+                  <QuickActionDialog
+                    action="convert"
+                    entries={[]}
+                    paths={dialog.paths || []}
+                    destination={dialog.destination || pane.path}
+                    initialFormat={dialog.value?.format}
+                    hello={hello}
+                    favorites={favorites}
+                    onClose={() => setDialog(null)}
+                    onBusy={setBusy}
+                    onComplete={(path) => {
+                      refresh();
+                      notify(`Copie enregistrée : ${basename(path)}`);
+                    }}
+                    onJob={() => {
+                      setJobsOpen(true);
+                      notify("Action ajoutée à l’activité");
+                    }}
+                    onConvertStart={async (payload) => {
+                      setBusy(true);
+                      try {
+                        await run(
+                          payload.archive ? "RECIPE" : "CONVERT",
+                          payload,
+                        );
+                        setDialog(null);
+                      } finally {
+                        setBusy(false);
+                      }
+                    }}
+                  />
+                </Suspense>
+              </div>
             ) : dialog.kind === "search" ? (
               <div className="modal-content">
                 <SearchDialog
@@ -4317,6 +4896,7 @@ export function App() {
                       tabs: [
                         ...old.tabs,
                         ...space.tabs.map((tab) => ({
+                          id: crypto.randomUUID(),
                           active: tab.active,
                           dual: tab.dual,
                           split: tab.split,
@@ -4362,21 +4942,21 @@ export function App() {
               <div className="modal-content">
                 {dialog.kind === "settings" ? (
                   <>
-                    <PreferencesDialog />
-                    <EngineStatus
-                      tools={hello?.tools}
-                      onRefresh={() => {
+                    <PreferencesDialog
+                      onConnections={() => {
                         setDialog(null);
-                        connect();
+                        setRemoteManager("");
                       }}
-                    />
-                    <button
-                      onClick={() =>
-                        void changeTheme(theme === "dark" ? "light" : "dark")
+                      engines={
+                        <EngineStatus
+                          tools={hello?.tools}
+                          onRefresh={() => {
+                            setDialog(null);
+                            connect();
+                          }}
+                        />
                       }
-                    >
-                      Thème {theme === "dark" ? "clair" : "sombre"}
-                    </button>
+                    />
                   </>
                 ) : dialog.kind === "trashList" ? (
                   <>
@@ -4660,6 +5240,13 @@ export function App() {
                   )}
                   {dialog.kind === "extract" && (
                     <>
+                      {dialog.value?.members && (
+                        <p role="status">
+                          Extraction limitée à {dialog.value.members.length}{" "}
+                          élément(s) sélectionné(s) et leur contenu. Le reste de
+                          l’archive reste intact.
+                        </p>
+                      )}
                       <label className="checkbox">
                         <input
                           name="merge"
@@ -4710,13 +5297,13 @@ export function App() {
                           ? "L’archive est vérifiée avant la fusion. Les sous-dossiers sont réunis ; un fichier ne remplace jamais un dossier. Une interruption pendant la fusion peut laisser des fichiers déjà copiés : pas de retour arrière global."
                           : "L’archive est extraite dans un nouveau sous-dossier. Aucun fichier existant remplacé."}
                       </p>
-                      <p className="muted">
+                      <Help>
                         Limites : 3 000 entrées, 256 Mio par entrée, 1 Gio au
                         total. Archives multivolumes, liens et chemins dangereux
                         refusés. Pour 7z/RAR : moteur 7-Zip requis, traitement
                         limité à 5 minutes et espace temporaire pouvant
                         approcher 3 Gio.
-                      </p>
+                      </Help>
                       {!hello?.features?.zipExtract && (
                         <p className="error">
                           Mettez à jour le compagnon pour activer l’extraction.
@@ -4738,11 +5325,11 @@ export function App() {
                         <input name="store" type="checkbox" />
                         Sans compression (plus rapide)
                       </label>
-                      <p className="muted">
+                      <Help>
                         Le nom doit porter l’extension du format choisi.
                         Création bornée à 3 000 entrées, 256 Mio par fichier et
                         1 Gio au total. Une archive existante reste intacte.
-                      </p>
+                      </Help>
                     </>
                   )}
                   {["zip", "extract"].includes(dialog.kind) && (
@@ -4766,25 +5353,35 @@ export function App() {
                       <Field label="Opération">
                         <select
                           name="mode"
-                          defaultValue={dialog.value?.mode || "copy"}
+                          defaultValue={
+                            remoteTransfer
+                              ? "copy"
+                              : dialog.value?.mode || "copy"
+                          }
                         >
                           <option value="copy">Copier</option>
-                          <option value="move">Déplacer</option>
+                          {!remoteTransfer && (
+                            <option value="move">Déplacer</option>
+                          )}
                         </select>
                       </Field>
-                      <label className="checkbox">
+                      <label className="checkbox" hidden={!!remoteTransfer}>
                         <input
                           type="checkbox"
                           name="merge"
-                          disabled={hello?.features?.transferMerge !== true}
+                          disabled={
+                            !!remoteTransfer ||
+                            hello?.features?.transferMerge !== true
+                          }
                         />
                         Fusionner les dossiers de même nom
                       </label>
-                      {hello?.features?.transferMerge !== true && (
-                        <p className="muted">
-                          La fusion nécessite le compagnon à jour.
-                        </p>
-                      )}
+                      {!remoteTransfer &&
+                        hello?.features?.transferMerge !== true && (
+                          <p className="muted">
+                            La fusion nécessite le compagnon à jour.
+                          </p>
+                        )}
                       <Field label="Si un nom existe déjà">
                         <select name="conflict" defaultValue="rename">
                           <option value="rename">
@@ -4793,13 +5390,24 @@ export function App() {
                           <option value="skip">
                             Ignorer l’élément existant
                           </option>
-                          <option value="overwrite">
-                            Remplacer (ancien fichier conservé dans
-                            .nextexplorer-trash)
-                          </option>
+                          {!remoteTransfer && (
+                            <option value="overwrite">
+                              Remplacer (ancien fichier conservé dans
+                              .nextexplorer-trash)
+                            </option>
+                          )}
                         </select>
                       </Field>
-                      <p className="muted">
+                      {remoteTransfer && (
+                        <p className="muted">
+                          Copie vérifiée avec SHA-256, sans écrasement ni
+                          suppression à la source. Les envois nécessitent SFTP.
+                          Après une interruption complète, vérifiez les fichiers
+                          avant de relancer. Annuler un transfert peut
+                          déconnecter le serveur.
+                        </p>
+                      )}
+                      <p className="muted" hidden={!!remoteTransfer}>
                         Ce choix s’applique à toute la sélection. Les conflits
                         prévisibles sont vérifiés avant le transfert. Chaque
                         copie est vérifiée avec BLAKE3. La fusion rassemble les

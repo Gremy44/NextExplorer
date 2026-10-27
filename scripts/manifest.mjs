@@ -1,6 +1,7 @@
 import { generateKeyPairSync, createHash } from "node:crypto";
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
 const file = "public/manifest.json";
+const version = JSON.parse(readFileSync("package.json", "utf8")).version;
 const key = existsSync(file)
   ? JSON.parse(readFileSync(file)).key
   : generateKeyPairSync("rsa", {
@@ -16,7 +17,7 @@ const id = createHash("sha256")
 const manifest = {
   manifest_version: 3,
   name: "NextExplorer — Explorateur local",
-  version: "1.0.0",
+  version,
   description:
     "Vos fichiers, vos outils et vos projets web, dans un seul espace local.",
   key,

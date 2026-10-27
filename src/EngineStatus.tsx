@@ -1,3 +1,4 @@
+import { Help } from "./Help";
 import { Archive, FileSearch, Film, Image, Tags } from "lucide-react";
 import type { Hello } from "./types";
 
@@ -53,11 +54,11 @@ export function EngineStatus({
   return (
     <section className="engine-status" aria-label="Fonctions supplémentaires">
       <h3>Fonctions supplémentaires</h3>
-      <p>
+      <Help>
         Avec le compagnon, navigation, copies, tags, aperçu des formats courants
         et console fonctionnent sans moteur supplémentaire. Ajoutez seulement
         les outils utiles à vos fichiers.
-      </p>
+      </Help>
       <ul className="engine-status-list">
         {groups.map(({ name, icon: Icon, engines, names, detail }) => {
           const missing = engines.flatMap((engine, index) =>
@@ -73,7 +74,7 @@ export function EngineStatus({
               <Icon size={20} aria-hidden="true" />
               <div>
                 <h4>{name}</h4>
-                <p>{detail}</p>
+                <Help>{detail}</Help>
                 <small>
                   {!tools
                     ? "Connectez le compagnon pour vérifier ces fonctions."

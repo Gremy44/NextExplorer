@@ -29,6 +29,12 @@ Les versions exactes JavaScript figurent dans `package-lock.json` et les version
 | lukechampine/blake3 | MIT — https://github.com/lukechampine/blake3 |
 | klauspost/cpuid | MIT — https://github.com/klauspost/cpuid |
 | golang.org/x/sys | BSD-3-Clause — https://go.dev |
+| pkg/sftp | BSD-2-Clause — https://github.com/pkg/sftp |
+| jlaffaye/ftp | ISC — https://github.com/jlaffaye/ftp |
+| kr/fs | BSD-3-Clause — https://github.com/kr/fs |
+| golang.org/x/crypto | BSD-3-Clause — https://go.dev |
+
+Les notices des bibliothèques de connexion distante sont conservées dans `public/licenses/Go-*.txt` et copiées dans `dist/licenses`. Le compagnon utilise leurs clients SFTP/SSH/FTP ; aucun code de l’autre projet NextExplorer n’est repris. Le guide [Dossiers distants](DOSSIERS_DISTANTS.md) distingue les sources disponibles des fonctions incluses dans le compagnon déjà distribué.
 
 Les moteurs téléchargés sont distribués séparément par leurs éditeurs. Le paquet léger NextExplorer ne redistribue pas leurs exécutables ; `setup-engines.ps1` télécharge les distributions et conserve leurs fichiers de licence / empreintes disponibles.
 

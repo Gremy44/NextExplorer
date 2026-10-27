@@ -15,14 +15,8 @@
     "activeTab",
     "scripting"
   ],
-  "optional_permissions": [
-    "debugger",
-    "downloads"
-  ],
-  "optional_host_permissions": [
-    "https://*/*",
-    "http://*/*"
-  ],
+  "optional_permissions": ["debugger", "downloads"],
+  "optional_host_permissions": ["https://*/*", "http://*/*"],
   "background": {
     "service_worker": "background.js",
     "type": "module"

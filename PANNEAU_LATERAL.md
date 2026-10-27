@@ -1,5 +1,18 @@
 # Panneau latéral — espace d'action pendant la navigation
 
+## Ouverture et hauteur — correctif local 1.0.6
+
+Le clic sur l’icône et `Alt+E` ouvrent le panneau natif Chrome, à côté du site.
+Chrome lui donne la hauteur disponible ; l’interface n’impose plus une hauteur
+minimale de 440 px dans ce mode. Le style verre est conservé sur ses surfaces.
+
+La superposition par iframe essayée en 1.0.5 est retirée à la suite d’un blocage
+signalé dans Chrome. L’ouverture ne dépend plus d’une injection dans le site,
+et les ressources de l’interface ne sont plus exposées aux pages HTTP(S).
+Après mise à jour, rechargez l’extension et les pages où l’ancien panneau était
+ouvert pour retirer ce conteneur. L’EXE et l’extension ont des mises à jour
+distinctes : voir [les instructions](distribution/INSTALLATION.md).
+
 
 ## J5 — médias et activité, 17 octobre 2026
 

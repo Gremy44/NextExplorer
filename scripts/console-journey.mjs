@@ -189,12 +189,18 @@ export async function runConsoleJourney({ page, fixture }) {
   assert.equal(await background(), "rgb(1, 36, 86)");
   await colorsButton.click();
   await palette.selectOption("interface");
-  await page.waitForFunction(
-    () =>
+  await page.waitForFunction(() => {
+    // The terminal uses the opaque surface token; the surrounding glass pane can be translucent.
+    const probe = document.createElement("span");
+    probe.style.backgroundColor = "var(--panel)";
+    document.querySelector(".console-terminal").append(probe);
+    const expected = getComputedStyle(probe).backgroundColor;
+    probe.remove();
+    return (
       getComputedStyle(document.querySelector(".console-terminal"))
-        .backgroundColor ===
-      getComputedStyle(document.querySelector(".details-pane")).backgroundColor,
-  );
+        .backgroundColor === expected
+    );
+  });
   await palette.selectOption("custom");
   for (const [label, color] of [
     ["Couleur de fond du terminal", "#16202a"],

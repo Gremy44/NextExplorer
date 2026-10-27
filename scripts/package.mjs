@@ -29,6 +29,11 @@ if (path.dirname(releaseDist) !== releaseRoot)
 rmSync(releaseDist, { recursive: true, force: true });
 cpSync("dist", "release/NextExplorer/dist", { recursive: true });
 cpSync("store", "release/NextExplorer/store", { recursive: true });
+mkdirSync("release/NextExplorer/distribution", { recursive: true });
+copyFileSync(
+  "distribution/INSTALLATION.md",
+  "release/NextExplorer/distribution/INSTALLATION.md",
+);
 cpSync("native/security", "release/NextExplorer/native/security", {
   recursive: true,
 });
@@ -53,6 +58,8 @@ for (const file of [
   copyFileSync("scripts/" + file, "release/NextExplorer/scripts/" + file);
 for (const file of [
   "README.md",
+  "SIGNATURE_WINDOWS.md",
+  "VALIDATION_WINDOWS_NEUF.md",
   "LICENSE",
   "GUIDE_UTILISATION.md",
   "DESIGN.md",
@@ -62,6 +69,7 @@ for (const file of [
   "APERCUS_100_FORMATS.md",
   "extension-id.txt",
   "FEATURES.md",
+  "FEATURES_DOCUMENTS_LOCAUX.md",
   "GLISSER_DEPOSER_WEB.md",
   "RECETTE_INSTALLATEUR.md",
   "RECETTE_HYBRIDE.md",
@@ -71,6 +79,7 @@ for (const file of [
   "J5_MEDIAS_TACHES.md",
   "AMELIORATIONS_FINDER.md",
   "CONSOLE_INTEGREE.md",
+  "DOSSIERS_DISTANTS.md",
   "THIRD_PARTY.md",
 ])
   copyFileSync(file, "release/NextExplorer/" + file);

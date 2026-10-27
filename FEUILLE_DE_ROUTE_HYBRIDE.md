@@ -1,5 +1,109 @@
 # Feuille de route — fichiers locaux et usages dans le navigateur
 
+## Parcours distant retenu — 26 octobre 2026
+
+Activation facultative dans **Réglages → Connexions → Dossiers distants**,
+désactivée par défaut. Une catégorie **Serveurs** repliable apparaît après
+activation. Dossiers distants dans les onglets existants, serveur clairement
+identifié, double panneau local/distant et transferts dans l’activité commune.
+Commande explicite **Ouvrir une console SSH ici**, séparée de la console locale,
+si le serveur autorise une session shell. [Implémentation, inspirations Linux et limites](DOSSIERS_DISTANTS.md).
+Socle développé : SFTP prioritaire, copies vérifiées sans écrasement, comparaison et console SSH explicite. Compagnon recompilé le 27 octobre 2026 avec une archive privée de l’extension correspondante ; Setup et installation active du PC inchangés. Recette sur serveur utilisateur et qualification FTP/FTPS externe encore ouvertes.
+
+## Atelier et mouvements — 26 octobre 2026
+
+Convertir rejoint l’atelier depuis tous ses accès : réglages et annotations
+conservés entre outils. Transitions discrètes pour les fenêtres et panneaux,
+déplacement visuel des onglets pendant le glisser-déposer et annulation sans
+changer l’ordre. Préférence système de réduction des animations respectée.
+253 tests et recettes navigateur dédiées réussis ; export WebP réel après
+changement d’outil et originaux conservés. [Checklist](AMELIORATIONS_ERGONOMIE.md#convertisseur-intégré-et-transitions--26-octobre-2026).
+Aucun EXE reconstruit.
+
+## Actions rapides — 26 octobre 2026
+
+Atelier unifié : ouverture directe de l’outil compatible, aperçu de rotation,
+annotations conservées entre outils, ordre PDF au glisser-déposer, repères de
+découpe et destination proposée. Réglages secondaires repliés et export toujours
+accessible. [Checklist de recette](AMELIORATIONS_ERGONOMIE.md#actions-rapides--atelier-du-26-octobre-2026).
+Réutilisation des traitements locaux existants ; aucun EXE reconstruit.
+250 tests et recette navigateur réussis : sorties PNG/PDF/MP4 réelles, ordre des
+pages, copie numérotée, changement de dossier et empreintes des originaux vérifiés.
+
+## Ergonomie compacte — 26 octobre 2026
+
+Lot réalisé, à valider par l’utilisateur : réglages par sections, densité et textes réglables,
+menu contextuel dimensionnable, onglets réordonnables par glisser-déposer,
+navigation redimensionnable et repliable, aides en infobulles désactivables.
+[Checklist des fonctionnalités et essais utilisateur](AMELIORATIONS_ERGONOMIE.md).
+L’installateur EXE n’est pas reconstruit pour ce lot.
+Typage et 246 tests réussis, recettes navigateur dédiée et complète réussies,
+dont les petits écrans, la persistance des choix et les panneaux redimensionnables.
+
+Idée à cadrer ensuite : dossiers distants et transferts inspirés de FileZilla,
+activables explicitement dans les paramètres. Interface locale conservée sans
+rubrique distante avant activation. Protocoles, protection des identifiants et
+gestion des transferts restent à étudier ; aucun accès distant implémenté ici.
+
+## Sources vérifiées sans reconstruire les EXE — 24 octobre 2026
+
+Correction de l’enregistrement : une clé existante est conservée au lieu d’être
+recréée, pour préserver ses permissions. Test de non-régression ajouté à la recette
+d’installation. Les 243 tests TypeScript et les recettes installation/réparation
+passent. Dans la VM : refus d’écriture réels sur registre/fichier, réparation ambiguë
+puis choix explicite, retrait partiel puis récupération, registres et ACL rétablis.
+La mise à jour pendant une copie de 200 fichiers est vérifiée : worker ancien
+conservé, refus explicite du nouveau tant que l’ancien est actif, copies identiques,
+aucun rejeu automatique et reprise explicite unique après interruption.
+[Portée et preuves](VALIDATION_WINDOWS_NEUF.md).
+
+**Aucun EXE reconstruit à la demande de l’utilisateur.** Le correctif est dans les
+sources, pas dans le Setup 1.0.6 existant ; la recette du futur paquet reste à rejouer
+après une reconstruction autorisée. La recette sur un véritable profil Windows
+accentué est traitée séparément de celle des chemins de fichiers accentués.
+Cette dernière tentative est non qualifiée : Windows n’a pas terminé son
+installation dans la VM dédiée, avant tout lancement de l’application. Les deux
+VM sont éteintes ; la suppression de la VM échouée a été refusée par le contrôle
+de sécurité. J1.7 n’est pas déclaré entièrement clos.
+
+## Refus de désinstallation et récupération — 24 octobre 2026
+
+EXE 1.0.6 inchangé, vrai registre et fichiers dans la VM sous compte standard :
+enregistrement Edge étranger bloqué et préservé ; retrait refusé si le script
+manque ou se termine par `exit 42`. État après chaque refus identique à l’état
+avant lancement : paquet restant, liaison, entrée Windows, raccourcis et témoin.
+Réparation par le vrai Setup réussie dans les deux cas ; lecture réelle du témoin
+et HELLO 1.0.6 vérifiés ensuite dans Edge 156.0.4314.42.
+[Preuves et limites](VALIDATION_WINDOWS_NEUF.md). Les défauts d’écriture/ACL/disque
+et les réparations ambiguës restent à qualifier, ainsi que le profil accentué et
+les mises à jour avec tâches actives. J1.7 reste ouvert ; rien de publié.
+
+## Mise à jour réelle 1.0.3 → 1.0.6 réussie — 24 octobre 2026
+
+Dans la VM Windows 11, compte standard et même profil Edge : installation de la
+release 1.0.3 puis passage à la 1.0.6 sans désinstallation. EXE lancés depuis un
+dossier accentué ; lecture UTF-8 exacte d’un fichier au nom accentué avant/après.
+Nouveau compagnon actif, ancien runtime intact, préférences clair/violet conservées
+et appliquées. [Preuves et portée](VALIDATION_WINDOWS_NEUF.md).
+La recette couvre une mise à jour au repos ; profil Windows accentué, tâches
+actives/interrompues et échecs destructifs restent ouverts. Rien de publié.
+
+## Windows neuf — recette principale 1.0.6 réussie, 22 octobre 2026
+
+L’EXE exact a été testé dans une VM Windows 11 neuve, sous compte standard sans
+Go ni Node : annulation, installation, connexion Chrome/Edge et lecture du témoin,
+reconnexion, réinstallation saine, réparation via maintenance et désinstallation.
+Registre réel, entrée Windows, raccourcis et conservation des données contrôlés.
+[Rapport et preuves](VALIDATION_WINDOWS_NEUF.md). J1.7 reste ouvert pour ses cas
+complémentaires accents, mises à jour avec tâches actives et erreurs destructives ;
+signature et SmartScreen de téléchargement restent distincts. Cet état remplace
+les mentions historiques « aucune VM disponible / recette à exécuter » ci-dessous
+pour le parcours principal du candidat local 1.0.6. Rien de publié.
+
+Complément Edge 152.0.4191.66 réussi dans cette VM : même EXE, nouveau dossier
+de preuves, panneau natif opérationnel et enregistrement Chrome étranger préservé
+jusqu’après désinstallation. Contrôleur généralisé et tests Chrome/Edge réussis.
+
 ## Aperçu visuel local — 20 octobre 2026
 
 Refonte graphite et verre dépoli inspirée du visuel de Josh Corbett, sur la branche
@@ -8,8 +112,45 @@ Refonte graphite et verre dépoli inspirée du visuel de Josh Corbett, sur la br
 parcours allégé autour des fichiers et réglages d’apparence plus compacts.
 [Direction, aperçus et retour arrière](VISUEL_FLUENT.md).
 
-Le panneau flottant au-dessus d’un site reste une **étude visuelle**, distincte du
-panneau natif Chrome. La release et la soumission Store 1.0.3 ne sont pas remplacées.
+Le candidat local 1.0.6 rétablit le panneau natif Chrome après le blocage signalé
+avec l’iframe de la 1.0.5. La release et la soumission Store 1.0.3 ne sont pas
+remplacées.
+
+## Fiabilité Chrome et installateur — candidat local 1.0.6
+
+Retour au panneau natif à hauteur disponible, ouvert par l’icône ou `Alt+E`.
+Injection flottante et exposition de l’UI aux sites retirées. Installateur avec
+éditeur, licence, rapport de signature et empreintes ; signature horodatée du
+compagnon, du Setup et du désinstalleur si un certificat reconnu est fourni.
+Aucun certificat disponible ni achat engagé. [Options de confiance Windows et
+voie MSIX gratuite](SIGNATURE_WINDOWS.md).
+
+Validation locale du 22 octobre : compilation/paquet réussis sans source maps ;
+extension chargée dans Chromium avec ouverture native activée ; hauteur vérifiée
+à 320/600/1200 px et disposition responsive à 320/390/900/1440 px. Tests du backend
+installation/réparation/mise à jour réussis avec registre simulé ; métadonnées,
+empreintes et rejet d’un certificat absent sans modification des EXE vérifiés.
+Defender ne relève aucune menace dans le Setup et le compagnon du candidat.
+Preuves dans `test-results/{build,panel-entry,panel-layout,setup,setup-build}-1.0.6.log`
+et `test-results/defender-1.0.6.json`. EXE/ZIP 1.0.6 et kit de recette générés.
+Parcours signé non vérifiable sans certificat. La recette principale sur Windows
+neuf est désormais réussie : voir le rapport en tête de document. Rien de publié.
+
+## Lot Documents locaux — préparation 1.0.4
+
+Les six fonctions issues de la comparaison avec l’autre NextExplorer sont
+implémentées localement : galerie médias, navigateur d’archives et extraction
+ciblée, éditeur texte, historique de versions, recherche de texte DOCX/XLSX/PPTX,
+sous-titres et diagnostic de codecs. Le périmètre exclut les comptes, liens de
+partage publics et outils bureautiques collaboratifs. Voir
+[détails et limites](FEATURES_DOCUMENTS_LOCAUX.md).
+
+État : extension TypeScript compilée, compagnon Windows construit en version
+1.0.4, paquet vérifié et installateur compilé. Paquet Chrome Store candidat
+1.0.4 et SHA256 préparés localement. La publication 1.0.3 reste intacte ; aucune
+mise en ligne 1.0.4 demandée ni effectuée. Les tests Go ont passé avant les
+derniers ajustements et le code recompilé ensuite ; la recette complète dans
+Chrome avec les six parcours reste à faire avant de qualifier ce lot de prêt.
 
 ## Socle gratuit — préversion 1.0.3, 20 octobre 2026
 

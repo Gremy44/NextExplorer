@@ -1,0 +1,98 @@
+:root {
+  --motion-fast: 140ms;
+  --motion-panel: 180ms;
+  --motion-ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+@keyframes surface-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+@keyframes content-enter {
+  from {
+    opacity: 0.4;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes veil-enter {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.overlay {
+  animation: veil-enter var(--motion-fast) ease-out;
+}
+.toast {
+  animation: veil-enter var(--motion-fast) ease-out;
+}
+.modal,
+.companion-folder-picker {
+  animation: surface-enter var(--motion-panel) var(--motion-ease);
+}
+.context-menu,
+.file-options-menu,
+.help-tooltip,
+.space-tooltip,
+.preferences-content > fieldset:not([hidden]),
+.navigation-section > [id]:not([hidden]),
+.details-content > :not([hidden]),
+.companion-disclosure[open] > :not(summary),
+.quick-output-settings[open] > :not(summary) {
+  animation: content-enter var(--motion-fast) var(--motion-ease);
+}
+.app button,
+.file-item,
+.companion-entry,
+.nav-item,
+.workspace-tab {
+  transition:
+    background-color var(--motion-fast) ease,
+    border-color var(--motion-fast) ease,
+    color var(--motion-fast) ease,
+    box-shadow var(--motion-fast) ease;
+}
+.tabs-scroll {
+  position: relative;
+}
+.workspace-tab {
+  position: relative;
+}
+.tabs-scroll[data-dragging="true"] .workspace-tab {
+  transform: translateX(var(--tab-drag-offset, 0px));
+  transition:
+    transform var(--motion-panel) var(--motion-ease),
+    opacity var(--motion-fast) ease;
+}
+.workspace-tab.dragging {
+  opacity: 0.45;
+  z-index: 2;
+}
+.workspace-tab.dragging::after {
+  content: "";
+  position: absolute;
+  inset: 1px;
+  border: 1px solid var(--accent);
+  border-radius: inherit;
+  pointer-events: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}

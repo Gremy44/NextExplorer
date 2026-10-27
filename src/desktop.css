@@ -67,7 +67,7 @@ textarea:focus {
 }
 h1 {
   font-weight: 600;
-  font-size: 20px;
+  font-size: calc(20px * var(--text-scale, 1));
 }
 button:disabled {
   opacity: 0.45;
@@ -78,7 +78,7 @@ button:disabled {
   border-bottom-color: var(--hairline);
 }
 .brand {
-  font-size: 16px;
+  font-size: calc(16px * var(--text-scale, 1));
   min-width: 184px;
   justify-content: flex-start;
 }
@@ -149,7 +149,7 @@ button:disabled {
 }
 .sidebar .shortcut {
   font:
-    11px "Segoe UI",
+    calc(11px * var(--text-scale, 1)) "Segoe UI",
     system-ui,
     sans-serif;
   opacity: 0.7;
@@ -179,7 +179,7 @@ main {
 .tab-select,
 .tab-close + .tab-select {
   border-radius: 6px;
-  font-size: 12px;
+  font-size: calc(12px * var(--text-scale, 1));
 }
 .tab-new::before {
   border-radius: 6px;
@@ -294,7 +294,7 @@ main {
 }
 .details-tabs button {
   position: relative;
-  font-size: 12px;
+  font-size: calc(12px * var(--text-scale, 1));
   border-radius: 4px;
 }
 .details-tabs button[aria-pressed="true"] {
@@ -306,7 +306,7 @@ main {
   padding: 20px;
 }
 .file-details h2 {
-  font-size: 17px;
+  font-size: calc(17px * var(--text-scale, 1));
 }
 .overlay {
   background: #080b0e80;
@@ -327,7 +327,7 @@ main {
   background: var(--md-sys-color-surface-container);
 }
 .modal > header strong {
-  font-size: 18px;
+  font-size: calc(18px * var(--text-scale, 1));
   font-weight: 600;
 }
 .modal-content {
@@ -382,6 +382,9 @@ main {
   min-height: 44px;
 }
 /* Frosted surfaces stay legible over content; the native side panel cannot blur a web page. */
+.app.sidepanel {
+  min-height: 0;
+}
 .details-pane,
 .modal,
 .companion-folder-picker,
@@ -556,7 +559,7 @@ main {
     padding: 12px 16px;
   }
   .folder-heading h1 {
-    font-size: 20px;
+    font-size: calc(20px * var(--text-scale, 1));
   }
   .file-toolbar {
     padding-inline: 16px;
@@ -570,7 +573,7 @@ main {
   }
   .modal > header strong {
     white-space: normal;
-    font-size: 17px;
+    font-size: calc(17px * var(--text-scale, 1));
   }
   .modal footer {
     padding: 12px 16px;

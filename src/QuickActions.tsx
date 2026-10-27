@@ -1,5 +1,9 @@
 import { RotateCcw, Pencil, FilePlus2, Scissors, FileCog } from "lucide-react";
-import { quickActions, type QuickAction } from "./quick-actions";
+import {
+  quickActions,
+  type QuickAction,
+  type QuickTool,
+} from "./quick-actions";
 import { conversionKind } from "./media-conversion";
 import type { Entry, Hello } from "./types";
 export function QuickActions({
@@ -7,14 +11,20 @@ export function QuickActions({
   hello,
   onAction,
   onConvert,
+  activeAction,
+  busy = false,
 }: {
   entries: Entry[];
   hello: Hello | null;
   onAction: (action: QuickAction) => void;
   onConvert: () => void;
+  activeAction?: QuickTool;
+  busy?: boolean;
 }) {
   const actions = quickActions(entries, hello);
-  const convert = entries.length > 0 && entries.every((e) => conversionKind(e));
+  const convert =
+    activeAction === "convert" ||
+    (entries.length > 0 && entries.every((e) => conversionKind(e)));
   if (!actions.length && !convert) return null;
   const icons = {
     rotate: RotateCcw,
@@ -23,8 +33,11 @@ export function QuickActions({
     trim: Scissors,
   };
   return (
-    <section className="quick-actions" aria-label="Actions rapides">
-      <h3>Actions rapides</h3>
+    <section
+      className={`quick-actions${activeAction ? " quick-action-switcher" : ""}`}
+      aria-label="Actions rapides"
+    >
+      {!activeAction && <h3>Actions rapides</h3>}
       <div className="organization-actions">
         {actions.map((action) => {
           const Icon = icons[action.id];
@@ -32,7 +45,10 @@ export function QuickActions({
             <button
               key={action.id}
               type="button"
-              disabled={action.disabled}
+              disabled={busy || action.disabled}
+              aria-pressed={
+                activeAction ? activeAction === action.id : undefined
+              }
               title={action.disabled ? action.reason : undefined}
               onClick={() => onAction(action.id)}
             >
@@ -42,7 +58,12 @@ export function QuickActions({
           );
         })}
         {convert && (
-          <button type="button" onClick={onConvert}>
+          <button
+            type="button"
+            disabled={busy}
+            onClick={onConvert}
+            aria-pressed={activeAction ? activeAction === "convert" : undefined}
+          >
             <FileCog size={16} />
             Convertir…
           </button>

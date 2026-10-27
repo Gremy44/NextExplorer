@@ -1,4 +1,10 @@
-import { useEffect, useRef, useState, type PointerEvent } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  type PointerEvent,
+  type CSSProperties,
+} from "react";
 import {
   ChevronLeft,
   ChevronRight,
@@ -11,6 +17,7 @@ import {
 } from "lucide-react";
 import type { PDFDocumentProxy, RenderTask } from "pdfjs-dist";
 import type { DocumentOverlay } from "./document-operations";
+import { Help } from "./Help";
 
 type Point = { x: number; y: number };
 type Mark = {
@@ -86,6 +93,7 @@ export function MarkupEditor({
     [pages, setPages] = useState(1),
     [revision, setRevision] = useState(0),
     [ready, setReady] = useState(false);
+  const [aspect, setAspect] = useState(1);
   const [tool, setTool] = useState<Mark["tool"]>("pen"),
     [color, setColor] = useState("#d32f2f"),
     [width, setWidth] = useState(4),
@@ -192,6 +200,7 @@ export function MarkupEditor({
         canvas.getContext("2d")!.drawImage(bitmap, 0, 0);
       }
       if (!live) return;
+      setAspect(canvas.width / canvas.height);
       paint(drawing, marks.current[page] || []);
       setReady(true);
       onReady(async () => {
@@ -365,7 +374,10 @@ export function MarkupEditor({
         </div>
       )}
       {!ready && <p role="status">Préparation de la page…</p>}
-      <div className="markup-paper">
+      <div
+        className="markup-paper"
+        style={{ "--markup-aspect": aspect } as CSSProperties}
+      >
         <canvas ref={base} aria-label="Page du document" />
         <canvas
           ref={overlay}
@@ -493,11 +505,11 @@ export function MarkupEditor({
           }}
         />
       </div>
-      <p className="muted">
+      <Help>
         Au clavier : flèches pour viser, Entrée pour commencer/terminer le
         trait, Échap pour l’annuler. Le dessin d’une signature n’est pas une
         signature électronique certifiée.
-      </p>
+      </Help>
     </section>
   );
 }
