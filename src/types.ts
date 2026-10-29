@@ -9,6 +9,7 @@ export type Entry = {
   stamp?: string;
 };
 export type Listing = {
+  skipped?: number;
   truncated?: boolean;
   currentPath: string;
   parentPath: string | null;
@@ -44,6 +45,9 @@ export type Hello = {
   workerError?: string;
   features?: {
     remoteVersion?: number;
+    spaceAnalysisVersion?: number;
+    searchChecks?: boolean;
+    imagePreviewCancel?: boolean;
     documentTools?: number;
     consoleVersion?: number;
     diskVolumes?: boolean;
@@ -195,9 +199,9 @@ export function fuzzy(q: string, s: string) {
 export const mediaType = (e: Entry) =>
   e.type === "directory"
     ? "folder"
-    : /\.(png|jpe?g|webp|gif|avif|bmp|svg|tiff?)$/i.test(e.ext)
+    : /\.(png|jpe?g|webp|gif|avif|bmp|svg|tiff?|heic|heif)$/i.test(e.ext)
       ? "image"
-      : /\.(mp4|webm|mov|mkv|avi)$/i.test(e.ext)
+      : /\.(mp4|m4v|webm|mov|mkv|avi)$/i.test(e.ext)
         ? "video"
         : /\.(mp3|wav|ogg|flac|m4a|aac|opus)$/i.test(e.ext)
           ? "audio"

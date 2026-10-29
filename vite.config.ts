@@ -5,6 +5,10 @@ import path from "node:path";
 const version = JSON.parse(readFileSync("package.json", "utf8")).version;
 export default defineConfig({
   base: "./",
+  optimizeDeps: { entries: ["index.html"] },
+  server: {
+    watch: { ignored: ["**/test-results/**", "**/release/**", "**/.tools/**"] },
+  },
   define: { "import.meta.env.VITE_APP_VERSION": JSON.stringify(version) },
   plugins: [
     react(),

@@ -4,8 +4,12 @@ import {
   useRef,
   useState,
   type ReactNode,
+  createContext,
+  useContext,
 } from "react";
 import { ChevronDown } from "lucide-react";
+
+const CollapsedNavigation = createContext(false);
 
 export function NavigationSection({
   id,
@@ -18,6 +22,7 @@ export function NavigationSection({
   action?: ReactNode;
   children: ReactNode;
 }) {
+  const collapsed = useContext(CollapsedNavigation);
   const key = `nextexplorer:navigation:${id}`;
   const [open, setOpen] = useState(() => {
     try {
@@ -47,14 +52,20 @@ export function NavigationSection({
         </button>
         {action}
       </div>
-      <div id={`navigation-${id}`} hidden={!open}>
+      <div id={`navigation-${id}`} hidden={!open && !collapsed}>
         {children}
       </div>
     </section>
   );
 }
 
-export function NavigationSidebar({ children }: { children: ReactNode }) {
+export function NavigationSidebar({
+  children,
+  collapsed = false,
+}: {
+  children: ReactNode;
+  collapsed?: boolean;
+}) {
   const ref = useRef<HTMLElement>(null);
   const [width, setWidth] = useState(() => {
     try {
@@ -67,6 +78,10 @@ export function NavigationSidebar({ children }: { children: ReactNode }) {
     }
   });
   const [limit, setLimit] = useState(420);
+  useLayoutEffect(() => {
+    if (collapsed)
+      ref.current?.querySelector(".navigation-scroll")?.scrollTo(0, 0);
+  }, [collapsed]);
   useLayoutEffect(() => {
     const parent = ref.current?.parentElement;
     if (!parent) return;
@@ -94,9 +109,17 @@ export function NavigationSidebar({ children }: { children: ReactNode }) {
     if (ref.current) resize(x - ref.current.getBoundingClientRect().left);
   };
   return (
-    <aside ref={ref} className="sidebar" style={{ width: visible }}>
-      <div className="navigation-scroll">{children}</div>
+    <aside
+      ref={ref}
+      className={"sidebar" + (collapsed ? " collapsed" : "")}
+      style={{ width: collapsed ? 52 : visible }}
+      aria-label="Navigation de l’explorateur"
+    >
+      <CollapsedNavigation.Provider value={collapsed}>
+        <div className="navigation-scroll">{children}</div>
+      </CollapsedNavigation.Provider>
       <div
+        hidden={collapsed}
         className="navigation-divider"
         role="separator"
         aria-label="Ajuster la largeur de la navigation"

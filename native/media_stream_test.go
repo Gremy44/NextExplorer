@@ -59,3 +59,14 @@ func TestMediaLeaseLimitsAndRevoke(t *testing.T) {
 		t.Fatal(err)
 	}
 }
+
+func TestPreviewMediaMIMEs(t *testing.T) {
+	for ext, expected := range map[string]string{".aac": "audio/aac", ".mkv": "video/x-matroska", ".avi": "video/x-msvideo", ".m4v": "video/mp4"} {
+		if mediaMIME(ext) != expected {
+			t.Fatalf("wrong preview MIME for %s", ext)
+		}
+	}
+	if mediaMIME(".exe") != "" {
+		t.Fatal("executable admitted as media")
+	}
+}

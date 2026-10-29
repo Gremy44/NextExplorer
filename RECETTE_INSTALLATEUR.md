@@ -1,5 +1,9 @@
 # J1.7 — recette de l'EXE sur Windows isolé
 
+## Pilote 1.0.7 — reconstruit et publié le 29 octobre 2026
+
+Le nouvel EXE contient les correctifs d’enregistrement et le socle consolidé. Les cycles Chrome et Edge du candidat exact sont réussis : installation/annulation, connexion/lecture, réinstallation, réparation, retrait, conservation du témoin et de la liaison Chrome étrangère lors du parcours Edge. [Empreinte, preuves et limites](VALIDATION_WINDOWS_NEUF.md). Les demandes historiques « ne pas reconstruire pour cette session » ci-dessous décrivent les anciennes sessions ; l’envoi pilote a autorisé cette nouvelle reconstruction.
+
 ## Sources corrigées sans nouveau binaire — 24 octobre 2026
 
 L’enregistrement préserve désormais une clé existante et ses permissions. Le test

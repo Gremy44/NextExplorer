@@ -217,6 +217,9 @@ export async function runOrganizationJourney({ context, baseURL, fixture }) {
     await dialog
       .getByLabel("Recherche commune", { exact: true })
       .fill("electricite");
+    await dialog
+      .getByRole("heading", { name: "Fichiers locaux (2)", exact: true })
+      .waitFor();
     assert.equal(await dialog.locator("article").count(), 2);
     await dialog
       .getByRole("button", { name: "Vocabulaire proche", exact: true })
@@ -281,6 +284,9 @@ export async function runOrganizationJourney({ context, baseURL, fixture }) {
     await dialog
       .getByText(/fichier\(s\) · \d+ dossier\(s\) · \d+ ms/)
       .waitFor();
+    await dialog
+      .getByRole("heading", { name: "Fichiers locaux (2)", exact: true })
+      .waitFor();
     assert.equal(await dialog.locator("article").count(), 2);
     await close(page);
     await page
@@ -296,12 +302,11 @@ export async function runOrganizationJourney({ context, baseURL, fixture }) {
       .click();
     await dialog.getByText("Tags enregistrés", { exact: true }).waitFor();
     await close(page);
+    await page.locator(".pane.active .file-scroll").focus();
     await page.keyboard.press("F2");
-    dialog = page.getByRole("dialog", { name: "Renommer", exact: true });
-    await dialog.locator('input[name="name"]').fill("facture-renommee.txt");
-    await dialog
-      .getByRole("button", { name: "Confirmer", exact: true })
-      .click();
+    const renameInput = page.locator(".inline-rename input");
+    await renameInput.fill("facture-renommee.txt");
+    await renameInput.press("Enter");
     await page.waitForFunction(
       async (path) => {
         const data = await chrome.storage.local.get("fileTags");
@@ -360,7 +365,9 @@ export async function runOrganizationJourney({ context, baseURL, fixture }) {
       await panel.locator("html").getAttribute("data-theme"),
       "light",
     );
-    await dialog.getByRole("button", { name: "Raccourcis", exact: true }).click();
+    await dialog
+      .getByRole("button", { name: "Raccourcis", exact: true })
+      .click();
     const searchShortcut = dialog.getByLabel(
       "Raccourci Rechercher dans mes fichiers et espaces",
       { exact: true },
@@ -392,7 +399,9 @@ export async function runOrganizationJourney({ context, baseURL, fixture }) {
       .waitFor();
     await close(page);
     dialog = await command(page, "Réglages et moteurs");
-    await dialog.getByRole("button", { name: "Sauvegarde", exact: true }).click();
+    await dialog
+      .getByRole("button", { name: "Sauvegarde", exact: true })
+      .click();
     const downloadEvent = page.waitForEvent("download");
     await dialog.getByRole("button", { name: "Exporter", exact: true }).click();
     const download = await downloadEvent,
@@ -535,7 +544,9 @@ export async function runOrganizationJourney({ context, baseURL, fixture }) {
     await page
       .getByRole("menuitemradio", { name: "Détails", exact: true })
       .click();
-    await page.getByRole("button", { name: "Filtres et organisation", exact: true }).click();
+    await page
+      .getByRole("button", { name: "Filtres et organisation", exact: true })
+      .click();
     await page
       .getByRole("button", {
         name: "Calculer les tailles des dossiers",
@@ -585,7 +596,7 @@ export async function runOrganizationJourney({ context, baseURL, fixture }) {
       })
       .click();
     await performanceDialog
-      .getByText(/1000 fichier\(s\) · 1 dossier\(s\) · \d+ ms/)
+      .getByText(/1003 fichier\(s\) · 1 dossier\(s\) · \d+ ms/)
       .waitFor({ timeout: 60000 });
     const milliseconds = Date.now() - started,
       beats = await page.evaluate(() => {
@@ -597,14 +608,14 @@ export async function runOrganizationJourney({ context, baseURL, fixture }) {
       "l’interface doit continuer à traiter des événements pendant l’indexation",
     );
     await performanceDialog
-      .getByText(/3 entrée\(s\) ou sous-dossier\(s\) omis/)
+      .getByText(/0 entrée\(s\) ou sous-dossier\(s\) omis/)
       .waitFor();
     await writeFile(
       path.resolve("test-results/j4-performance.json"),
       JSON.stringify(
         {
           entries: 1003,
-          indexed: 1000,
+          indexed: 1003,
           milliseconds,
           uiTicks: beats,
           synthetic: true,
@@ -617,7 +628,7 @@ export async function runOrganizationJourney({ context, baseURL, fixture }) {
       .getByRole("button", { name: "Effacer l’index", exact: true })
       .click();
     console.log(
-      `J4 : corpus synthétique 1003 → 1000 indexés, interface active (${beats} événements), ${milliseconds} ms : OK`,
+      `J4 : corpus synthétique 1003 → 1003 indexés, interface active (${beats} événements), ${milliseconds} ms : OK`,
     );
     assert.equal(
       createHash("sha256")

@@ -1,6 +1,30 @@
 .document-dialog {
   height: min(850px, calc(100dvh - 32px));
 }
+.draft-status,
+.draft-recovery-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+.draft-status small {
+  color: var(--muted);
+}
+.draft-recovery-row {
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
+}
+.modal:has(.draft-recovery) {
+  background: color-mix(in srgb, var(--panel) 96%, transparent);
+}
+.draft-recovery-row small {
+  display: block;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+  margin: 4px 0;
+}
 .document-tabs,
 .document-search {
   display: flex;
@@ -46,7 +70,8 @@
 .editor-code textarea,
 .editor-lines {
   font:
-    calc(14px * var(--text-scale, 1))/calc(21px * var(--text-scale, 1)) Consolas,
+    calc(14px * var(--text-scale, 1)) / calc(21px * var(--text-scale, 1))
+      Consolas,
     monospace;
   tab-size: 4;
 }
@@ -156,6 +181,94 @@
 .inline-preview > header {
   flex-wrap: wrap;
 }
+.preview-body.editing-preview {
+  display: block;
+  padding: 0;
+  height: auto;
+}
+.embedded-document,
+.inline-document {
+  width: 100%;
+  min-width: 0;
+}
+.inline-document > header,
+.inline-document > footer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+}
+.inline-document > header strong {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.inline-document > footer {
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+.inline-document .document-tabs {
+  padding: 4px 12px;
+  flex-wrap: wrap;
+}
+.inline-document .modal-content {
+  padding: 12px;
+  overflow: visible;
+}
+.inline-document .document-search {
+  gap: 4px;
+}
+.inline-document .text-editor {
+  height: 300px;
+  min-height: 180px;
+}
+.inline-document .editor-lines {
+  width: 36px;
+  padding-inline: 4px;
+}
+.preview-body.font-preview-body {
+  align-items: flex-start;
+  justify-content: flex-start;
+}
+.inline-preview .preview-body.font-preview-body {
+  height: auto;
+  max-height: 60dvh;
+}
+.font-preview {
+  width: 100%;
+  min-width: 0;
+}
+.font-controls,
+.font-controls label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.font-controls label {
+  flex: 1;
+  min-width: 0;
+}
+.font-controls input {
+  min-width: 0;
+  width: 100%;
+}
+.font-controls output {
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.font-preview textarea {
+  width: 100%;
+  margin-block: 12px;
+  resize: vertical;
+}
+.font-specimen {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  line-height: 1.4;
+  padding-block: 8px 20px;
+}
 .archive-browser {
   width: 100%;
   min-width: 0;
@@ -223,6 +336,46 @@
 .media-options select {
   min-width: 0;
   flex: 1;
+}
+.preview-loading {
+  width: 100%;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+.preview-loading p {
+  margin-block: 8px 12px;
+}
+.preview-note {
+  padding: 6px 12px;
+  color: var(--muted);
+}
+.pdf-preview {
+  width: 100%;
+  min-width: 0;
+  align-self: flex-start;
+}
+.pdf-preview-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.pdf-preview canvas {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin-inline: auto;
+}
+.pdf-preview canvas[hidden] {
+  display: none;
+}
+.pdf-preview pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  max-height: 200px;
+  overflow: auto;
 }
 .media-options p {
   margin: 8px 0;

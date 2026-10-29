@@ -2,7 +2,11 @@
 
 Audit du 18 octobre 2026, à partir de la liste demandée par l’utilisateur. Les numéros reprennent exactement ses 100 entrées. Il s’agit de **consulter un aperçu dans NextExplorer**, sans éditeur complet, sans service distant et sans modifier l’original.
 
+**Ajout du 28 octobre 2026 :** les lignes 99/100 (TTF/OTF) disposent désormais d’un aperçu de caractères, avec texte personnel et taille réglable ; WOFF/WOFF2 sont également raccordés hors de cette liste de 100. Limite de 16 Mio, aucune installation système. [Détails et validation](FEATURES_DOCUMENTS_LOCAUX.md). Le décompte et les états ci-dessous restent l’instantané de l’audit du 18 octobre, pas un nouvel audit exhaustif.
+
 ## Résultat de la lecture du code
+
+**Qualification V1 du 28 octobre :** le lecteur actuel diffère de l’instantané ci-dessous : PDF.js borné par page, HEIC/HEIF et M4V raccordés à l’interface, AAC/MKV/AVI au flux natif, annulation des images et refus SVG explicite. Les formats d’image, polices, médias et documents du corpus ainsi que leurs limites sont décrits dans [la qualification V1](APERCUS_V1.md). AVI reste dépendant du codec et l’exemple de recette a été refusé proprement. Le décompte historique ci-dessous ne constitue pas un nouvel inventaire de tous les formats.
 
 | État | Entrées | Ce que cela signifie |
 | --- | ---: | --- |

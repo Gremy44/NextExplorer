@@ -16,10 +16,11 @@ de place, et un terminal dans le dossier de travail.
 
 **Windows 11 x64 et Chrome · gratuit pour les usages personnels et professionnels.**
 Préversion technique avec extension et compagnon Windows non signé.
-La version 1.0.3 apporte la connexion guidée et l’identité Chrome Web Store.
-La fiche Store est en cours de soumission ; le chargement manuel reste possible
-pendant son examen. Commencez avec des fichiers de démonstration.
-[Bien démarrer](INSTALLATION.md).
+Le candidat pilote **1.0.7** regroupe le socle consolidé : aperçus bornés, recherche
+locale élargie, brouillons récupérables et interface compacte. L’installation
+du pilote utilise le chargement manuel de l’extension, sans dépendre du Store.
+Commencez avec des copies de démonstration.
+[Bien démarrer](INSTALLATION.md) · [Parcours de test et retours](TESTER.md).
 
 ## Le bon fichier, directement sur le site
 
@@ -119,7 +120,9 @@ La base gratuite continue d’évoluer. Trois directions pour aller plus loin :
   les parcours et harmoniser les outils, du petit panneau à la vue complète.
 - **Davantage de formats en aperçu.** Étendre la lecture locale de documents,
   tableaux et images spécialisées à partir de notre audit de 100 formats.
-  Parmi les pistes : DOCX/ODT, XLSX/ODS, CSV en grille, HEIC, PSD et RAW.
+  Parmi les pistes : rendu complet DOCX/ODT ou XLSX/ODS, CSV en grille,
+  PSD et RAW. Les extraits Office et les images HEIC/HEIF via moteur
+  facultatif ont déjà un premier périmètre de consultation.
 
 **Ces évolutions sont prévues ou à l’étude, pas livrées dans la préversion.**
 La fiabilisation de la base gratuite et de son installation vient d’abord.

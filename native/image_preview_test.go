@@ -1,11 +1,16 @@
 package main
 
 import (
+	"context"
 	"encoding/base64"
+	"errors"
+	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 )
 
 func TestBoundedImagePreviewAndSample(t *testing.T) {
@@ -47,5 +52,47 @@ func TestBoundedImagePreviewAndSample(t *testing.T) {
 	huge, _ := statEntry(large)
 	if _, err = imagePreview(Payload{Path: large, Expected: &huge}, false); err == nil || !strings.Contains(err.Error(), "256 Mio") {
 		t.Fatal("unbounded image accepted", err)
+	}
+}
+
+func TestImagePreviewCancellationBeforeStartAndWhileQueued(t *testing.T) {
+	h := newHost(io.Discard)
+	operation, err := h.imageOperation("cancelled-before-start")
+	if err != nil {
+		t.Fatal(err)
+	}
+	operation.cancel()
+	if _, err = h.previewImage(Payload{Session: "cancelled-before-start"}, false); !errors.Is(err, context.Canceled) {
+		t.Fatal("early cancellation was lost", err)
+	}
+	if len(h.imageRequests) != 0 {
+		t.Fatal("completed operation leaked")
+	}
+	imageSlots <- struct{}{}
+	imageSlots <- struct{}{}
+	defer func() { <-imageSlots; <-imageSlots }()
+	operation, _ = h.imageOperation("cancelled-in-queue")
+	finished := make(chan error, 1)
+	go func() { _, err := h.previewImage(Payload{Session: "cancelled-in-queue"}, false); finished <- err }()
+	operation.cancel()
+	select {
+	case err := <-finished:
+		if !errors.Is(err, context.Canceled) {
+			t.Fatal(err)
+		}
+	case <-time.After(time.Second):
+		t.Fatal("queued decoder did not stop")
+	}
+	if _, err := h.imageOperation("bad/path"); err == nil {
+		t.Fatal("invalid identifier accepted")
+	}
+	for i := 0; i < 64; i++ {
+		h.imageOperation(fmt.Sprintf("stopped-%d", i))
+	}
+	if _, err := h.imageOperation("overflow"); err == nil {
+		t.Fatal("unbounded preview operations")
+	}
+	for _, operation := range h.imageRequests {
+		operation.cancel()
 	}
 }

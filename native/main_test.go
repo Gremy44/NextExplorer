@@ -6,6 +6,7 @@ import (
 	"encoding/base64"
 	"encoding/binary"
 	"encoding/json"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -246,5 +247,43 @@ func TestHashDuplicatesAndZip(t *testing.T) {
 	r, e = archiveList(filepath.Join(dir, "test.zip"))
 	if e != nil || r.(M)["total"] != 2 {
 		t.Fatal(r, e)
+	}
+}
+
+func TestSpaceScanLargeTree(t *testing.T) {
+	dir := t.TempDir()
+	nested := filepath.Join(dir, "nested")
+	if err := os.Mkdir(nested, 0700); err != nil {
+		t.Fatal(err)
+	}
+	for i := 0; i < 3500; i++ {
+		put(t, filepath.Join(nested, fmt.Sprintf("%04d-%s.txt", i, strings.Repeat("x", 100))), "abc")
+	}
+	for i := 0; i < 550; i++ {
+		put(t, filepath.Join(dir, fmt.Sprintf("file-%04d.txt", i)), "ab")
+	}
+	j := jobForTest()
+	defer j.cancel()
+	result, err := j.scan(dir, false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	encoded, err := json.Marshal(result)
+	if err != nil || len(encoded) >= maxFrame/2 {
+		t.Fatal("result exceeds frame budget", len(encoded), err)
+	}
+	var report struct {
+		Total     int64
+		Truncated bool
+		Items     []struct {
+			Path string
+			Size int64
+		}
+	}
+	if err := json.Unmarshal(encoded, &report); err != nil {
+		t.Fatal(err)
+	}
+	if report.Truncated || report.Total != 11600 || len(report.Items) != 551 || report.Items[0].Path != nested || report.Items[0].Size != 10500 {
+		t.Fatalf("incomplete aggregation: total=%d truncated=%v items=%d", report.Total, report.Truncated, len(report.Items))
 	}
 }

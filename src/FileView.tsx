@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import {
   ArrowDownAZ,
   ArrowUpAZ,
@@ -341,12 +341,14 @@ export function FileEntryContent({
   interactive = true,
   customDetails = false,
   detailColumns,
+  nameContent,
 }: {
   entry: Entry;
   mode: ViewMode;
   interactive?: boolean;
   customDetails?: boolean;
   detailColumns?: string[];
+  nameContent?: ReactNode;
 }) {
   const { preferences, tags, sizes } = useOrganization();
   const columns = detailColumns || preferences.columns;
@@ -398,7 +400,7 @@ export function FileEntryContent({
       <>
         <span className="file-name">
           <FileIcon entry={entry} size={view.iconSize} />
-          <span>{name}</span>
+          <span>{nameContent ?? name}</span>
           {!customDetails && chips}
           {entry.type === "symlink" && <small>lien</small>}
         </span>
@@ -438,7 +440,7 @@ export function FileEntryContent({
         )}
       </span>
       <span className="file-item-info">
-        <span className="file-item-name">{name}</span>
+        <span className="file-item-name">{nameContent ?? name}</span>
         {chips}
         <small>{description}</small>
         {view.layout === "content" && (

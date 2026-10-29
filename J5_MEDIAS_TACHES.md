@@ -21,6 +21,8 @@ Les métadonnées précises sont contrôlées avant et après le décodage. Les 
 
 ## Aperçus et gros fichiers
 
+**Mise à jour V1 du 28 octobre :** annulation native des images dans la fenêtre, le volet et les miniatures ; PDF.js par page remplace l’iframe, avec limites 16 Mio dans le volet / 32 Mio dans la fenêtre, délais et destruction du worker à l’arrêt. Une erreur audio/vidéo est affichée au lieu d’un lecteur silencieux. [Qualification et limites qui remplacent celles de l’ancien aperçu](APERCUS_V1.md).
+
 **Espace** ouvre l’aperçu du fichier sélectionné. Le volet d’aperçu et les miniatures utilisent aussi les images réduites natives, dont les TIFF admissibles. Aucun fichier image complet n’est assemblé dans l’interface pour ce décodage.
 
 - Image retournée : JPEG de 1 600 pixels maximum, 700 Kio maximum. Deux décodages natifs simultanés ; sous Windows, chaque processus ImageMagick est limité à 512 Mio par un Job Object. Ses limites internes mémoire, disque temporaire, threads et durée restent appliquées.

@@ -51,6 +51,7 @@ type Host struct {
 	relocations    *relocationLog
 	terminals      map[string]*terminalSession
 	remote         *remoteHub
+	imageRequests  map[string]*imageOperation
 }
 
 func newHost(out io.Writer) *Host {
@@ -106,6 +107,15 @@ func (h *Host) serve(r io.Reader) {
 		if json.Unmarshal(b, &req) != nil || req.ID == "" {
 			continue
 		}
+		if req.Action == "IMAGE_PREVIEW_CANCEL" {
+			data, err := h.dispatch(req)
+			if err != nil {
+				h.send(M{"id": req.ID, "status": "ERROR", "error": err.Error()})
+			} else {
+				h.send(M{"id": req.ID, "status": "SUCCESS", "data": data})
+			}
+			continue
+		}
 		sem <- struct{}{}
 		wg.Add(1)
 		go func() {
@@ -119,6 +129,11 @@ func (h *Host) serve(r io.Reader) {
 		}()
 	}
 	close(h.dragStop)
+	h.mu.Lock()
+	for _, operation := range h.imageRequests {
+		operation.cancel()
+	}
+	h.mu.Unlock()
 	wg.Wait()
 	h.closeTerminals("")
 	h.mu.Lock()
@@ -224,6 +239,7 @@ type Payload struct {
 	Command         string            `json:"command"`
 	Algorithm       string            `json:"algorithm"`
 	Expected        *Entry            `json:"expected,omitempty"`
+	Entries         []Entry           `json:"entries,omitempty"`
 	Pattern         string            `json:"pattern"`
 	Replacement     string            `json:"replacement"`
 	Prefix          string            `json:"prefix"`
@@ -310,6 +326,9 @@ func (h *Host) dispatch(r Request) (any, error) {
 		value["features"].(M)["quickActions"] = true
 		value["features"].(M)["documentTools"] = 1
 		value["features"].(M)["remoteVersion"] = 1
+		value["features"].(M)["spaceAnalysisVersion"] = 2
+		value["features"].(M)["searchChecks"] = true
+		value["features"].(M)["imagePreviewCancel"] = true
 		if consoleSupported() {
 			value["features"].(M)["consoleVersion"] = 1
 		}
@@ -324,7 +343,14 @@ func (h *Host) dispatch(r Request) (any, error) {
 		value["features"].(M)["durableJobs"] = available
 		return value, nil
 	case "IMAGE_PREVIEW", "IMAGE_SAMPLE":
-		return imagePreview(p, r.Action == "IMAGE_SAMPLE")
+		return h.previewImage(p, r.Action == "IMAGE_SAMPLE")
+	case "IMAGE_PREVIEW_CANCEL":
+		operation, err := h.imageOperation(p.Session)
+		if err != nil {
+			return nil, err
+		}
+		operation.cancel()
+		return true, nil
 	case "TERMINAL_OPEN", "TERMINAL_READ", "TERMINAL_WRITE", "TERMINAL_SYNC", "TERMINAL_RESIZE", "TERMINAL_CLOSE", "TERMINAL_CLOSE_OWNER":
 		return h.terminal(p, r.Action)
 	case "CONVERSION_CAPABILITIES":
@@ -359,6 +385,8 @@ func (h *Host) dispatch(r Request) (any, error) {
 		return h.watch(p.Paths)
 	case "FS_STAT":
 		return statEntry(p.Path)
+	case "FS_CHECK_ENTRIES":
+		return checkEntries(p.Entries)
 	case "FS_READ":
 		return readChunk(p)
 	case "FS_TEXT":
@@ -432,7 +460,18 @@ func (h *Host) dispatch(r Request) (any, error) {
 		if j == nil {
 			return nil, fmt.Errorf("tâche introuvable")
 		}
-		return j.snapshot()["result"], nil
+		result := j.snapshot()["result"]
+		if j.Kind == "scan" && result != nil {
+			analysis, err := loadSpaceResult(result, filepath.Join(h.durableDir, j.ID+".space"))
+			if err != nil {
+				return nil, err
+			}
+			j.mu.Lock()
+			j.Result = analysis
+			j.mu.Unlock()
+			return spaceResultPage(analysis, p.Offset, p.Limit)
+		}
+		return result, nil
 	case "BATCH_RENAME":
 		result, err := batchRename(p)
 		if err == nil && p.Apply {

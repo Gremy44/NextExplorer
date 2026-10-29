@@ -1,5 +1,29 @@
 # Feuille de route — fichiers locaux et usages dans le navigateur
 
+## Pilote public 1.0.7 — 29 octobre 2026
+
+Les cinq lots de consolidation sont regroupés dans [la préversion publique](https://github.com/Gremy44/NextExplorer-Downloads/releases/tag/v1.0.7-pilot.1). Nouvel installateur assorti à l’extension, guide de chargement manuel Chrome/Edge, notices et empreintes. Recette du véritable EXE sous Windows 11 isolé, compte standard, réussie dans les deux navigateurs ; téléchargements publics comparés aux empreintes. [Rapport et limites](VALIDATION_WINDOWS_NEUF.md), [parcours de test](distribution/TESTER.md). Prochaine étape : recueillir les retours de 5 à 10 testeurs avant promotion stable. Aucun modèle d’IA, aucun paiement et aucun envoi du code source privé sur le dépôt public.
+
+## Finalisation V1 gratuite — point 5, 29 octobre 2026
+
+Cohérence de l’interface finalisée : actions contextuelles, libellés de renommage et des moteurs, recherche des réglages sans accents, tailles des textes, aides au clavier et palette déconnectée. Vérifications sur thèmes, densités, grandes polices, menus et réglages de 320 à 1 440 px, panneau latéral et console réelle. [Qualification et limites](COHERENCE_UI_V1.md). Les cinq lots sont terminés ; prochaine phase : préparation de la distribution finale, recette du nouveau candidat sur Windows neuf et pilote. Aucun Setup reconstruit pour ce lot.
+
+## Finalisation V1 gratuite — point 4, 29 octobre 2026
+
+Recette des opérations principales terminée : transferts, corbeille/restauration, atelier, conversion image/vidéo et rangement de téléchargements réels dans l’extension compilée. Le vrai glissement Shell Windows depuis le panneau latéral vers un site local est vérifié, avec Échap et sources intactes. [Qualification, commandes et limites](PARCOURS_V1.md). Prochain lot : point 5, cohérence de l’interface. Aucun ajout fonctionnel ni Setup reconstruit pour ce lot.
+
+## Finalisation V1 gratuite — point 3, 29 octobre 2026
+
+Récupération des brouillons texte après fermeture de page, liste visible avec reprise/téléchargement/abandon, stockage local borné sans éviction et variantes entre fenêtres. Les fichiers modifiés ou supprimés ne sont pas écrasés ; les limites de stockage sont signalées. Parcours de versions et de corbeille contrôlés, copies restaurées sans écrasement. [Périmètre et qualification](PROTECTION_TRAVAIL_V1.md). Prochain lot : point 4, recette des parcours principaux. Le Setup reste inchangé.
+
+## Finalisation V1 gratuite — point 2, 28 octobre 2026
+
+Aperçus courants et gros fichiers qualifiés sur corpus : TIFF natif de 137,3 Mio avec annulation réelle et relance, PDF.js par page en worker local avec limites et arrêt, médias progressifs dont MP4 de 512 Mio, polices et documents. Les erreurs/limites sont explicites, les réponses tardives ignorées, les fichiers originaux contrôlés inchangés. La vraie extension et la libération du worker PDF ont été vérifiées. [Périmètre et preuves](APERCUS_V1.md). Prochain point retenu : récupération des brouillons et restauration, sans lancement automatique de cette étape. Aucun Setup reconstruit.
+
+## Finalisation V1 gratuite — point 1, 28 octobre 2026
+
+Recherche locale élargie et périmètre explicite : 50 000 entrées / 5 000 dossiers / profondeur 64, noms seuls ou extraits, cachés au choix, choix visuel du dossier, recherche en worker et résultats locaux paginés. Contrôles natifs de fraîcheur regroupés, index conservé et revalidé lorsque le périmètre correspond. Les limites et les parcours partiels sont affichés. [Guide à jour](J4_ORGANISATION_RECHERCHE.md), [cinq points de finalisation](V1_GRATUITE.md). Aucun ajout d’IA ni de paiement, aucun Setup reconstruit.
+
 ## Parcours distant retenu — 26 octobre 2026
 
 Activation facultative dans **Réglages → Connexions → Dossiers distants**,

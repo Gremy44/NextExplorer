@@ -86,5 +86,5 @@ func (h *Host) paginatedListing(p Payload, load func() (M, error)) (any, error) 
 		}
 		end = offset + (end-offset)/2
 	}
-	return M{"currentPath": data["currentPath"], "parentPath": data["parentPath"], "entries": entries[offset:end], "total": len(entries), "nextOffset": end, "snapshot": key, "truncated": data["truncated"]}, nil
+	return M{"currentPath": data["currentPath"], "parentPath": data["parentPath"], "entries": entries[offset:end], "total": len(entries), "nextOffset": end, "snapshot": key, "truncated": data["truncated"], "skipped": data["skipped"]}, nil
 }

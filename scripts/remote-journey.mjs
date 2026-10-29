@@ -222,21 +222,18 @@ export async function runRemoteJourney({ page, fixture, mock }) {
     .nth(0)
     .getByRole("option", { name: /remote-only.txt/ })
     .dragTo(panes.nth(1).locator(".pathbar"));
-  const transfer = dialog("Transférer les fichiers");
-  assert.deepEqual(
+  const transfer = page.getByRole("menu", {
+    name: "Déplacer ou dupliquer les fichiers",
+    exact: true,
+  });
+  assert.ok(
     await transfer
-      .locator('select[name="mode"] option')
-      .evaluateAll((options) => options.map((option) => option.value)),
-    ["copy"],
+      .getByRole("menuitem", { name: "Déplacer", exact: true })
+      .isDisabled(),
   );
-  assert.equal(
-    await transfer
-      .locator('select[name="conflict"] option[value="overwrite"]')
-      .count(),
-    0,
-  );
+  assert.equal(await page.getByRole("dialog").count(), 0);
   await transfer
-    .getByRole("button", { name: "Confirmer", exact: true })
+    .getByRole("menuitem", { name: "Dupliquer", exact: true })
     .click();
   await transfer.waitFor({ state: "hidden" });
   assert.ok(
@@ -261,7 +258,9 @@ export async function runRemoteJourney({ page, fixture, mock }) {
   await dialog("Comparer les dossiers")
     .getByRole("button", { name: "Fermer", exact: true })
     .click();
-  await page.getByRole("button", { name: "Aperçu", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Volet d’aperçu", exact: true })
+    .click();
   await page.getByRole("button", { name: "Console", exact: true }).click();
   await page
     .getByRole("region", {

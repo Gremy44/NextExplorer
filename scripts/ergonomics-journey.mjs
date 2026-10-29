@@ -202,7 +202,7 @@ export async function runErgonomicsJourney({ page, fixture }) {
   await dialog.getByLabel("Afficher les miniatures").waitFor();
   await search.fill("un-reglage-absent");
   await dialog.getByText("Aucun réglage trouvé.", { exact: true }).waitFor();
-  await dialog.getByRole("button", { name: "Compagnons", exact: true }).click();
+  await dialog.getByRole("button", { name: "Moteurs", exact: true }).click();
   await dialog
     .getByRole("heading", { name: "Fonctions supplémentaires", exact: true })
     .waitFor();

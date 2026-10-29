@@ -1,5 +1,6 @@
 import { bridge } from "./bridge";
 import type { Entry } from "./types";
+import { imagePreviewError, readImagePreview } from "./image-preview";
 
 const waiting: {
   run: () => void;
@@ -26,35 +27,39 @@ export function nativeThumbnail(
 ): Promise<string> {
   if (signal.aborted)
     return Promise.reject(new DOMException("Annulé", "AbortError"));
+  const error = imagePreviewError(entry);
+  if (error) return Promise.reject(new Error(error));
   if (waiting.length >= 40)
     return Promise.reject(
       new Error("Miniatures en attente : réessayez après défilement."),
     );
   return new Promise((resolve, reject) => {
-    waiting.push({
+    const abort = () => {
+      const index = waiting.indexOf(item);
+      if (index >= 0) {
+        waiting.splice(index, 1);
+        reject(new DOMException("Annulé", "AbortError"));
+      }
+    };
+    const item = {
       signal,
       reject,
       run: () => {
+        signal.removeEventListener("abort", abort);
         void (async () => {
-          const expected = await bridge.request<Entry>("FS_STAT", {
-            path: entry.path,
-          });
+          const expected = await bridge.request<Entry>(
+            "FS_STAT",
+            {
+              path: entry.path,
+            },
+            5000,
+          );
           signal.throwIfAborted();
           const key = `${expected.path}:${expected.size}:${expected.stamp}`;
           const saved = cache.get(key);
           if (saved) return saved;
-          const result = await bridge.request<{ data: string }>(
-            "IMAGE_PREVIEW",
-            { path: entry.path, expected, width: 256 },
-            12000,
-          );
+          const url = await readImagePreview(expected, 256, signal);
           signal.throwIfAborted();
-          if (
-            !/^[A-Za-z0-9+/]+=*$/.test(result.data) ||
-            result.data.length > 956000
-          )
-            throw new Error("Miniature invalide.");
-          const url = `data:image/jpeg;base64,${result.data}`;
           while (
             cache.size &&
             (cache.size >= 64 || bytes + url.length > 2 * 1024 * 1024)
@@ -73,7 +78,9 @@ export function nativeThumbnail(
             drain();
           });
       },
-    });
+    };
+    waiting.push(item);
+    signal.addEventListener("abort", abort, { once: true });
     drain();
   });
 }

@@ -30,6 +30,8 @@ export function ArchiveBrowser({
   onExtract?: (members: string[], expected: Entry) => void;
 }) {
   const generation = useRef(0);
+  const [stopped, setStopped] = useState(false),
+    [attempt, setAttempt] = useState(0);
   const [entries, setEntries] = useState<Member[]>([]),
     [expected, setExpected] = useState<Entry | null>(null),
     [folder, setFolder] = useState("");
@@ -50,7 +52,15 @@ export function ArchiveBrowser({
     setFolder("");
     setSelected([]);
     setPreview(null);
+    if (stopped) {
+      setBusy(false);
+      return;
+    }
     void (async () => {
+      if (entry.size > 128 * 1024 * 1024)
+        throw new Error(
+          "Aperçu d’archive limité à 128 Mio. Utilisez l’outil d’extraction pour les archives plus grandes.",
+        );
       const expected = await bridge.request<Entry>("FS_STAT", {
         path: entry.path,
       });
@@ -79,7 +89,7 @@ export function ArchiveBrowser({
       live = false;
       generation.current++;
     };
-  }, [entry.path, entry.stamp]);
+  }, [entry.path, entry.stamp, stopped, attempt]);
   async function open(member: Member) {
     const current = generation.current;
     if (member.directory) {
@@ -161,7 +171,31 @@ export function ArchiveBrowser({
           {error}
         </p>
       )}
-      {busy && <p role="status">Lecture de l’archive…</p>}
+      {busy && (
+        <div className="preview-loading">
+          <p role="status">Lecture de l’archive…</p>
+          <button
+            onClick={() => {
+              generation.current++;
+              setStopped(true);
+              setBusy(false);
+            }}
+          >
+            Arrêter l’aperçu
+          </button>
+        </div>
+      )}
+      {stopped && <p role="status">Aperçu arrêté.</p>}
+      {(stopped || error) && (
+        <button
+          onClick={() => {
+            setStopped(false);
+            setAttempt((value) => value + 1);
+          }}
+        >
+          Réessayer l’aperçu
+        </button>
+      )}
       {preview ? (
         <article className="archive-member-preview">
           {preview.image ? (
@@ -230,7 +264,7 @@ export function ArchiveBrowser({
               </div>
             ))}
           </div>
-          {!busy && !rows.length && !error && (
+          {!busy && !rows.length && !error && !stopped && (
             <p>Dossier vide dans l’archive.</p>
           )}
         </>

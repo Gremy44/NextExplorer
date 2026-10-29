@@ -74,8 +74,12 @@ func listDir(p Payload) (any, error) {
 	}
 	defer folder.Close()
 	entries := []Entry{}
+	entryLimit, metadataLimit := 10000, 8*1024*1024
+	if p.Mode == "search" {
+		entryLimit, metadataLimit = 50000, 32*1024*1024
+	}
 	truncated := false
-	bytes, scanned := 0, 0
+	bytes, scanned, skipped := 0, 0, 0
 listing:
 	for {
 		rows, readErr := folder.ReadDir(256)
@@ -84,7 +88,7 @@ listing:
 		}
 		for _, d := range rows {
 			scanned++
-			if scanned > 200000 || len(entries) >= 10000 || bytes >= 8*1024*1024 {
+			if scanned > 200000 || len(entries) >= entryLimit || bytes >= metadataLimit {
 				truncated = true
 				break listing
 			}
@@ -97,12 +101,14 @@ listing:
 			v, e := statEntry(filepath.Join(dir, d.Name()))
 			if e == nil {
 				weight := len(v.Path) + len(v.Name) + 160
-				if bytes+weight > 8*1024*1024 {
+				if bytes+weight > metadataLimit {
 					truncated = true
 					break listing
 				}
 				entries = append(entries, v)
 				bytes += weight
+			} else {
+				skipped++
 			}
 		}
 		if readErr == io.EOF {
@@ -151,7 +157,7 @@ listing:
 	if parent == dir {
 		parent = nil
 	}
-	return M{"currentPath": dir, "parentPath": parent, "entries": entries[offset:end], "total": total, "nextOffset": end, "truncated": truncated}, nil
+	return M{"currentPath": dir, "parentPath": parent, "entries": entries[offset:end], "total": total, "nextOffset": end, "truncated": truncated, "skipped": skipped}, nil
 }
 func hello() M {
 	home, _ := os.UserHomeDir()

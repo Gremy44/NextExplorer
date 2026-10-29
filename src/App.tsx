@@ -23,6 +23,9 @@ import {
   Copy,
   ExternalLink,
   FileCog,
+  Fingerprint,
+  ListOrdered,
+  Tags,
   Files,
   Folder,
   HardDrive,
@@ -91,6 +94,7 @@ import {
   HELLO_TIMEOUT_MS,
 } from "./connection";
 import { Pane, type PaneState } from "./Pane";
+import { DropTransferMenu, type DroppedFiles } from "./DropTransferMenu";
 import { Preview, FileIcon, FolderIcon } from "./Preview";
 import { DetailsPane } from "./DetailsPane";
 import {
@@ -140,7 +144,8 @@ import { TagsDialog } from "./TagsDialog";
 import { TagPicker } from "./TagPicker";
 import { TaggedFilesDialog } from "./TaggedFilesDialog";
 import { PreferencesDialog } from "./PreferencesDialog";
-import { DocumentDialog } from "./DocumentDialog";
+import { DocumentDialog, hasDocumentDraft } from "./DocumentDialog";
+import { documentDrafts, downloadDraft } from "./document-drafts";
 import { EngineStatus } from "./EngineStatus";
 import { HomeDialog } from "./HomeDialog";
 import {
@@ -160,6 +165,8 @@ import {
 import { FolderAppearanceDialog } from "./FolderAppearanceDialog";
 import {
   DRIVES_PATH,
+  readSpaceResult,
+  type SpaceResultPage,
   type Volume,
   type SpaceAnalysis as Analysis,
 } from "./disk-space";
@@ -434,6 +441,7 @@ export function App() {
     {},
   );
   const scanJobs = useRef(new Map<string, string>());
+  const readingScans = useRef(new Set<string>());
   const analysisGeneration = useRef(0);
   const closedTabs = useRef<WorkspaceTab[]>([]);
   const draggedTab = useRef<number | null>(null);
@@ -505,6 +513,7 @@ export function App() {
   const [stashActionsOpen, setStashActionsOpen] = useState(false);
   const [links, setLinks] = useState<Record<string, Quicklink[]>>({});
   const [trash, setTrash] = useState<{ path: string; record: string }[]>([]);
+  const trashBusy = useRef(false);
   const [jobs, setJobs] = useState<Job[]>([]);
   const [jobsOpen, setJobsOpen] = useState(false);
   const jobsPane = useRef<HTMLElement>(null);
@@ -552,9 +561,39 @@ export function App() {
     if (bounds) resizeJobs(bounds.right - clientX - 8);
   }
   const [preview, setPreview] = useState<Entry | null>(null);
+  const [recoverableDrafts, setRecoverableDrafts] = useState(() =>
+    documentDrafts.list(),
+  );
+  const [draftRecovery, setDraftRecovery] = useState(false);
+  useEffect(() => {
+    const update = () => {
+      const next = documentDrafts.list();
+      setRecoverableDrafts((previous) =>
+        !draftRecovery && previous.length === next.length ? previous : next,
+      );
+    };
+    window.addEventListener("storage", update);
+    window.addEventListener("nxe-drafts-changed", update);
+    update();
+    return () => {
+      window.removeEventListener("storage", update);
+      window.removeEventListener("nxe-drafts-changed", update);
+    };
+  }, [draftRecovery]);
+  useEffect(() => {
+    const guard = (event: BeforeUnloadEvent) => {
+      if (hasDocumentDraft()) {
+        event.preventDefault();
+        event.returnValue = "";
+      }
+    };
+    window.addEventListener("beforeunload", guard);
+    return () => window.removeEventListener("beforeunload", guard);
+  }, []);
   const [documentTool, setDocumentTool] = useState<{
     entry: Entry;
     mode: "edit" | "versions";
+    draftId?: string;
   } | null>(null);
   function openDocument(entry: Entry, mode: "edit" | "versions") {
     if (!hello?.features?.documentTools) {
@@ -649,6 +688,9 @@ export function App() {
     paths: string[];
     mode: string;
   } | null>(null);
+  const [droppedFiles, setDroppedFiles] = useState<DroppedFiles | null>(null);
+  const draggedFiles = useRef<string[]>([]);
+  const closeDropMenu = useCallback(() => setDroppedFiles(null), []);
   const [busy, setBusy] = useState(false);
   const [formError, setFormError] = useState("");
   const [rename, setRename] = useState(initialRename);
@@ -657,6 +699,13 @@ export function App() {
     rows: { from: string; to: string; name: string; error: string }[];
   } | null>(null);
   const pane = panes[active];
+  useEffect(closeDropMenu, [
+    tabs[current].id,
+    pane.path,
+    dual,
+    preferences.remoteEnabled,
+    closeDropMenu,
+  ]);
   const remoteTransfer =
     dialog?.kind === "transfer" &&
     (isRemote(dialog.destination || pane.path) || dialog.paths?.some(isRemote));
@@ -1296,6 +1345,10 @@ export function App() {
       }
       if (e.event === "JOB_UPDATE") {
         const j = e.data as Job;
+        if (j.kind === "scan" && j.state === "running")
+          setAnalysis((current) =>
+            current?.jobId === j.id ? { ...current, scanned: j.done } : current,
+          );
         setJobs((old) =>
           [j, ...old.filter((v) => v.id !== j.id)].slice(0, 100),
         );
@@ -1379,14 +1432,16 @@ export function App() {
     }
   }
   async function readFolderSizes(jobId: string) {
+    if (readingScans.current.has(jobId)) return;
+    readingScans.current.add(jobId);
     try {
-      const result = await bridge.request<{
-        items: { path: string; size: number }[];
-        path: string;
-        total: number;
-        skipped: number;
-        truncated?: boolean;
-      }>("JOB_RESULT", { jobId });
+      const result = await readSpaceResult((offset) =>
+        bridge.request<SpaceResultPage>("JOB_RESULT", {
+          jobId,
+          offset,
+          limit: 500,
+        }),
+      );
       if (result) {
         const path = scanJobs.current.get(jobId) || result.path;
         if (path)
@@ -1408,7 +1463,15 @@ export function App() {
         scanJobs.current.delete(jobId);
       }
     } catch (error) {
+      setAnalysis((current) =>
+        current?.jobId === jobId
+          ? { ...current, loading: false, error: (error as Error).message }
+          : current,
+      );
       notify((error as Error).message, true);
+    } finally {
+      readingScans.current.delete(jobId);
+      scanJobs.current.delete(jobId);
     }
   }
   async function run(action: string, payload: unknown, success = "Terminé") {
@@ -1425,6 +1488,44 @@ export function App() {
     } catch (e) {
       notify((e as Error).message, true);
       throw e;
+    }
+  }
+  async function renameEntry(entry: Entry, name: string) {
+    await run(
+      "FS_RENAME",
+      {
+        path: entry.path,
+        name,
+        ...(isRemote(entry.path) ? { expected: entry } : {}),
+      },
+      "Fichier renommé",
+    );
+  }
+  async function trashEntries(paths: string[]) {
+    if (trashBusy.current) return;
+    trashBusy.current = true;
+    try {
+      const records = await run(
+        "FS_TRASH",
+        { paths: [...paths] },
+        "Éléments placés à la corbeille",
+      );
+      try {
+        setTrash(
+          await storageUpdate<typeof trash>("trash", [], (current) => [
+            ...current,
+            ...records,
+          ]),
+        );
+      } catch {
+        const error = new Error(
+          "Fichiers mis à la corbeille, mais historique non enregistré. Les fichiers restent dans .nextexplorer-trash.",
+        );
+        notify(error.message, true);
+        throw error;
+      }
+    } finally {
+      trashBusy.current = false;
     }
   }
   async function collect(entries: CollectionEntry[] = pane.selected) {
@@ -1622,6 +1723,9 @@ export function App() {
       return;
     }
     switch (a) {
+      case "trash":
+        void trashEntries(selected).catch(() => {});
+        break;
       case "remote-delete":
       case "remote-permissions":
         if (pane.selected.length !== 1) {
@@ -1816,6 +1920,8 @@ export function App() {
     e.preventDefault();
     const internal = e.dataTransfer.getData("application/x-nextexplorer");
     if (internal) {
+      const source = draggedFiles.current;
+      draggedFiles.current = [];
       try {
         const paths = JSON.parse(internal);
         if (
@@ -1832,15 +1938,29 @@ export function App() {
           notify("Activez les dossiers distants dans les réglages.", true);
           return;
         }
-        showDialog("transfer", {
-          paths,
+        // Only a drag started in this explorer gets the direct execution menu.
+        if (
+          paths.length !== source.length ||
+          paths.some((value, index) => value !== source[index])
+        ) {
+          showDialog("transfer", {
+            paths,
+            destination: path,
+            value: {
+              mode:
+                e.ctrlKey || isRemote(path) || paths.some(isRemote)
+                  ? "copy"
+                  : "move",
+            },
+          });
+          return;
+        }
+        setToast(null);
+        setDroppedFiles({
+          paths: [...paths],
           destination: path,
-          value: {
-            mode:
-              e.ctrlKey || isRemote(path) || paths.some(isRemote)
-                ? "copy"
-                : "move",
-          },
+          x: e.clientX,
+          y: e.clientY,
         });
       } catch {
         notify("Sélection invalide", true);
@@ -2004,14 +2124,7 @@ export function App() {
           }
           break;
         case "trash": {
-          const r = await run(
-            "FS_TRASH",
-            { paths },
-            "Éléments placés dans la corbeille",
-          );
-          const next = [...trash, ...r];
-          setTrash(next);
-          storageSet("trash", next);
+          await trashEntries(paths);
           break;
         }
         case "zip":
@@ -2157,6 +2270,16 @@ export function App() {
   const analysisView = analysis ? (
     <SpaceAnalysis
       analysis={analysis}
+      legacy={!hello?.features?.spaceAnalysisVersion}
+      onCancel={() => {
+        if (analysis.jobId)
+          void bridge
+            .request("JOB_CONTROL", {
+              jobId: analysis.jobId,
+              command: "cancel",
+            })
+            .catch((error) => notify(error.message, true));
+      }}
       onAnalyze={analyzeSpace}
       onClose={() => {
         analysisGeneration.current++;
@@ -2254,6 +2377,16 @@ export function App() {
             </button>
           )}
           <div className="appbar-actions">
+            {recoverableDrafts.length > 0 && (
+              <button
+                aria-label={`Brouillons à récupérer : ${recoverableDrafts.length}`}
+                title="Reprendre les textes non enregistrés"
+                onClick={() => setDraftRecovery(true)}
+              >
+                <History size={18} />
+                <span>{recoverableDrafts.length}</span>
+              </button>
+            )}
             {panel ? (
               <>
                 <details
@@ -2354,24 +2487,48 @@ export function App() {
           className="workspace"
           style={{ "--jobs-width": `${visibleJobsWidth}px` } as CSSProperties}
         >
-          {!panel && sidebar && (
-            <NavigationSidebar>
+          {!panel && (
+            <NavigationSidebar collapsed={!sidebar}>
               <div className="sidebar-top">
-                <span>Explorateur</span>
+                <span className="nav-label">Explorateur</span>
                 <button
-                  title="Masquer la navigation"
-                  onClick={() => setSidebar(false)}
+                  title={
+                    sidebar
+                      ? "Réduire la navigation"
+                      : "Développer la navigation"
+                  }
+                  aria-label={
+                    sidebar
+                      ? "Réduire la navigation"
+                      : "Développer la navigation"
+                  }
+                  aria-expanded={sidebar}
+                  onClick={() => setSidebar(!sidebar)}
                 >
-                  <PanelLeftClose size={16} />
+                  {sidebar ? (
+                    <PanelLeftClose size={16} />
+                  ) : (
+                    <PanelLeftOpen size={16} />
+                  )}
                 </button>
               </div>
-              <button className="nav-item" onClick={() => showDialog("home")}>
+              <button
+                className="nav-item"
+                onClick={() => showDialog("home")}
+                aria-label={"Accueil"}
+                title={"Accueil"}
+              >
                 <Folder size={17} />
-                Accueil
+                <span className="nav-label">Accueil</span>
               </button>
-              <button className="nav-item" onClick={() => showDialog("search")}>
+              <button
+                className="nav-item"
+                onClick={() => showDialog("search")}
+                aria-label={"Recherche locale"}
+                title={"Recherche locale"}
+              >
                 <Search size={17} />
-                Recherche locale
+                <span className="nav-label">Recherche locale</span>
               </button>
               <button
                 className={
@@ -2380,96 +2537,61 @@ export function App() {
                 onClick={() => {
                   if (hello) navigate(hello.home);
                 }}
+                aria-label={"Mes fichiers"}
+                title={"Mes fichiers"}
               >
                 <Folder size={17} />
-                Mes fichiers<span className="shortcut">Alt E</span>
+                <span className="nav-label">
+                  Mes fichiers<span className="shortcut">Alt E</span>
+                </span>
+              </button>
+              <button
+                className="nav-item"
+                onClick={() => showDialog("tags")}
+                aria-label={"Tags"}
+                title={"Tags"}
+              >
+                <Tags size={17} />
+                <span className="nav-label">Tags</span>
               </button>
               <button
                 className="nav-item"
                 onClick={() => {
                   setShelf(!shelf);
                 }}
+                aria-label={"Collecte"}
+                title={"Collecte"}
               >
                 <Layers size={17} />
-                Collecte<span className="count">{stash.length}</span>
+                <span className="nav-label">
+                  Collecte<span className="count">{stash.length}</span>
+                </span>
               </button>
               <button
                 className="nav-item"
                 onClick={() => setJobsOpen(!jobsOpen)}
+                aria-label={"Activité"}
+                title={"Activité"}
               >
                 <ArrowDownToLine size={17} />
-                Activité
-                {running.length > 0 && (
-                  <span className="count">{running.length}</span>
-                )}
+                <span className="nav-label">
+                  Activité
+                  {running.length > 0 && (
+                    <span className="count">{running.length}</span>
+                  )}
+                </span>
               </button>
-              <NavigationSection
-                id="quick"
-                label="Accès rapide"
-                action={
-                  <button
-                    title="Épingler le dossier actif"
-                    disabled={!hello}
-                    hidden={preferences.hiddenActions.includes("favorite")}
-                    onClick={() => action("favorite")}
-                  >
-                    <Plus size={13} />
-                  </button>
-                }
-              >
-                {hello &&
-                  Object.entries(hello.aliases)
-                    .filter(([k]) => ["~dl", "~desk", "~docs"].includes(k))
-                    .map(([k, p]) => (
-                      <button
-                        key={k}
-                        className="nav-item"
-                        onClick={() => navigate(p)}
-                      >
-                        <FolderIcon path={p} size={16} />
-                        {
-                          {
-                            "~dl": "Téléchargements",
-                            "~desk": "Bureau",
-                            "~docs": "Documents",
-                          }[k]
-                        }
-                        <span className="shortcut">{k}</span>
-                      </button>
-                    ))}
-                {favorites.map((f) => (
-                  <button
-                    className={
-                      "nav-item " + (pane.path === f.path ? "current" : "")
-                    }
-                    key={f.path}
-                    onClick={() => navigate(f.path)}
-                    title={f.path}
-                    onContextMenu={(e) => {
-                      e.preventDefault();
-                      const next = favorites.filter((v) => v.path !== f.path);
-                      setFavorites(next);
-                      storageSet("favorites", next);
-                    }}
-                  >
-                    {appearances[fileKey(f.path)] ? (
-                      <FolderIcon path={f.path} size={16} />
-                    ) : (
-                      <Star size={15} />
-                    )}
-                    <span className="truncate">{f.name}</span>
-                  </button>
-                ))}
-              </NavigationSection>
               <NavigationSection id="places" label="Emplacements">
                 <button
                   className={
                     "nav-item " + (pane.path === DRIVES_PATH ? "current" : "")
                   }
                   onClick={() => navigate(DRIVES_PATH)}
+                  aria-label={"Ce PC"}
+                  title={"Ce PC"}
                 >
                   <Monitor size={17} />
-                  Ce PC
+                  <span className="nav-label">Ce PC</span>
                 </button>
                 {hello?.roots.map((r) => (
                   <button
@@ -2478,17 +2600,21 @@ export function App() {
                     }
                     key={r.path}
                     onClick={() => navigate(r.path)}
+                    aria-label={r.name}
+                    title={r.name}
                   >
                     <HardDrive size={17} />
-                    <span className="nav-drive">
-                      <span>{r.name}</span>
-                      <DriveCapacity
-                        volume={
-                          volumes.find(
-                            (v) => fileKey(v.path) === fileKey(r.path),
-                          ) || (r as Volume)
-                        }
-                      />
+                    <span className="nav-label">
+                      <span className="nav-drive">
+                        <span>{r.name}</span>
+                        <DriveCapacity
+                          volume={
+                            volumes.find(
+                              (v) => fileKey(v.path) === fileKey(r.path),
+                            ) || (r as Volume)
+                          }
+                        />
+                      </span>
                     </span>
                   </button>
                 ))}
@@ -2522,78 +2648,226 @@ export function App() {
                           ? navigate(remoteLocation(profile.id, profile.root))
                           : setRemoteManager(profile.id)
                       }
+                      aria-label={profile.label}
                     >
                       <Server size={16} />
-                      <span className="truncate">{profile.label}</span>
-                      <span
-                        className={connected ? "remote-connected" : "muted"}
-                      >
-                        ●
+                      <span className="nav-label">
+                        <span className="truncate">{profile.label}</span>
+                        <span
+                          className={connected ? "remote-connected" : "muted"}
+                        >
+                          ●
+                        </span>
                       </span>
                     </button>
                   ))}
                   <button
                     className="nav-item"
                     onClick={() => setRemoteManager("")}
+                    aria-label={"Ajouter un serveur"}
+                    title={"Ajouter un serveur"}
                   >
-                    <Plus size={16} /> Ajouter un serveur
+                    <Plus size={16} />
+                    <span className="nav-label"> Ajouter un serveur</span>
                   </button>
                 </NavigationSection>
               )}
-              <NavigationSection id="organization" label="Organisation">
-                <button className="nav-item" onClick={() => showDialog("tags")}>
-                  <Layers size={17} />
-                  Tags
-                </button>
-                {tags.labels.map((tag) => (
+              <NavigationSection
+                id="quick"
+                label="Accès rapide"
+                action={
                   <button
-                    key={tag.id}
-                    className="nav-item"
-                    onClick={() =>
-                      showDialog("tagged", { value: { tag: tag.id } })
-                    }
+                    title="Épingler le dossier actif"
+                    disabled={!hello}
+                    hidden={preferences.hiddenActions.includes("favorite")}
+                    onClick={() => action("favorite")}
                   >
-                    <span className={"tag-dot tag-" + tag.color} /> {tag.name}
+                    <Plus size={13} />
+                  </button>
+                }
+              >
+                {hello &&
+                  Object.entries(hello.aliases)
+                    .filter(([k]) => ["~dl", "~desk", "~docs"].includes(k))
+                    .map(([k, p]) => (
+                      <button
+                        key={k}
+                        className="nav-item"
+                        onClick={() => navigate(p)}
+                        aria-label={
+                          {
+                            "~dl": "Téléchargements",
+                            "~desk": "Bureau",
+                            "~docs": "Documents",
+                          }[k] || k
+                        }
+                        title={
+                          {
+                            "~dl": "Téléchargements",
+                            "~desk": "Bureau",
+                            "~docs": "Documents",
+                          }[k] || k
+                        }
+                      >
+                        <FolderIcon path={p} size={16} />
+                        <span className="nav-label">
+                          {
+                            {
+                              "~dl": "Téléchargements",
+                              "~desk": "Bureau",
+                              "~docs": "Documents",
+                            }[k]
+                          }
+                          <span className="shortcut">{k}</span>
+                        </span>
+                      </button>
+                    ))}
+                {favorites.map((f) => (
+                  <button
+                    className={
+                      "nav-item " + (pane.path === f.path ? "current" : "")
+                    }
+                    key={f.path}
+                    onClick={() => navigate(f.path)}
+                    title={f.path}
+                    onContextMenu={(e) => {
+                      e.preventDefault();
+                      const next = favorites.filter((v) => v.path !== f.path);
+                      setFavorites(next);
+                      storageSet("favorites", next);
+                    }}
+                    aria-label={f.name}
+                  >
+                    {appearances[fileKey(f.path)] ? (
+                      <FolderIcon path={f.path} size={16} />
+                    ) : (
+                      <Star size={15} />
+                    )}
+                    <span className="nav-label">
+                      <span className="truncate">{f.name}</span>
+                    </span>
                   </button>
                 ))}
               </NavigationSection>
               <NavigationSection id="tools" label="Outils">
                 <button
                   className="nav-item"
+                  aria-label="Renommer par lot"
+                  title="Renommer par lot"
+                  disabled={!hello}
+                  hidden={preferences.hiddenActions.includes("batch")}
+                  onClick={() => action("batch")}
+                >
+                  <ListOrdered size={16} />
+                  <span className="nav-label">Renommer par lot</span>
+                </button>
+                <button
+                  className="nav-item"
+                  aria-label="Convertir les fichiers"
+                  title="Convertir les fichiers"
+                  disabled={!hello}
+                  hidden={preferences.hiddenActions.includes("convert")}
+                  onClick={() => action("convert")}
+                >
+                  <FileCog size={16} />
+                  <span className="nav-label">Convertir les fichiers</span>
+                </button>
+                <button
+                  className="nav-item"
+                  aria-label="Créer une archive"
+                  title="Créer une archive"
+                  disabled={!hello}
+                  hidden={preferences.hiddenActions.includes("zip")}
+                  onClick={() => action("zip")}
+                >
+                  <Archive size={16} />
+                  <span className="nav-label">Créer une archive</span>
+                </button>
+                <button
+                  className="nav-item"
+                  aria-label="Extraire une archive…"
+                  title="Extraire une archive…"
+                  disabled={!hello}
+                  hidden={preferences.hiddenActions.includes("extract")}
+                  onClick={() => action("extract")}
+                >
+                  <ArchiveRestore size={16} />
+                  <span className="nav-label">Extraire une archive…</span>
+                </button>
+                <button
+                  className="nav-item"
+                  aria-label="Calculer une empreinte"
+                  title="Calculer une empreinte"
+                  disabled={!hello}
+                  hidden={preferences.hiddenActions.includes("hash")}
+                  onClick={() => action("hash")}
+                >
+                  <Fingerprint size={16} />
+                  <span className="nav-label">Calculer une empreinte</span>
+                </button>
+                <button
+                  className="nav-item"
                   disabled={!hello}
                   hidden={preferences.hiddenActions.includes("scan")}
                   onClick={() => action("scan")}
+                  aria-label={"Espace disque"}
+                  title={"Espace disque"}
                 >
                   <LayoutPanelLeft size={16} />
-                  Espace disque
+                  <span className="nav-label">Espace disque</span>
                 </button>
                 <button
                   className="nav-item"
                   disabled={!hello}
                   hidden={preferences.hiddenActions.includes("duplicates")}
                   onClick={() => action("duplicates")}
+                  aria-label={"Doublons"}
+                  title={"Doublons"}
                 >
                   <Copy size={16} />
-                  Doublons
+                  <span className="nav-label">Doublons</span>
                 </button>
                 <button
                   className="nav-item"
                   disabled={!hello}
                   hidden={preferences.hiddenActions.includes("groups")}
                   onClick={() => action("groups")}
+                  aria-label={"Groupes de fichiers"}
+                  title={"Groupes de fichiers"}
                 >
-                  <Layers size={16} /> Groupes de fichiers
+                  <Layers size={16} />
+                  <span className="nav-label"> Groupes de fichiers</span>
                 </button>
                 <button
                   className="nav-item"
                   disabled={!hello}
                   hidden={preferences.hiddenActions.includes("trashList")}
                   onClick={() => showDialog("trashList")}
+                  aria-label={"Corbeille"}
+                  title={"Corbeille"}
                 >
                   <Trash2 size={16} />
-                  Corbeille
+                  <span className="nav-label">Corbeille</span>
                 </button>
               </NavigationSection>
+              {tags.labels.length > 0 && (
+                <NavigationSection id="organization" label="Organisation">
+                  {tags.labels.map((tag) => (
+                    <button
+                      key={tag.id}
+                      className="nav-item"
+                      onClick={() =>
+                        showDialog("tagged", { value: { tag: tag.id } })
+                      }
+                      aria-label={tag.name}
+                      title={tag.name}
+                    >
+                      <span className={"tag-dot tag-" + tag.color} />
+                      <span className="nav-label"> {tag.name}</span>
+                    </button>
+                  ))}
+                </NavigationSection>
+              )}
               <div className="sidebar-bottom">
                 <ShieldCheck size={19} />
                 <div>
@@ -2896,45 +3170,13 @@ export function App() {
                 >
                   <Plus size={18} />
                 </button>
-              </div>
-            )}
-            {!panel && (
-              <div className="workspace-toolbar">
-                <div>
-                  {!sidebar && (
-                    <button
-                      title="Afficher la navigation"
-                      onClick={() => setSidebar(true)}
-                    >
-                      <PanelLeftOpen size={17} />
-                    </button>
-                  )}
-                  <span className={"status-dot " + (hello ? "online" : "")} />
-                  <span>
-                    {hello
-                      ? "Compagnon connecté"
-                      : connecting
-                        ? "Connexion…"
-                        : "Compagnon non connecté"}
-                  </span>
-                </div>
-                <div>
+                <div
+                  className="workspace-view-actions"
+                  role="group"
+                  aria-label="Disposition des panneaux"
+                >
                   <button
-                    className={hidden ? "toggled" : ""}
-                    title="Afficher les fichiers cachés"
-                    onClick={() => {
-                      setHidden(!hidden);
-                      void storageUpdate(
-                        preferencesKey,
-                        defaultPreferences,
-                        (value) =>
-                          restorePreferences({ ...value, hidden: !hidden }),
-                      ).catch((error) => notify(error.message, true));
-                    }}
-                  >
-                    Cachés
-                  </button>
-                  <button
+                    aria-label="Double panneau"
                     title="Double panneau"
                     aria-pressed={dual}
                     className={dual ? "toggled" : ""}
@@ -2954,25 +3196,15 @@ export function App() {
                     }}
                   >
                     <LayoutPanelLeft size={16} />
-                    <span>Double panneau</span>
                   </button>
                   <button
+                    aria-label="Volet d’aperçu"
                     title="Volet d’aperçu"
                     aria-pressed={detailsOpen}
                     className={detailsOpen ? "toggled" : ""}
                     onClick={() => setDetailsOpen(!detailsOpen)}
                   >
                     <PanelRightOpen size={16} />
-                    <span>Aperçu</span>
-                  </button>
-                  <button
-                    title="Plus d’actions"
-                    onClick={() => {
-                      setPalette(true);
-                      setQuery(">");
-                    }}
-                  >
-                    <MoreHorizontal size={19} />
                   </button>
                 </div>
               </div>
@@ -3199,7 +3431,11 @@ export function App() {
                           onOpenTab={openTab}
                           onPreview={openEntry}
                           onAction={action}
+                          onRename={renameEntry}
                           onDrop={drop}
+                          onDragPaths={(paths) => {
+                            draggedFiles.current = [...paths];
+                          }}
                           links={links[p.path] || []}
                           onPin={(link) => {
                             if (link) {
@@ -3222,6 +3458,9 @@ export function App() {
                   </div>
                   {
                     <DetailsPane
+                      previewSuspended={!!preview || !!documentTool}
+                      onSaved={refresh}
+                      editorAvailable={!!hello?.features?.documentTools}
                       onExtract={extractMembers}
                       onGallery={setPreview}
                       onDocument={openDocument}
@@ -3295,9 +3534,16 @@ export function App() {
                         <button onClick={() => action("copy")}>
                           <Copy size={15} /> Copier
                         </button>
-                        <button onClick={() => action("rename")}>
-                          Renommer
-                        </button>
+                        {pane.selected.length === 1 &&
+                          remoteServers.some(
+                            (server) =>
+                              server.profile.id === remotePath(pane.path).id &&
+                              server.profile.protocol === "sftp",
+                          ) && (
+                            <button onClick={() => action("rename")}>
+                              Renommer
+                            </button>
+                          )}
                       </>
                     )}
                     {pane.selected.length > 0 && !isRemote(pane.path) && (
@@ -3316,8 +3562,16 @@ export function App() {
                         <button onClick={() => action("tag-picker")}>
                           Tags
                         </button>
-                        <button onClick={() => action("batch")}>
-                          Renommer
+                        <button
+                          onClick={() =>
+                            action(
+                              pane.selected.length > 1 ? "batch" : "rename",
+                            )
+                          }
+                        >
+                          {pane.selected.length > 1
+                            ? "Renommer par lot"
+                            : "Renommer"}
                         </button>
                         <button
                           disabled={
@@ -3844,6 +4098,16 @@ export function App() {
                 : "NextExplorer 1.0"}
           </span>
           {!panel && (
+            <span className="companion-status" role="status">
+              <span className={"status-dot " + (hello ? "online" : "")} />
+              {hello
+                ? "Compagnon connecté"
+                : connecting
+                  ? "Connexion…"
+                  : "Compagnon non connecté"}
+            </span>
+          )}
+          {!panel && (
             <button onClick={() => setShelf(!shelf)}>
               <Layers size={12} />
               Collecte {stash.length}
@@ -3864,6 +4128,34 @@ export function App() {
             {running.length ? `${running.length} tâche(s)` : "Prêt"}
           </button>
         </footer>
+        {droppedFiles && (
+          <DropTransferMenu
+            drop={droppedFiles}
+            onClose={closeDropMenu}
+            onTransfer={(mode) => {
+              closeDropMenu();
+              if (
+                !preferences.remoteEnabled &&
+                (isRemote(droppedFiles.destination) ||
+                  droppedFiles.paths.some(isRemote))
+              ) {
+                notify(
+                  "Activez les dossiers distants dans les réglages.",
+                  true,
+                );
+                return;
+              }
+              void run("FS_TRANSFER", {
+                paths: droppedFiles.paths,
+                destination: droppedFiles.destination,
+                mode,
+                conflict: "rename",
+                merge: false,
+                paused: false,
+              }).catch(() => {});
+            }}
+          />
+        )}
         {toast && (
           <div
             className={"toast " + (toast.error ? "error" : "")}
@@ -3888,6 +4180,22 @@ export function App() {
         )}
         {preview && (
           <Preview
+            onSaved={async () => {
+              await refresh();
+              if (preview) {
+                try {
+                  const updated = await bridge.request<Entry>("FS_STAT", {
+                    path: preview.path,
+                  });
+                  setPreview((current) =>
+                    current?.path === updated.path ? updated : current,
+                  );
+                } catch (error) {
+                  notify((error as Error).message, true);
+                }
+              }
+            }}
+            editorAvailable={!!hello?.features?.documentTools}
             entry={preview}
             onExtract={(members, expected) =>
               extractMembers(preview, members, expected)
@@ -3958,11 +4266,79 @@ export function App() {
         )}
         {documentTool && (
           <DocumentDialog
+            key={documentTool.entry.path + (documentTool.draftId || "")}
             entry={documentTool.entry}
             initial={documentTool.mode}
+            draftId={documentTool.draftId}
             onClose={() => setDocumentTool(null)}
             onSaved={refresh}
           />
+        )}
+        {draftRecovery && (
+          <Modal
+            title="Brouillons à récupérer"
+            onClose={() => setDraftRecovery(false)}
+          >
+            <div className="modal-content draft-recovery">
+              <p>
+                Textes conservés dans ce navigateur, sur cet appareil. Aucun
+                fichier n’est modifié avant votre enregistrement.
+              </p>
+              {!recoverableDrafts.length && <p>Aucun brouillon.</p>}
+              {recoverableDrafts.map((draft) => (
+                <article className="draft-recovery-row" key={draft.id}>
+                  <div>
+                    <strong>{draft.document.entry.name}</strong>
+                    <small>{draft.document.entry.path}</small>
+                    <small>
+                      {new Date(draft.updated).toLocaleString("fr-FR")}
+                    </small>
+                    {documentDrafts.isPending(draft.id) && (
+                      <small className="error">
+                        Uniquement dans cette page : téléchargement conseillé
+                      </small>
+                    )}
+                  </div>
+                  <div className="draft-recovery-actions">
+                    <button
+                      disabled={!hello?.features?.documentTools}
+                      onClick={() => {
+                        setPreview(null);
+                        setDocumentTool({
+                          entry: draft.document.entry,
+                          mode: "edit",
+                          draftId: draft.id,
+                        });
+                        setDraftRecovery(false);
+                      }}
+                    >
+                      Reprendre
+                    </button>
+                    <button onClick={() => downloadDraft(draft)}>
+                      Télécharger
+                    </button>
+                    <button
+                      onClick={() => {
+                        if (
+                          confirm(
+                            "Supprimer définitivement ce brouillon ? Le fichier sur disque reste intact.",
+                          )
+                        ) {
+                          try {
+                            documentDrafts.remove(draft);
+                          } catch (e) {
+                            notify((e as Error).message, true);
+                          }
+                        }
+                      }}
+                    >
+                      Supprimer le brouillon
+                    </button>
+                  </div>
+                </article>
+              ))}
+            </div>
+          </Modal>
         )}
         {pendingCapture && captureOpen && (
           <Modal
@@ -4463,6 +4839,7 @@ export function App() {
               <input
                 autoFocus
                 placeholder="Action, chemin ou alias (~dl, ~desk)…"
+                aria-label="Rechercher un fichier ou une action"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 onKeyDown={(e) => {
@@ -4471,6 +4848,7 @@ export function App() {
                     const cmd = commands.filter(([, l]) =>
                       fuzzy(query.replace(/^>\s*/, ""), l),
                     )[0];
+                    if (!hello && cmd?.[0] !== "settings") return;
                     setPalette(false);
                     if (
                       query.startsWith("~") ||
@@ -4970,20 +5348,30 @@ export function App() {
                         <div className="trash-row" key={t.record}>
                           <span title={t.path}>{basename(t.path)}</span>
                           <button
-                            onClick={() =>
-                              bridge
-                                .request("FS_RESTORE", { path: t.record })
-                                .then(() => {
-                                  const next = trash.filter(
-                                    (v) => v.record !== t.record,
-                                  );
-                                  setTrash(next);
-                                  storageSet("trash", next);
-                                  refresh();
-                                  notify("Fichier restauré");
-                                })
-                                .catch((e) => notify(e.message, true))
-                            }
+                            disabled={busy}
+                            onClick={async () => {
+                              setBusy(true);
+                              try {
+                                await bridge.request("FS_RESTORE", {
+                                  path: t.record,
+                                });
+                                const next = await storageUpdate<typeof trash>(
+                                  "trash",
+                                  [],
+                                  (current) =>
+                                    current.filter(
+                                      (v) => v.record !== t.record,
+                                    ),
+                                );
+                                setTrash(next);
+                                refresh();
+                                notify("Fichier restauré");
+                              } catch (e) {
+                                notify((e as Error).message, true);
+                              } finally {
+                                setBusy(false);
+                              }
+                            }}
                           >
                             Restaurer
                           </button>
@@ -5060,11 +5448,7 @@ export function App() {
                           <div key={p}>
                             <span title={p}>{p}</span>
                             {i > 0 && (
-                              <button
-                                onClick={() =>
-                                  showDialog("trash", { paths: [p] })
-                                }
-                              >
+                              <button onClick={() => action("trash", [p])}>
                                 <Trash2 size={14} />
                                 Corbeille
                               </button>

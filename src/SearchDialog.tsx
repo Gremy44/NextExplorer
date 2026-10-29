@@ -1,5 +1,7 @@
 import { Help } from "./Help";
-import { useEffect, useRef, useState } from "react";
+import { FolderPicker } from "./FolderPicker";
+import { tagPath } from "./tags";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Search,
   RefreshCw,
@@ -12,14 +14,16 @@ import { bridge, storageGet, storageSubscribe, storageUpdate } from "./bridge";
 import {
   buildIndex,
   relatedTexts,
-  searchIndex,
   words,
+  normalizeSearch,
+  searchTerms,
   indexIsCurrent,
   restoreTextRules,
   textRulesKey,
   INDEX_TEXT_BYTES,
   type LocalIndex,
   type TextRule,
+  type IndexProgress,
 } from "./local-index";
 import { groupFileOrigins } from "./file-origins";
 import { readProvenance } from "./provenance";
@@ -53,6 +57,18 @@ export function SearchDialog({
   const [extension, setExtension] = useState(""),
     [tag, setTag] = useState(initialTag),
     [keyword, setKeyword] = useState("");
+  const [content, setContent] = useState(true),
+    [hidden, setHidden] = useState(false);
+  const [choosing, setChoosing] = useState(false);
+  const [progress, setProgress] = useState<IndexProgress | null>(null),
+    [validating, setValidating] = useState(false),
+    [matching, setMatching] = useState(false),
+    [matches, setMatches] = useState<string[]>([]),
+    [page, setPage] = useState(0);
+  const worker = useRef<Worker | null>(null),
+    searchRequest = useRef(0),
+    relatedRequest = useRef(0),
+    requestId = useRef(0);
   const [busy, setBusy] = useState(false),
     [stale, setStale] = useState(true),
     [count, setCount] = useState(0),
@@ -71,6 +87,18 @@ export function SearchDialog({
   indexRef.current = index;
   const rootRef = useRef(root);
   rootRef.current = root;
+  const check = hello?.features?.searchChecks
+    ? async (entries: Entry[]) =>
+        (
+          await bridge.request<{ current: boolean }>(
+            "FS_CHECK_ENTRIES",
+            { entries },
+            10000,
+          )
+        ).current
+    : undefined;
+  const checkRef = useRef(check);
+  checkRef.current = check;
   async function scan() {
     automatic.current = true;
     controller.current?.abort();
@@ -80,9 +108,11 @@ export function SearchDialog({
     setBusy(true);
     setStale(true);
     setCount(0);
+    setProgress(null);
     setError("");
     setSimilar([]);
     try {
+      tagPath(root);
       const { revision } = await indexStore();
       current.signal.throwIfAborted();
       const directory = await bridge.request<Entry>(
@@ -94,7 +124,7 @@ export function SearchDialog({
         throw new Error("Choisissez un dossier accessible");
       const next = await buildIndex(
         directory.path,
-        false,
+        hidden,
         {
           list: (path, offset, snapshot, showHidden) =>
             bridge.request("FS_LIST_DIR", {
@@ -103,6 +133,7 @@ export function SearchDialog({
               snapshot,
               showHidden,
               limit: 200,
+              mode: "search",
             }),
           stat: (path) => bridge.request("FS_STAT", { path }, 5000),
           read: (path) =>
@@ -129,26 +160,34 @@ export function SearchDialog({
             : {}),
         },
         current.signal,
-        (count) => {
-          if (mounted.current && epoch === generation.current) setCount(count);
+        (value) => {
+          if (mounted.current && epoch === generation.current) {
+            setProgress(value);
+            setCount(value.files);
+          }
         },
+        content,
       );
       current.signal.throwIfAborted();
-      const origins = await groupFileOrigins(
-        next.files.map((file) => file.entry),
-        (path) => bridge.request<Entry>("FS_STAT", { path }, 5000),
-        readProvenance,
-        current.signal,
-      );
+      const origins = content
+        ? await groupFileOrigins(
+            next.files.map((file) => file.entry),
+            (path) => bridge.request<Entry>("FS_STAT", { path }, 5000),
+            readProvenance,
+            current.signal,
+          )
+        : { origins: new Map() };
       for (const file of next.files) {
         const source = origins.origins.get(file.entry.path);
         if (source) file.source = `${source.title} ${source.sourceUrl}`;
       }
+      if (mounted.current && epoch === generation.current) setValidating(true);
       if (
         !(await indexIsCurrent(
           next,
           (path) => bridge.request<Entry>("FS_STAT", { path }, 5000),
           current.signal,
+          check,
         ))
       )
         throw new Error(
@@ -175,7 +214,10 @@ export function SearchDialog({
       )
         setError((error as Error).message);
     } finally {
-      if (mounted.current && epoch === generation.current) setBusy(false);
+      if (mounted.current && epoch === generation.current) {
+        setBusy(false);
+        setValidating(false);
+      }
     }
   }
   scanRef.current = scan;
@@ -184,11 +226,38 @@ export function SearchDialog({
     let refreshTimer: ReturnType<typeof setTimeout>;
     const freshness = new AbortController();
     indexStore()
-      .then(({ index: value }) => {
-        if (mounted.current && !controller.current) setIndex(value);
+      .then(async ({ index: value }) => {
+        if (!mounted.current || freshness.signal.aborted || controller.current)
+          return;
+        setIndex(value);
+        if (
+          !value?.coverage ||
+          value.hidden ||
+          !value.coverage.content ||
+          fileKey(value.root) !== fileKey(rootRef.current)
+        )
+          return;
+        const epoch = generation.current;
+        setValidating(true);
+        try {
+          const current = await indexIsCurrent(
+            value,
+            (path) => bridge.request<Entry>("FS_STAT", { path }, 5000),
+            freshness.signal,
+            checkRef.current,
+          );
+          if (mounted.current && epoch === generation.current) {
+            setStale(!current);
+            automatic.current = current;
+          }
+        } finally {
+          if (mounted.current && epoch === generation.current)
+            setValidating(false);
+        }
       })
       .catch((error) => {
-        if (mounted.current) setError(error.message);
+        if (mounted.current && !freshness.signal.aborted)
+          setError(error.message);
       });
     const channel = new BroadcastChannel("nextexplorer-search");
     channel.onmessage = () => {
@@ -198,6 +267,7 @@ export function SearchDialog({
       setIndex(null);
       setBusy(false);
       setStale(true);
+      setValidating(false);
     };
     const unsubscribe = bridge.subscribe((event) => {
       if (event.event === "FS_CHANGED") {
@@ -209,6 +279,7 @@ export function SearchDialog({
         controller.current?.abort();
         ++generation.current;
         setBusy(false);
+        setValidating(false);
         setStale(true);
         setSimilar([]);
         clearTimeout(refreshTimer);
@@ -228,7 +299,8 @@ export function SearchDialog({
         !automatic.current ||
         busyRef.current ||
         checking ||
-        !indexRef.current
+        !indexRef.current ||
+        staleRef.current
       )
         return;
       checking = true;
@@ -239,6 +311,7 @@ export function SearchDialog({
             indexRef.current,
             (path) => bridge.request<Entry>("FS_STAT", { path }, 5000),
             freshness.signal,
+            checkRef.current,
           ))
         ) {
           if (!automatic.current || epoch !== generation.current) return;
@@ -286,19 +359,80 @@ export function SearchDialog({
     setBusy(false);
     setStale(true);
     setSimilar([]);
-  }, [root]);
-  const terms = words(query);
+    setValidating(false);
+  }, [root, content, hidden]);
+  const staleRef = useRef(stale);
+  staleRef.current = stale;
+  useEffect(() => {
+    if (!index) return;
+    const next = new Worker(new URL("./search-worker.ts", import.meta.url), {
+      type: "module",
+    });
+    worker.current = next;
+    next.onmessage = (
+      event: MessageEvent<{
+        id: number;
+        paths?: string[];
+        similar?: { path: string; score: number }[];
+        error?: string;
+      }>,
+    ) => {
+      if (event.data.id === searchRequest.current) {
+        setMatching(false);
+        if (event.data.paths) setMatches(event.data.paths);
+        if (event.data.error) setError(event.data.error);
+      }
+      if (event.data.id === relatedRequest.current && event.data.similar) {
+        const byPath = new Map(
+          index.files.map((file) => [file.entry.path, file]),
+        );
+        setSimilar(
+          event.data.similar.flatMap(({ path, score }) =>
+            byPath.has(path) ? [{ file: byPath.get(path)!, score }] : [],
+          ),
+        );
+      }
+    };
+    next.onerror = () => {
+      setMatching(false);
+      setError("Recherche interrompue. Actualisez l’index pour réessayer.");
+    };
+    next.postMessage({ index });
+    return () => {
+      next.terminate();
+      worker.current = null;
+    };
+  }, [index]);
+  useEffect(() => {
+    setPage(0);
+    setSimilar([]);
+    relatedRequest.current = 0;
+    const id = ++requestId.current;
+    searchRequest.current = id;
+    setMatches([]);
+    if (index && !stale && worker.current) {
+      setMatching(true);
+      worker.current.postMessage({ id, query, extension, keyword });
+    } else setMatching(false);
+  }, [index, stale, query, extension, keyword]);
+  useEffect(() => {
+    setPage(0);
+  }, [tag]);
+  const terms = searchTerms(query);
   const match = (text: string) =>
-    terms.every((term) => words(text).includes(term));
-  const results =
-    !stale && index
-      ? searchIndex(index, query, extension).filter(
+    terms.every((term) => normalizeSearch(text).includes(term));
+  const results = useMemo(() => {
+    const paths = new Set(matches);
+    return !stale && index
+      ? index.files.filter(
           (file) =>
-            (!tag || tags.files[fileKey(file.entry.path)]?.includes(tag)) &&
-            (!keyword ||
-              words(keyword).every((word) => words(file.text).includes(word))),
+            paths.has(file.entry.path) &&
+            (!tag || tags.files[fileKey(file.entry.path)]?.includes(tag)),
         )
       : [];
+  }, [index, matches, tag, tags.files, stale]);
+  const pages = Math.max(1, Math.ceil(results.length / 100)),
+    currentPage = Math.min(page, pages - 1);
   const links = [
     ...new Map(
       [
@@ -325,7 +459,10 @@ export function SearchDialog({
         { path: entry.path },
         5000,
       );
-      if (!sameFamilyFile(entry, current)) {
+      if (
+        !sameFamilyFile(entry, current) ||
+        (entry.stamp && current.stamp !== entry.stamp)
+      ) {
         setStale(true);
         throw new Error("Fichier modifié : actualisez l’index");
       }
@@ -355,6 +492,32 @@ export function SearchDialog({
       <div className="organization-actions">
         <button
           type="button"
+          disabled={!hello || busy}
+          onClick={() => setChoosing(true)}
+        >
+          <Folder size={16} />
+          Choisir un dossier
+        </button>
+        <label className="organization-check">
+          <input
+            type="checkbox"
+            checked={content}
+            onChange={(event) => setContent(event.target.checked)}
+          />
+          Contenu des documents
+        </label>
+        <label className="organization-check">
+          <input
+            type="checkbox"
+            checked={hidden}
+            onChange={(event) => setHidden(event.target.checked)}
+          />
+          Fichiers cachés
+        </label>
+      </div>
+      <div className="organization-actions">
+        <button
+          type="button"
           className="primary"
           disabled={!hello || busy || !root.trim()}
           onClick={() => void scan()}
@@ -370,6 +533,7 @@ export function SearchDialog({
               controller.current?.abort();
               ++generation.current;
               setBusy(false);
+              setValidating(false);
               setStale(true);
             }}
           >
@@ -390,6 +554,8 @@ export function SearchDialog({
                 );
                 setIndex(null);
                 setStale(true);
+                setValidating(false);
+                setError("");
                 const channel = new BroadcastChannel("nextexplorer-search");
                 channel.postMessage("deleted");
                 channel.close();
@@ -404,22 +570,73 @@ export function SearchDialog({
         )}
       </div>
       <p role="status">
-        {busy
-          ? `${count} fichier(s) analysé(s)…`
-          : stale
-            ? "Index à actualiser : les résultats locaux sont masqués."
-            : `${index?.files.length} fichier(s) · ${index?.directories} dossier(s) · ${index?.milliseconds} ms`}
+        {validating
+          ? "Vérification de l’index…"
+          : busy
+            ? progress?.phase === "content"
+              ? `Contenu : ${progress.processed} / ${count} fichier(s) examiné(s)…`
+              : `${count} fichier(s) analysé(s) · ${progress?.directories || 0} dossier(s) · ${progress?.pending || 0} à parcourir…`
+            : stale
+              ? "Index à actualiser : les résultats locaux sont masqués."
+              : `${index?.files.length} fichier(s) · ${index?.directories} dossier(s) · ${index?.milliseconds} ms`}
       </p>
-      <small>
-        Limites : 1 000 entrées, 100 dossiers, profondeur 8, 2 millions de
-        caractères. TXT/Markdown et formats texte : 16 Kio par lecture. PDF :
-        moteur pdftotext optionnel, 8 Mio / 10 pages / 8 s. DOCX/XLSX/PPTX :
-        extraction locale sans moteur, fichier de 32 Mio maximum, texte partiel
-        de 16 Kio. Aucun OCR. Origines déclarées contrôlées pour les 20 premiers
-        fichiers. Pendant l’ouverture : actualisation après notification et
-        contrôle des métadonnées toutes les 15 s. Index à revalider à la
-        réouverture.
-      </small>
+      {busy && progress && <small title={progress.path}>{progress.path}</small>}
+      {!stale && index && (
+        <p
+          className="muted"
+          data-search-coverage={
+            index.coverage?.reasons.length || index.omitted
+              ? "partial"
+              : "complete"
+          }
+        >
+          {index.coverage?.reasons.length || index.omitted
+            ? "Parcours partiel"
+            : "Parcours terminé"}{" "}
+          · {index.coverage?.extracted || 0} extrait(s) de contenu ·{" "}
+          {index.files.length - (index.coverage?.extracted || 0)} fichier(s)
+          sans extrait
+        </p>
+      )}
+      <details>
+        <summary>Périmètre et limites</summary>
+        <p>
+          50 000 entrées, 5 000 dossiers, profondeur 64. Métadonnées : 32 Mio ;
+          texte : 16 777 216 caractères maximum. Liens symboliques et fichiers
+          de provenance voisins exclus.{" "}
+          {hidden ? "Fichiers cachés inclus." : "Fichiers cachés exclus."}
+        </p>
+        <p>
+          Chaque liste de recherche native est bornée : 50 000 entrées, 32 Mio
+          de métadonnées ou 200 000 noms examinés par dossier avec le compagnon
+          à jour. Un ancien compagnon reste limité à 10 000 entrées / 8 Mio par
+          liste. Un parcours partiel est signalé ; il ne couvre pas tous les
+          fichiers du dossier choisi.
+        </p>
+        <p>
+          Texte : 16 Kio lus, 1 000 lignes et 8 192 caractères conservés par
+          fichier. PDF : pdftotext optionnel, 8 Mio / 10 pages / 8 s.
+          DOCX/XLSX/PPTX : 32 Mio maximum, extrait borné. Aucun OCR. Origines
+          déclarées contrôlées pour les 20 premiers fichiers.
+        </p>
+        <p>
+          Actualisation après notification et contrôle des métadonnées toutes
+          les 15 s pendant l’ouverture. L’index enregistré est revalidé à la
+          réouverture dans le même périmètre.{" "}
+          {hello?.features?.searchChecks
+            ? "Contrôles regroupés par lots."
+            : "Mettez à jour le compagnon pour accélérer les contrôles des grands index."}
+        </p>
+        {index?.coverage?.reasons.map((reason) => (
+          <p key={reason}>{reason}</p>
+        ))}
+        {index?.coverage?.unreadable.map((path) => (
+          <p key={path}>{path}</p>
+        ))}
+        {!!index?.coverage?.partialTexts && (
+          <p>{index.coverage.partialTexts} extrait(s) tronqué(s).</p>
+        )}
+      </details>
       {index && (
         <p className="muted">
           Dernière analyse : {index.root} ·{" "}
@@ -432,6 +649,7 @@ export function SearchDialog({
         <input
           aria-label="Recherche commune"
           placeholder="Mots du nom ou du contenu…"
+          maxLength={400}
           value={query}
           onChange={(event) => {
             setQuery(event.target.value);
@@ -551,7 +769,16 @@ export function SearchDialog({
         </p>
       )}
       <h3>Fichiers locaux ({results.length})</h3>
-      {results.slice(0, 100).map((file) => (
+      {matching && <p role="status">Recherche…</p>}
+      {!stale && !matching && results.length === 0 && (
+        <p>
+          Aucun fichier trouvé dans le périmètre analysé.
+          {index?.coverage?.reasons.length
+            ? " Le parcours est partiel : certains fichiers ne sont pas couverts."
+            : ""}
+        </p>
+      )}
+      {results.slice(currentPage * 100, (currentPage + 1) * 100).map((file) => (
         <article className="organization-record" key={file.entry.path}>
           <button type="button" onClick={() => void open(file.entry)}>
             <FileText size={18} />
@@ -576,9 +803,11 @@ export function SearchDialog({
           {file.text && (
             <button
               type="button"
-              onClick={() =>
-                setSimilar(relatedTexts(index!.files, file.entry.path))
-              }
+              onClick={() => {
+                const id = ++requestId.current;
+                relatedRequest.current = id;
+                worker.current?.postMessage({ id, related: file.entry.path });
+              }}
             >
               Vocabulaire proche
             </button>
@@ -586,7 +815,30 @@ export function SearchDialog({
         </article>
       ))}
       {results.length > 100 && (
-        <p>100 résultats affichés : précisez les filtres.</p>
+        <nav
+          className="organization-actions"
+          aria-label="Pages des résultats locaux"
+        >
+          <button
+            type="button"
+            disabled={currentPage === 0}
+            onClick={() => setPage(currentPage - 1)}
+          >
+            Précédent
+          </button>
+          <span>
+            {currentPage * 100 + 1}–
+            {Math.min((currentPage + 1) * 100, results.length)} sur{" "}
+            {results.length}
+          </span>
+          <button
+            type="button"
+            disabled={currentPage === pages - 1}
+            onClick={() => setPage(currentPage + 1)}
+          >
+            Suivant
+          </button>
+        </nav>
       )}
       {similar.length > 0 && (
         <section aria-label="Textes au vocabulaire proche">
@@ -640,6 +892,19 @@ export function SearchDialog({
             {space.name}
           </button>
         ))}
+      {choosing && hello && (
+        <FolderPicker
+          hello={hello}
+          path={root}
+          favorites={[]}
+          showHidden={hidden}
+          onChoose={(path) => {
+            setRoot(path);
+            setChoosing(false);
+          }}
+          onClose={() => setChoosing(false)}
+        />
+      )}
     </section>
   );
 }

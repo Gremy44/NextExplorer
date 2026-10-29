@@ -17,6 +17,16 @@ import assert from "node:assert/strict";
 import { runFileGroupJourney } from "./file-group-journey.mjs";
 import { runLayoutJourney } from "./layout-journey.mjs";
 import { runErgonomicsJourney } from "./ergonomics-journey.mjs";
+import { runUIConsistency } from "./ui-consistency-journey.mjs";
+import { runUsageFeedbackJourney } from "./usage-feedback-journey.mjs";
+import { runTabsJourney } from "./tabs-journey.mjs";
+import { runDropTransferJourney } from "./drop-transfer-journey.mjs";
+import { runTrashJourney } from "./trash-journey.mjs";
+import { runPreviewToolsJourney } from "./preview-tools-journey.mjs";
+import { runProtectionJourney } from "./protection-journey.mjs";
+import { runSearchJourney } from "./search-journey.mjs";
+import { runPreviewQualification } from "./preview-qualification-journey.mjs";
+import { runOrganizationJourney } from "./organization-journey.mjs";
 import { runQuickActionJourney } from "./quick-action-journey.mjs";
 import { createRemoteMock, runRemoteJourney } from "./remote-journey.mjs";
 import { runQuickTagsJourney } from "./quick-tags-journey.mjs";
@@ -129,7 +139,8 @@ function rpc(message) {
 }
 const server = await createServer({
   optimizeDeps: { include: ["pdf-lib", "highlight.js/lib/common"] },
-  server: { host: "127.0.0.1", port: 5173, strictPort: false },
+  // Building a package must not reload a browser journey halfway through its checks.
+  server: { host: "127.0.0.1", port: 5173, strictPort: false, hmr: false },
 });
 const testWorker = await rpc({
   id: "j5-test-worker",
@@ -155,9 +166,16 @@ try {
     ? createRemoteMock()
     : null;
   const reads = [];
+  const transfers = [];
+  const trashes = [];
   const stats = [];
+  const previews = [], cancellations = [];
   let heldStatPath, heldStats;
   await page.context().exposeFunction("__nativeRPC", async (message) => {
+    if (message.action === "IMAGE_PREVIEW") previews.push(message.payload);
+    if (message.action === "IMAGE_PREVIEW_CANCEL") cancellations.push(message.payload);
+    if (message.action === "FS_TRASH") trashes.push(message.payload);
+    if (message.action === "FS_TRANSFER") transfers.push(message.payload);
     const mocked = remoteMock?.request(message);
     if (mocked) return mocked;
     if (message.action === "FS_READ") reads.push(message.payload);
@@ -425,6 +443,81 @@ try {
       throw error;
     }
     assert.deepEqual(errors, []);
+  } else if (process.argv.includes("--preview-qualification-only")) {
+    try { await runPreviewQualification({page,fixture,reads,previews,cancellations}); }
+    catch (error) {
+      console.error(errors);
+      await page.screenshot({path:"test-results/preview-qualification-failure.png"});
+      await writeFile("test-results/preview-qualification-failure.txt",await page.locator("body").innerText());
+      throw error;
+    }
+    assert.deepEqual(errors,[]);
+  } else if (process.argv.includes("--search-only")) {
+    try {
+      await runSearchJourney({page, fixture, reads});
+    } catch (error) {
+      console.error(errors);
+      await page.screenshot({path: "test-results/search-failure.png"});
+      await writeFile("test-results/search-failure.txt", await page.locator("body").innerText());
+      throw error;
+    }
+    assert.deepEqual(errors, []);
+  } else if (process.argv.includes("--organization-only")) {
+    await runOrganizationJourney({context, baseURL: url, fixture});
+    assert.deepEqual(errors, []);
+  } else if (process.argv.includes("--protection-only")) {
+    await runProtectionJourney({ page, fixture });
+    assert.deepEqual(errors, []);
+  } else if (process.argv.includes("--preview-tools-only")) {
+    try {
+      await runPreviewToolsJourney({ page, fixture });
+    } catch (error) {
+      console.error(errors);
+      await page.screenshot({ path: "test-results/preview-tools-failure.png" });
+      await writeFile("test-results/preview-tools-failure.txt", await page.locator("body").innerText());
+      throw error;
+    }
+    assert.deepEqual(errors, []);
+  } else if (process.argv.includes("--trash-only")) {
+    try {
+      await runTrashJourney({ page, fixture, trashes });
+    } catch (error) {
+      console.error(errors);
+      await page.screenshot({ path: "test-results/trash-failure.png" });
+      throw error;
+    }
+    assert.deepEqual(errors, []);
+  } else if (process.argv.includes("--drop-transfer-only")) {
+    try {
+      await runDropTransferJourney({ page, fixture, transfers });
+    } catch (error) {
+      console.error(errors);
+      await page.screenshot({ path: "test-results/drop-transfer-failure.png" });
+      throw error;
+    }
+    assert.deepEqual(errors, []);
+  } else if (process.argv.includes("--tabs-only")) {
+    try {
+      await runTabsJourney({ page });
+    } catch (error) {
+      console.error(errors);
+      await page.screenshot({ path: "test-results/tabs-failure.png" });
+      throw error;
+    }
+    assert.deepEqual(errors, []);
+  } else if (process.argv.includes("--usage-feedback-only")) {
+    try {
+      await runUsageFeedbackJourney({ page, fixture });
+    } catch (error) {
+      await page.screenshot({
+        path: "test-results/retour-usage-01/failure.png",
+      });
+      throw error;
+    }
+    assert.deepEqual(errors, []);
+  } else if (process.argv.includes("--ui-consistency-only")) {
+    await runUIConsistency({ page, fixture });
+    assert.deepEqual(errors, []);
   } else if (process.argv.includes("--ergonomics-only")) {
     try {
       await runErgonomicsJourney({ page, fixture });
@@ -453,6 +546,9 @@ try {
       );
       throw error;
     }
+    assert.deepEqual(errors, []);
+  } else if (process.argv.includes("--file-groups-only") || process.argv.includes("--context-menu-only")) {
+    await runFileGroupJourney({ context, baseURL: url, fixture, menuOnly: process.argv.includes("--context-menu-only") });
     assert.deepEqual(errors, []);
   } else if (process.argv.includes("--layout-only")) {
     await runLayoutJourney({ page });
@@ -937,9 +1033,14 @@ try {
     await page.getByRole("option", { name: /Test créé/ }).waitFor();
     assert.ok((await stat(path.join(fixture, "Test créé"))).isDirectory());
     await page.getByRole("option", { name: /brief.txt/ }).click();
+    await page.locator(".pane.active .file-scroll").focus();
     await page.keyboard.press("F2");
-    await page.getByLabel("Nom", { exact: true }).fill("renommé.txt");
-    await page.getByRole("button", { name: "Confirmer", exact: true }).click();
+    const renameInput = page.getByRole("textbox", {
+      name: "Renommer brief.txt",
+      exact: true,
+    });
+    await renameInput.fill("renommé.txt");
+    await renameInput.press("Enter");
     await page.getByRole("option", { name: /renommé.txt/ }).waitFor();
     assert.match(
       await readFile(path.join(fixture, "renommé.txt"), "utf8"),
@@ -1156,8 +1257,10 @@ try {
     const moreCollection = page.getByTitle("Plus d’actions de collecte", {
       exact: true,
     });
-    const sidebarWasOpen = Boolean(await page.locator(".sidebar").count());
-    if (sidebarWasOpen) await page.getByTitle("Masquer la navigation").click();
+    const sidebarWasOpen = Boolean(
+      await page.locator(".sidebar:not(.collapsed)").count(),
+    );
+    if (sidebarWasOpen) await page.getByTitle("Réduire la navigation").click();
     await moreCollection.click();
     assert.equal(await moreCollection.getAttribute("aria-expanded"), "true");
     await page.screenshot({
@@ -1477,14 +1580,12 @@ try {
         () => document.documentElement.scrollWidth <= innerWidth,
       ),
     );
-    await page
-      .context()
-      .route("https://example.com/article", (route) =>
-        route.fulfill({
-          contentType: "text/html",
-          body: "Page source de recette",
-        }),
-      );
+    await page.context().route("https://example.com/article", (route) =>
+      route.fulfill({
+        contentType: "text/html",
+        body: "Page source de recette",
+      }),
+    );
     const sourcePopupPromise = page.waitForEvent("popup");
     await sourceLink.click();
     const sourcePopup = await sourcePopupPromise;
@@ -1624,10 +1725,6 @@ try {
     );
     await page.getByRole("option", { name: /renommé.txt/ }).click();
     await page.keyboard.press("Delete");
-    await page
-      .getByRole("dialog")
-      .getByRole("button", { name: "Mettre à la corbeille", exact: true })
-      .click();
     await page.waitForFunction(
       () =>
         !Array.from(document.querySelectorAll("[role=option]")).some((e) =>
@@ -1652,6 +1749,7 @@ try {
       .getByPlaceholder("Action, chemin ou alias (~dl, ~desk)…")
       .fill("renommer");
     await page
+      .locator(".command-list")
       .getByRole("button", { name: "Renommer par lot", exact: true })
       .waitFor();
     await page.keyboard.press("Escape");

@@ -1,5 +1,50 @@
 # Couverture du cahier des charges
 
+## Pilote public 1.0.7 — distribution du 29 octobre 2026
+
+[Installateur, extension, notices et empreintes publiés](https://github.com/Gremy44/NextExplorer-Downloads/releases/tag/v1.0.7-pilot.1). Le nouvel EXE a passé les cycles d’installation/connexion/réparation/retrait sous Windows 11 isolé avec Chrome et Edge, compte standard ; copie témoin et liaison Chrome étrangère préservées. Les téléchargements publics correspondent aux fichiers vérifiés. [Rapport](VALIDATION_WINDOWS_NEUF.md), [guide testeur](distribution/TESTER.md). Les retours externes du pilote restent à recueillir ; ce n’est pas une déclaration de stabilité pour toutes les configurations.
+
+## V1 gratuite — cohérence de l’interface, 29 octobre 2026
+
+Menus adaptés à la sélection, renommage simple/par lot explicite, réglages cherchés sans accents, section Moteurs clarifiée, textes de console adaptables et aides clavier corrigées. Palette cohérente hors ligne, boutons à icône correctement nommés sans infobulles. Thèmes, densités, textes 85/150 %, petits écrans et extension compilée vérifiés. [Recette et limites](COHERENCE_UI_V1.md). Les cinq points de consolidation sont clos ; distribution finale et pilote restent à faire.
+
+## V1 gratuite — parcours principaux qualifiés, 29 octobre 2026
+
+Déplacer/dupliquer, corbeille/restauration, exports de l’atelier et conversion réelle qualifiés sous Native Messaging dans l’extension compilée. Rangement manuel et automatique de vrais téléchargements, collisions, pause et destination absente vérifiés. Dépôt Windows depuis le vrai panneau latéral vers un site témoin local, sans collecte ni permission de débogage, également réussi. [Recettes et limites](PARCOURS_V1.md). Le point 5 de cohérence UI reste à faire ; aucun Setup reconstruit.
+
+## V1 gratuite — protection du travail, 29 octobre 2026
+
+Brouillons texte persistants dans le profil local de l’extension, récupération visible après fermeture, téléchargement sans toucher à l’original et variantes distinctes entre fenêtres. Alertes en cas de quota ou de stockage refusé, abandon explicite et refus d’écriture après changement externe. Restauration de versions dans une copie voisine et corbeille sans écrasement qualifiées. [Parcours et limites](PROTECTION_TRAVAIL_V1.md), [suivi V1](V1_GRATUITE.md).
+
+## V1 gratuite — aperçus et gros fichiers, 28 octobre 2026
+
+Arrêt effectif des décodeurs d’image et de leur attente, nettoyage des temporaires, miniatures annulées retirées de la file. PDF.js embarqué remplace l’iframe PDF : pages, texte consultable, compteur de lecture, délais et arrêt du worker. HEIC/HEIF et M4V raccordés à l’interface ; AAC/MKV/AVI raccordés au flux natif, erreurs de codec explicites. TIFF de 137,3 Mio et MP4 de 512 Mio testés, PDF de 17 Mio, corpus d’images/polices/documents et vraie extension sous CSP vérifiés. La lecture des formats reste conditionnée à leurs plafonds et décodeurs ; AVI du corpus refusé proprement. [Qualification et limites actuelles](APERCUS_V1.md).
+
+## V1 gratuite — recherche locale finalisée, 28 octobre 2026
+
+Index de travail élargi à 50 000 entrées, 5 000 dossiers et 64 niveaux, avec budget de métadonnées et texte borné. Choix visuel du dossier, contenu facultatif et fichiers cachés au choix ; noms capturés avant extraction. Recherche par fragments sans accents dans un worker, résultats locaux paginés sans plafond d’affichage à 100, couverture et omissions explicites. Revalidation du cache au retour dans le même dossier et contrôles natifs par lots ; fichiers revérifiés avant ouverture. [Fonctionnement et limites actuelles](J4_ORGANISATION_RECHERCHE.md), [suivi V1](V1_GRATUITE.md).
+
+## Aperçus et pistes d’outils — 28 octobre 2026
+
+**Polices TTF/OTF/WOFF/WOFF2** : aperçu local, texte d’essai et taille réglables, sans installation Windows (16 Mio). **Modifier** dans l’aperçu texte ouvre l’éditeur directement dans le volet ou la fenêtre d’aperçu : Ctrl+S, version précédente et conflit externe protégés, UTF-8 de 128 Kio maximum. Les brouillons texte sont désormais conservés localement après fermeture ; les fichiers originaux ne sont pas enregistrés automatiquement. [Parcours et limites](FEATURES_DOCUMENTS_LOCAUX.md).
+
+[Dix idées sourcées à choisir ensemble](IDEES_OUTILS_SYSTEMES.md), inspirées de Linux/macOS/Windows, sans développement ni activation de ces dix propositions.
+
+## Retours d’usage du 27 octobre 2026 — lot local
+
+En-tête compact, commandes de disposition près des onglets, état du compagnon
+en bas, navigation réductible en icônes, outils de fichiers dans la navigation,
+clic droit allégé et renommage direct au second clic lent. L’analyse disque
+parcourt les dossiers par petits lots sans plafond de nombre de fichiers,
+conserve ses résultats localement et les transmet par pages.
+[Checklist et vérifications](RETOURS_USAGE_01.md).
+
+Le dépôt de fichiers entre panneaux propose **Déplacer / Dupliquer** au curseur,
+sans dialogue de confirmation supplémentaire. Les conflits conservent les deux
+fichiers avec un nom numéroté ; les transferts distants restent des copies.
+La mise à la corbeille locale agit directement au clic droit ou avec Suppr,
+sans confirmation supplémentaire ; la restauration reste disponible.
+
 ## Sources du 26 octobre 2026 — dossiers distants
 
 Activation facultative, profils SFTP/FTP/FTPS, navigation et aperçus bornés, copies SFTP récursives vérifiées dans l’Activité, comparaison du niveau affiché et console SSH explicite. FTP/FTPS restent limités à la navigation et au téléchargement. [Périmètre, validation et travaux restants](DOSSIERS_DISTANTS.md).
@@ -83,7 +128,7 @@ Le complément J5 décrit ci-dessus ajoute les variantes visuelles, les médias,
 
 **Prototype J4 validé localement : compilation, 176 tests TypeScript et recette J4 avec le compagnon réussis.** Recherche lexicale dans un dossier choisi et ses sous-dossiers, rapprochement de vocabulaire TF-IDF, règles de mots-clés, recherche commune fichiers/liens/espaces, tags multiples, tailles de dossiers et préférences exportables. Aucun modèle d’IA ajouté.
 
-- **Recherche locale** ou **Ctrl+Maj+F** : index de 1 000 entrées / 100 dossiers / profondeur 8, extraits TXT/Markdown bornés, origine déclarée contrôlée pour 20 fichiers. Réindexation après changement, résultats périmés masqués, arrêt et effacement. PDF textuel : connecteur **pdftotext** optionnel, moteur absent du paquet et extraction réelle non validée ici ; aucun OCR.
+- **Recherche locale** ou **Ctrl+Maj+F** : depuis le complément V1 du 28 octobre, index de 50 000 entrées / 5 000 dossiers / profondeur 64, extraits texte bornés, origine déclarée contrôlée pour 20 fichiers si le contenu est demandé. Recherche par fragments et résultats locaux paginés. Réindexation après changement, résultats périmés masqués, arrêt et effacement. PDF textuel : connecteur **pdftotext** optionnel, moteur absent du paquet et extraction réelle non validée ici ; aucun OCR.
 - **Tags** : 32 tags colorés, 2 000 chemins, attribution/retrait par lots, filtre et tri ; les associations suivent les renommages et déplacements natifs réussis. Changements externes non réconciliés automatiquement.
 - **Réglages et moteurs** : thème système/clair/sombre, couleurs, navigation/sélection, miniatures/extensions, colonnes et unités, affichages/tri par dossier, démarrage et accueil configurables, raccourcis contrôlés, menus et export/import explicite des préférences/tags/règles/vues. L’index et les fichiers sont exclus de cet export.
 - **Tailles et grands dossiers** : totaux natifs disponibles dans les listes et leur tri ; calcul annulable via l’activité. Listes natives bornées avec avertissement et filtre par nom ; affichage Colonnes de dossiers en complément des huit modes précédents.
@@ -177,7 +222,7 @@ Le périmètre futur est centré sur les fichiers locaux et leur usage dans le n
 | Capture de page | Readability → Markdown depuis une requête HTTP ; PDF de l'onglet actif confirmé via Chrome Debugger, avec provenance | Markdown simplifié ; PDF selon rendu d'impression, permission facultative, destination confirmée. Voir le parcours J3.2 ci-dessus |
 | Sessions | Sauvegarde et réouverture d’onglets et groupes | Maximum de 100 onglets à la restauration ; pas de synchronisation continue |
 | Outils système | Application par défaut, terminal, VS Code, Git status | Git et VS Code restent des installations système ; autres IDE non configurables |
-| Analyse disque et lecteurs | Carte et liste persistantes dans l’aperçu ; capacités Windows dans Ce PC, l’accueil et les emplacements | Inventaire borné, jusqu’à 500 éléments ; carte des 40 plus gros éléments et du reste, liste par lots de 80. Capacités réseau non interrogées |
+| Analyse disque et lecteurs | Carte et liste persistantes dans l’aperçu ; capacités Windows dans Ce PC, l’accueil et les emplacements | Parcours par lots sans plafond de nombre de fichiers ; résultats locaux et réponses paginées. Carte des 40 plus gros éléments et du reste, liste de 80 lignes par page. Liens, accès refusés et éventuelle limite de métadonnées signalés. Capacités réseau non interrogées |
 | Doublons | Préfiltre taille, calcul BLAKE3 parallèle, groupes et nettoyage assisté | Fichiers vides exclus ; au plus 300 groupes retournés ; aucun effacement automatique |
 | Livraison | Sources, tests, extension construite, exe Windows, installateurs, paquet léger | Publication Chrome Web Store et signature du binaire non réalisées |
 | Assistant Windows (J1.6) | EXE Inno Setup français par utilisateur, choix du navigateur, aperçu, réparation/mise à jour avec sauvegarde, comparaison SHA256 du binaire et de la politique, conservation des moteurs, paquet stable et raccourci de maintenance | Non signé ; extension à charger manuellement ; compagnon conservé si identique au paquet ; désactivation/réactivation après mise à jour pour renouveler la connexion ; aucun téléchargement de moteurs ni mode silencieux ; installation/désinstallation complète sur Windows propre à valider |

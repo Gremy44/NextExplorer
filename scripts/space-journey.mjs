@@ -155,10 +155,12 @@ export async function runSpaceJourney({ page, fixture, reads }) {
   console.log(
     "Espace disque : six couleurs, petites surfaces au survol/clavier, largeur > 640 px, agrandissement et navigation conservant le résultat : OK",
   );
+  await analysis.getByRole("button", { name: "Suivant", exact: true }).click();
+  assert.equal(await analysis.locator(".space-items > button").count(), 14);
   await analysis
-    .getByRole("button", { name: "Voir 80 éléments de plus", exact: true })
+    .getByRole("button", { name: "Précédent", exact: true })
     .click();
-  assert.equal(await analysis.locator(".space-items > button").count(), 94);
+  assert.equal(await analysis.locator(".space-items > button").count(), 80);
   await analysis
     .getByRole("button", { name: "Actualiser", exact: true })
     .click();
@@ -184,7 +186,7 @@ export async function runSpaceJourney({ page, fixture, reads }) {
   await map.getByRole("button").first().waitFor();
   await divider.dblclick();
   assert.equal(await divider.getAttribute("aria-valuenow"), "330");
-  await page.getByTitle("Masquer la navigation", { exact: true }).click();
+  await page.getByTitle("Réduire la navigation", { exact: true }).click();
   for (const theme of ["dark", "light"]) {
     if (theme === "light")
       await page.getByTitle("Changer de thème", { exact: true }).click();
@@ -245,5 +247,58 @@ export async function runSpaceJourney({ page, fixture, reads }) {
   assert.equal((await readdir(folder)).length, 94);
   console.log(
     "Espace disque : actualisation/pagination, largeur mémorisée, thèmes, 320/390/900/1440 px et originaux intacts sans lecture de contenu dans Chrome : OK",
+  );
+  const large = path.join(fixture, "Grand volume");
+  await mkdir(large);
+  for (let offset = 0; offset < 2105; offset += 100)
+    await Promise.all(
+      Array.from({ length: Math.min(100, 2105 - offset) }, (_, i) =>
+        writeFile(
+          path.join(
+            large,
+            `element-${String(offset + i).padStart(4, "0")}.txt`,
+          ),
+          "x",
+        ),
+      ),
+    );
+  await page.locator(".pane .edit-path").click();
+  await page.getByLabel("Chemin du dossier", { exact: true }).fill(large);
+  await page.getByLabel("Chemin du dossier", { exact: true }).press("Enter");
+  await page
+    .getByRole("option", { name: "element-0000.txt", exact: true })
+    .waitFor();
+  await scan();
+  const pages = analysis.getByRole("navigation", {
+    name: "Pages de l’analyse",
+    exact: true,
+  });
+  await pages.getByText("1–80 sur 2105", { exact: true }).waitFor();
+  const names = new Set();
+  for (let index = 0; index < Math.ceil(2105 / 80); index++) {
+    if (index)
+      await pages.getByRole("button", { name: "Suivant", exact: true }).click();
+    await pages
+      .getByText(
+        `${index * 80 + 1}–${Math.min((index + 1) * 80, 2105)} sur 2105`,
+        { exact: true },
+      )
+      .waitFor();
+    for (const name of await analysis
+      .locator(".space-items > button > span")
+      .allTextContents())
+      names.add(name);
+    assert.ok((await analysis.locator(".space-items > button").count()) <= 80);
+  }
+  assert.equal(
+    names.size,
+    2105,
+    "aucun résultat perdu au-delà de l’ancien plafond de 2000",
+  );
+  assert.equal(await analysis.getByText(/Résultat partiel/).count(), 0);
+  assert.equal(reads.length, readCount);
+  await page.screenshot({ path: "test-results/space-large-paginated.png" });
+  console.log(
+    "Espace disque : 2105 fichiers réels, toutes les pages natives et les 27 pages d’interface parcourues, 80 lignes maximum, aucun résultat perdu et aucune lecture de contenu : OK",
   );
 }

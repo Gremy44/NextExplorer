@@ -2,9 +2,9 @@
 
 **Vos fichiers locaux et vos projets web dans un même espace.**
 
-**Préversion privée du 27 octobre 2026 :** [archive de test avec compagnon recompilé](https://github.com/Gremy44/NextExplorer/releases/tag/preview-2026-10-27), interface compacte, atelier d’actions rapides et dossiers SFTP/SSH. Extraire l’archive, lancer `scripts/install-host.ps1`, puis charger ou recharger son dossier `dist` dans Chrome/Edge. Le Setup et la version publique restent inchangés. [Périmètre et recette distante](DOSSIERS_DISTANTS.md).
+**Pilote public 1.0.7 — 29 octobre 2026 :** [installateur, extension et empreintes](https://github.com/Gremy44/NextExplorer-Downloads/releases/tag/v1.0.7-pilot.1). Compagnon et interface assortis, guide de chargement manuel Chrome/Edge, base gratuite consolidée. [Parcours de test et retours](distribution/TESTER.md). Connexions distantes expérimentales, désactivées par défaut ; IA locale non incluse.
 
-**Téléchargements publics :** [NextExplorer-Downloads](https://github.com/Gremy44/NextExplorer-Downloads) — [préversion technique 1.0.1](https://github.com/Gremy44/NextExplorer-Downloads/releases/tag/v1.0.1), gratuite et non signée, pour essais sur fichiers fictifs. Le code applicatif reste privé ; la [licence](LICENSE) autorise l’utilisation des versions compilées. Aucun paiement requis pour cette distribution.
+**Téléchargements publics :** [NextExplorer-Downloads](https://github.com/Gremy44/NextExplorer-Downloads), gratuit et non signé, pour essais sur des copies. Le code applicatif reste privé ; la [licence](LICENSE) autorise l’utilisation des versions compilées. Aucun paiement requis pour cette distribution.
 
 **Présentation publique :** [usages et captures grand format](distribution/README.md), [guide détaillé des fonctionnalités](distribution/FONCTIONNALITES.md). Six captures réelles de démonstration, dont le panneau Chrome recevant un dépôt Windows et Codex CLI ouvert dans la console du dossier actif.
 
@@ -12,9 +12,9 @@ NextExplorer associe une extension Chrome à un compagnon natif pour explorer, p
 
 L’interface est en français, avec des thèmes clair et sombre inspirés de Material 3. Le fonctionnement repose sur le navigateur et le compagnon local, sans compte NextExplorer ni serveur applicatif distant.
 
-> **Projet en développement.** Le candidat local 1.0.6 a passé le parcours principal de l’installateur sous Windows 11 isolé avec Chrome et Edge : connexion, lecture, réinstallation, réparation et désinstallation. [Rapport et cas restant à qualifier](VALIDATION_WINDOWS_NEUF.md). L’IA locale figure dans les pistes futures ; aucun modèle d’IA n’est actuellement intégré.
+> **Projet en développement.** Le candidat public 1.0.7 a passé les parcours d’installation, connexion, lecture, réinstallation, réparation et désinstallation sous Windows 11 isolé, compte standard, dans Chrome et Edge. [Rapport et limites](VALIDATION_WINDOWS_NEUF.md). Le pilote auprès de 5 à 10 utilisateurs commence après cette publication.
 
-**Distribution J7 :** [dossier Chrome Web Store](store/README.md), ZIP de l’extension et textes/visuels préparés localement. `npm run package:store` produit l’archive séparée du compagnon Windows ; aucun élément publié. Identité Store, URLs, premier parcours d’installation et recette Windows propre restent à finaliser.
+**Distribution :** la [préversion publique 1.0.7](https://github.com/Gremy44/NextExplorer-Downloads/releases/tag/v1.0.7-pilot.1) utilise le chargement manuel, sans dépendre d’une validation du Store. Le [dossier Chrome Web Store](store/README.md) reste séparé. Les anciennes préversions et points de retour visuels sont conservés.
 
 ## Fonctionnalités
 

@@ -1,4 +1,31 @@
-# Recette Windows neuf — 1.0.6, 22 octobre 2026
+# Validation de l’installation Windows
+
+## Pilote public 1.0.7 — 29 octobre 2026
+
+Le [candidat public exact](https://github.com/Gremy44/NextExplorer-Downloads/releases/tag/v1.0.7-pilot.1) a été vérifié dans la VM dédiée Windows 11 Enterprise Evaluation, avec compte **standard**, Windows Defender temps réel actif, Chrome **156.0.8078.73** et Edge **156.0.4314.50**.
+
+Installateur : `NextExplorer-1.0.7-Setup.exe`, 8 290 504 octets, SHA-256 **`8765e99cb3fe73e62a0c49c488906f37161a66c7e27f1fa8ddf81c2427023d72`**, non signé. L’extension et le compagnon annoncent 1.0.7, identité `afjflepinklhgicoppoobiichmjodgcp`.
+
+| Parcours du candidat | Chrome | Edge |
+| --- | --- | --- |
+| Compagnon absent au départ, état de référence et fichier témoin | PASS | PASS |
+| Annulation de l’assistant, fichiers/registre inchangés | PASS | PASS |
+| Installation du véritable EXE et connexion Native Messaging | PASS | PASS |
+| Liste du dossier et lecture exacte du témoin | PASS | PASS |
+| Fermeture forcée puis relance du navigateur | PASS | Réouverture contrôlée après réparation |
+| Réinstallation du même EXE, manifeste renommé puis réparation | PASS | PASS |
+| Connexion et lecture après réparation | PASS | PASS |
+| Annulation puis confirmation de désinstallation, témoin préservé | PASS | PASS |
+| Entrée Windows 1.0.7, trois raccourcis et cibles existantes | PASS | Même mécanisme d’installation ; contrôles registre/fichiers |
+| Enregistrement Chrome étranger et manifeste témoin préservés | Sans fixture étrangère dans ce parcours | PASS pendant toute la recette |
+
+Preuves privées : `test-results/windows-pilot-1.0.7/chrome-evidence` et `edge-evidence`, avec rapports de cycles, états, journaux et captures. Les fichiers publiés ont ensuite été téléchargés **sans authentification** depuis la release GitHub et comparés aux empreintes locales. Les deux guides liés au tag sont accessibles publiquement.
+
+La VM existante a été réutilisée : ancien état NextExplorer archivé et liaisons de test retirées avant la nouvelle référence, sans compagnon installé au départ. Windows lui-même n’a pas été réinstallé et le profil de recette avait déjà servi. La validation n’est pas une mesure de réputation SmartScreen ; le transfert de l’EXE dans la VM était local. Profils Windows accentués, autres configurations de sécurité, serveurs distants externes et pilote de 5 à 10 personnes restent à qualifier. Aucune protection n’a été désactivée pour ce parcours.
+
+L’assistant pilote explique le chargement manuel dans Chrome/Edge et le chemin du dossier installé. Les anciens EXE restent conservés ; le nouvel EXE ne remplace pas silencieusement les fichiers déjà publiés d’une ancienne release.
+
+## Recette historique — 1.0.6, 22 octobre 2026
 
 **Parcours principal Windows 11 / Chrome et Edge réussi dans une VM isolée.** L’EXE
 réel a été installé, réinstallé, réparé et désinstallé avec un compte standard.

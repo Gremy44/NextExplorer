@@ -64,7 +64,7 @@
   display: block;
   overflow-wrap: anywhere;
   user-select: text;
-  font-size: 12px;
+  font-size: calc(12px * var(--text-scale, 1));
 }
 .remote-toolbar {
   display: flex;

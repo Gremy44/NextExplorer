@@ -1,6 +1,15 @@
 import { fileViews, type ViewMode } from "./FileView";
 import { tagPath } from "./tags";
 export const preferencesKey = "explorerPreferences";
+export function matchesSetting(query: string, label: string) {
+  const fold = (text: string) =>
+    text.normalize("NFD").replace(/\p{M}/gu, "").toLocaleLowerCase("fr");
+  const text = fold(label);
+  return fold(query)
+    .trim()
+    .split(/\s+/)
+    .every((word) => text.includes(word));
+}
 export const commandList = [
   ["search", "Rechercher dans mes fichiers et espaces"],
   ["home", "Accueil"],

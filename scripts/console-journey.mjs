@@ -5,7 +5,10 @@ import path from "node:path";
 export async function runConsoleJourney({ page, fixture }) {
   const child = path.join(fixture, "Console [été] ' dossier");
   await mkdir(child, { recursive: true });
-  const toggle = page.getByRole("button", { name: "Aperçu", exact: true });
+  const toggle = page.getByRole("button", {
+    name: "Volet d’aperçu",
+    exact: true,
+  });
   if ((await toggle.getAttribute("aria-pressed")) !== "true")
     await toggle.click();
   const details = page.getByRole("complementary", {
@@ -320,7 +323,7 @@ export async function runConsoleJourney({ page, fixture }) {
       (element) => element.scrollWidth <= element.clientWidth + 1,
     ),
   );
-  await page.getByTitle("Masquer la navigation", { exact: true }).click();
+  await page.getByTitle("Réduire la navigation", { exact: true }).click();
   for (const width of [390, 320]) {
     await page.setViewportSize({ width, height: 900 });
     await consolePane

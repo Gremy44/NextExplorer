@@ -1,6 +1,6 @@
 # NextExplorer — confidentialité
 
-Version du 20 octobre 2026. Editeur du projet : **Gremy44**. Contact : https://github.com/Gremy44/NextExplorer-Downloads/issues. Cette politique concerne la preversion distribuee sur ce canal officiel.
+Version du 29 octobre 2026, candidat pilote 1.0.7. Editeur du projet : **Gremy44**. Contact : https://github.com/Gremy44/NextExplorer-Downloads/issues. Cette politique concerne la preversion distribuee sur ce canal officiel.
 
 ## Fonctionnement local
 
@@ -13,6 +13,7 @@ Selon les outils utilisés, NextExplorer traite les données suivantes :
 | Chemins, noms, tailles, dates, métadonnées et contenu des fichiers choisis | Navigation, aperçu, recherche, comparaison et opérations locales. Les fichiers restent dans les dossiers choisis. |
 | Tags, favoris, espaces de travail, règles et préférences | Stockage local du profil Chrome ; certains réglages utilisent le stockage local de la page. Pas de synchronisation via `chrome.storage.sync`. |
 | Extraits de documents indexés | Index local IndexedDB du profil Chrome, créé sur demande et effaçable depuis la recherche locale. |
+| Brouillons de l’éditeur texte | Texte de départ, texte modifié, chemin et empreinte conservés dans le stockage local du profil de l’extension, sans synchronisation ni chiffrement applicatif. Jusqu’à 20 brouillons / 3 Mio de chaînes stockées ; conservation jusqu’à l’enregistrement, l’abandon ou la suppression explicite. En cas de stockage refusé, l’interface avertit de garder la page ouverte ou de télécharger le texte. Ils ne sont pas inclus dans les exports de session et ne constituent pas une sauvegarde indépendante du profil. |
 | URL et titre des onglets utilisés, liens, sélections et images collectés | Fonctions visibles de collecte, contexte de page et espaces de travail. Pas de lecture de l’historique général de navigation. |
 | URL et nom des téléchargements concernés | Liste et règles de rangement après autorisation ; les règles automatiques sont activées explicitement. |
 | Historique des insertions | Au plus 20 tentatives locales : date, origine du site, champ, noms et tailles des fichiers, résultat connu ou incertain. Effaçable depuis les insertions récentes. |
@@ -51,9 +52,9 @@ Pour une question sur le produit ou ses données : https://github.com/Gremy44/Ne
 
 Ce depot et ses fichiers de telechargement sont heberges par GitHub. Les connexions au site et leurs donnees techniques suivent aussi la politique de confidentialite de GitHub : https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement. NextExplorer ne recoit pas un historique nominatif de vos fichiers locaux par ce canal.
 
-## Dossiers distants — sources du 26 octobre 2026, non distribuées dans le Setup actuel
+## Dossiers distants — fonction expérimentale du pilote 1.0.7
 
-Cette fonction facultative nécessite une future version du compagnon. Après activation, le compagnon contacte directement le serveur choisi pour SFTP/SSH ou FTP/FTPS. Le serveur reçoit l’adresse IP de connexion, l’utilisateur, l’authentification et les fichiers ou commandes nécessaires aux actions demandées. FTP sans TLS transmet ces données sans chiffrement et exige une acceptation explicite.
+Cette fonction facultative est désactivée par défaut. Après activation, le compagnon contacte directement le serveur choisi pour SFTP/SSH ou FTP/FTPS. Le serveur reçoit l’adresse IP de connexion, l’utilisateur, l’authentification et les fichiers ou commandes nécessaires aux actions demandées. FTP sans TLS transmet ces données sans chiffrement et exige une acceptation explicite.
 
 Les noms de serveurs, utilisateurs, ports, chemins de clés et empreintes approuvées sont conservés dans le carnet local du compagnon. Le mot de passe ou la phrase secrète peut être mémorisé sur demande avec DPAPI Windows, lié au compte de cet appareil ; ce secret ne figure ni dans le stockage Chrome, ni dans les exports de préférences, ni dans les tâches. Supprimer un profil depuis Connexions retire son secret de ce carnet. Les sauvegardes externes de Windows restent sous le contrôle de l’utilisateur.
 

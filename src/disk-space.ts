@@ -26,14 +26,67 @@ export type SpaceAnalysis = {
   path: string;
   jobId?: string;
   loading?: boolean;
+  scanned?: number;
   error?: string;
   result?: {
     items: { path: string; size: number }[];
     total: number;
     skipped: number;
     truncated?: boolean;
+    scanned?: number;
+    omitted?: number;
   };
 };
+export type SpaceResultPage = NonNullable<SpaceAnalysis["result"]> & {
+  path: string;
+  itemCount?: number;
+  nextOffset?: number;
+};
+export async function readSpaceResult(
+  read: (offset: number) => Promise<SpaceResultPage>,
+) {
+  const items: SpaceResultPage["items"] = [];
+  let first: SpaceResultPage | undefined;
+  let offset = 0;
+  while (true) {
+    const page = await read(offset);
+    if (
+      !page ||
+      !Array.isArray(page.items) ||
+      page.items.some(
+        (item) =>
+          !item ||
+          typeof item.path !== "string" ||
+          !Number.isFinite(item.size) ||
+          item.size < 0,
+      )
+    )
+      throw new Error("Résultat d’analyse illisible.");
+    if (
+      first &&
+      (page.path !== first.path ||
+        page.total !== first.total ||
+        page.itemCount !== first.itemCount)
+    )
+      throw new Error("Résultat d’analyse modifié pendant la lecture.");
+    first ??= page;
+    items.push(...page.items);
+    if (page.nextOffset === undefined) {
+      if (page.itemCount !== undefined && items.length !== page.itemCount)
+        throw new Error("Résultat d’analyse incomplet.");
+      return { ...first, items };
+    }
+    if (
+      !Number.isSafeInteger(page.nextOffset) ||
+      page.nextOffset !== items.length ||
+      page.nextOffset <= offset ||
+      !Number.isSafeInteger(page.itemCount) ||
+      page.nextOffset >= page.itemCount!
+    )
+      throw new Error("Pagination d’analyse interrompue.");
+    offset = page.nextOffset;
+  }
+}
 export function volumeUsage(volume: Volume) {
   const { total, free, available } = volume;
   if (

@@ -121,6 +121,7 @@ export async function runConverterJourney({
   });
   await page.setViewportSize({ width: 1100, height: 900 });
   const original = await readFile(clip);
+  const previousJobs = new Set((await rpc(page, "JOBS")).map((job) => job.id));
   await dialog
     .getByRole("button", { name: "Créer 1 copie", exact: true })
     .click();
@@ -128,7 +129,9 @@ export async function runConverterJourney({
   const deadline = Date.now() + 30000;
   let job;
   while (Date.now() < deadline) {
-    job = (await rpc(page, "JOBS")).find((j) => j.kind === "convert");
+    job = (await rpc(page, "JOBS")).find(
+      (j) => j.kind === "convert" && !previousJobs.has(j.id),
+    );
     if (job?.state === "completed" || job?.state === "error") break;
     await new Promise((r) => setTimeout(r, 100));
   }

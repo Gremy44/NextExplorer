@@ -1,5 +1,39 @@
 # Guide d’installation et d’utilisation — NextExplorer
 
+## Aperçus et gros fichiers — V1 gratuite
+
+**Espace** ouvre l’aperçu du fichier sélectionné. Pendant une lecture, utilisez **Arrêter l’aperçu**, puis **Réessayer l’aperçu** si nécessaire. Les TIFF sont réduits dans le compagnon, sans chargement de l’image complète dans Chrome ; fermer ou arrêter leur aperçu annule le décodage avec le compagnon à jour.
+
+Les PDF s’affichent page par page : **Précédent / Suivant**, puis **Texte de la page** pour consulter ou copier l’extrait. Limites : 16 Mio dans le volet, 32 Mio dans la fenêtre, rendu borné et images PDF dépassant 16 mégapixels susceptibles d’être omises. Un fichier refusé ou trop complexe reste ouvrable dans son application. Audio/vidéo : lecture progressive, erreur de codec expliquée et conversion vidéo proposée selon disponibilité.
+
+[Formats vérifiés, limites et preuves](APERCUS_V1.md). Le nouveau compagnon est nécessaire pour l’annulation native des images et les nouveaux types de flux ; aucun nouveau moteur n’est téléchargé par ces aperçus.
+
+## Cohérence de l’interface — V1 gratuite
+
+Dans **Réglages et moteurs**, recherchez sans accents (`demarrage`) ou avec plusieurs mots (`texte taille`). **Moteurs** regroupe les fonctions facultatives. La taille générale du texte s’applique aussi aux commandes et messages de la console ; sa police de terminal se règle séparément. **Renommer** traite un élément et **Renommer par lot** en traite plusieurs. Le clic droit masque les actions rapides incompatibles avec la sélection. Les aides restent utilisables au clavier et peuvent être désactivées sans perdre le nom des boutons. [Corrections et configurations vérifiées](COHERENCE_UI_V1.md).
+
+Rechargez l’extension depuis son dossier `dist` à jour pour ce lot ; aucune réinstallation du compagnon nécessaire.
+
+## Parcours courants vérifiés — V1 gratuite
+
+Les parcours déplacer/dupliquer, corbeille/restauration, conversion et atelier, organisation locale, rangement des téléchargements et dépôt Windows vers un site témoin ont été contrôlés avec le compagnon réel. [Ce qui a été testé, comment relancer les essais et les limites](PARCOURS_V1.md). Aucun nouveau réglage ni compagnon à réinstaller pour ce lot.
+
+## Recherche locale — V1 gratuite
+
+Ouvrez **Recherche locale** ou **Ctrl+Maj+F**, vérifiez le chemin ou utilisez **Choisir un dossier**, puis **Indexer ce dossier**. Décochez **Contenu des documents** pour une recherche rapide des noms ; les fichiers cachés peuvent être inclus explicitement. La progression distingue le parcours des noms et l’extraction du contenu.
+
+Saisissez un nom ou un fragment, avec ou sans accents : `electric`, `rapport-2026.pdf`, etc. Tous les fragments séparés par un espace sont requis. Les résultats locaux sont accessibles par pages de 100, puis filtrables par format, tag et contenu. **Parcours partiel** signifie que certains fichiers ne sont pas couverts ; les motifs sont dans **Périmètre et limites**. Les extraits de contenu restent bornés, même si le parcours des noms est terminé.
+
+Le compagnon à jour accélère les contrôles et élargit les listes de recherche. Après sa mise à jour, terminez les tâches, désactivez l’extension une minute puis réactivez-la, et rechargez son dossier `dist` à jour. [Limites et actualisation](J4_ORGANISATION_RECHERCHE.md).
+
+## Nouveaux aperçus — 28 octobre 2026
+
+- **Polices** : sélectionnez un TTF, OTF, WOFF ou WOFF2 et ouvrez le volet d’aperçu, ou double-cliquez dessus. Changez le texte d’essai et la taille sans installer la police dans Windows.
+- **Texte** : dans l’aperçu d’un texte/code/Markdown, cliquez sur **Modifier**, puis **Enregistrer** ou **Ctrl+S**. Aucune fenêtre supplémentaire. Une version précédente est conservée ; un changement externe bloque l’écriture. Limite : UTF-8, 128 Kio.
+- **Brouillons** : le texte non enregistré est conservé localement dans le profil de l’extension, y compris après fermeture/rechargement de la page. Revenez au fichier puis **Reprendre le brouillon**, ou utilisez le bouton **Brouillons à récupérer** en haut pour reprendre, télécharger ou abandonner le texte. Le fichier original change uniquement avec **Enregistrer**. En cas d’alerte de stockage, gardez la page ouverte et téléchargez le texte. [Protection, confidentialité et limites](PROTECTION_TRAVAIL_V1.md).
+
+Ces deux ajouts demandent de recharger l’extension depuis le dossier `dist` à jour. Le compagnon existant qui possède déjà l’éditeur et les versions suffit ; aucun nouveau moteur à installer. [Détails](FEATURES_DOCUMENTS_LOCAUX.md).
+
 ## Dossiers distants — sources en développement
 
 Le socle SFTP/SSH s’active dans **Réglages → Connexions**. Il réutilise les onglets, le double panneau, les favoris et l’Activité, avec vérification de l’empreinte SSH, copies sans écrasement et console distante explicite. [Parcours et limites](DOSSIERS_DISTANTS.md).
@@ -318,12 +352,12 @@ Après réparation, désactiver et réactiver l’extension pour vérifier la co
 - **Ctrl+K** : commandes et chemins. Alias `~`, `~dl`, `~desk`, `~docs`, `~c`. Double-clic sur le chemin ou bouton `…` : saisir un chemin avec suggestions.
 - **/** : filtrer. **Ctrl+A**, **Ctrl+C/X/V**, **F2**, **Suppr**, **Alt+↑**, **F5** : sélection, fichiers, navigation.
 - **Ctrl+clic** et **Maj+clic** : sélection multiple. Le menu contextuel propose les opérations sur les fichiers sélectionnés.
-- **Double panneau** : naviguer dans deux dossiers. Sur une fenêtre assez large, glisser la poignée centrale pour ajuster la largeur de chaque panneau (30 à 70 %) ; utiliser les flèches gauche/droite au clavier ou double-cliquer pour revenir à 50 %. Le réglage est conservé par onglet. Glisser une sélection entre les panneaux prépare un déplacement ; maintenir Ctrl prépare une copie. Le dialogue permet de choisir la politique de conflit.
+- **Double panneau** : naviguer dans deux dossiers. Sur une fenêtre assez large, glisser la poignée centrale pour ajuster la largeur de chaque panneau (30 à 70 %) ; utiliser les flèches gauche/droite au clavier ou double-cliquer pour revenir à 50 %. Le réglage est conservé par onglet. Déposer une sélection dans l’autre panneau ou sur un sous-dossier affiche un petit menu au point de dépôt : **Déplacer** ou **Dupliquer**. Un clic lance l’opération, suivie dans l’Activité, sans seconde confirmation. Si un nom existe déjà, conserver les deux avec un nom numéroté ; aucune fusion ni remplacement implicite. Échap, Tab ou un clic ailleurs annule le choix sans lancer de transfert. Avec un dossier distant, seul **Dupliquer** est disponible. Copier/couper puis coller conserve le dialogue avec les options avancées de transfert.
 - **Collecte** : réunir des fichiers provenant de plusieurs dossiers, puis déplacer, archiver ou convertir l’ensemble. Le bouton d’envoi insère les fichiers dans un champ de téléversement de la dernière page web utilisée ; il ne soumet pas le formulaire.
 - Déposer du texte crée une note Markdown. Déposer une URL ou une image ouvre les options de capture. Les captures demandent l’autorisation d’accès au site concerné.
 - Les liens épinglés sont propres à chaque dossier. Clic droit sur un lien épinglé ou un favori : retirer l’épingle.
 - Les sessions `.session.json` enregistrent les onglets et leurs groupes. Double-cliquer pour préparer leur réouverture.
-- La corbeille est spécifique à NextExplorer : dossiers cachés `.nextexplorer-trash`, sur le même volume que les fichiers. L’écran **Corbeille** permet de restaurer les suppressions effectuées dans cette installation. Aucun effacement définitif automatique.
+- **Mettre à la corbeille** au clic droit ou **Suppr** agit directement sur la sélection, sans fenêtre de confirmation. La corbeille est spécifique à NextExplorer : dossiers cachés `.nextexplorer-trash`, sur le même volume que les fichiers. L’écran **Corbeille** permet de restaurer les suppressions effectuées dans cette installation. Aucun effacement définitif automatique.
 
 ## Développement
 

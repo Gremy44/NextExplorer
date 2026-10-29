@@ -83,8 +83,15 @@ class Bridge {
       this.listeners.delete(fn);
     };
   }
-  async bytes(path: string, max = 128 * 1024 * 1024, signal?: AbortSignal) {
+  async bytes(
+    path: string,
+    max = 128 * 1024 * 1024,
+    signal?: AbortSignal,
+    progress?: (done: number, total: number) => void,
+  ) {
     let offset = 0;
+    let expectedSize: number | undefined,
+      received = 0;
     const chunks: Uint8Array[] = [];
     while (true) {
       if (signal?.aborted) throw new DOMException("Annulé", "AbortError");
@@ -94,15 +101,34 @@ class Bridge {
         nextOffset: number;
         eof: boolean;
       }>("FS_READ", { path, offset, limit: 384 * 1024 });
+      if (
+        !Number.isSafeInteger(r.size) ||
+        r.size < 0 ||
+        (expectedSize !== undefined && r.size !== expectedSize)
+      )
+        throw new Error(
+          "Le fichier a changé pendant la lecture. Actualisez le dossier puis réessayez.",
+        );
+      expectedSize = r.size;
       if (r.size > max)
         throw new Error(
           `Aperçu limité à ${Math.round(max / 1048576)} Mo. Ouvrez ce fichier dans son application.`,
         );
       if (signal?.aborted) throw new DOMException("Annulé", "AbortError");
       const raw = atob(r.data);
+      if (
+        r.nextOffset !== offset + raw.length ||
+        r.nextOffset > r.size ||
+        typeof r.eof !== "boolean" ||
+        (r.eof && r.nextOffset !== r.size) ||
+        received + raw.length > max
+      )
+        throw new Error("Lecture interrompue ou fichier modifié.");
       const decoded = new Uint8Array(raw.length);
       for (let i = 0; i < raw.length; i++) decoded[i] = raw.charCodeAt(i);
       chunks.push(decoded);
+      received += decoded.length;
+      progress?.(received, r.size);
       if (r.eof) break;
       if (r.nextOffset <= offset) throw new Error("Lecture interrompue");
       offset = r.nextOffset;
@@ -116,11 +142,16 @@ class Bridge {
     return b;
   }
   async text(path: string, signal?: AbortSignal) {
-    return new TextDecoder().decode(await this.bytes(path, 4 * 1024 * 1024, signal));
+    return new TextDecoder().decode(
+      await this.bytes(path, 4 * 1024 * 1024, signal),
+    );
   }
   async textPrefix(path: string, limit: number, signal?: AbortSignal) {
     if (signal?.aborted) throw new DOMException("Annulé", "AbortError");
-    const result = await this.request<{ data: string; size: number }>("FS_READ", { path, offset: 0, limit: Math.min(384 * 1024, Math.max(1, limit)) });
+    const result = await this.request<{ data: string; size: number }>(
+      "FS_READ",
+      { path, offset: 0, limit: Math.min(384 * 1024, Math.max(1, limit)) },
+    );
     if (signal?.aborted) throw new DOMException("Annulé", "AbortError");
     const raw = atob(result.data);
     const bytes = new Uint8Array(raw.length);
@@ -150,7 +181,11 @@ export async function storageSet(key: string, value: unknown) {
 }
 
 // Same-origin Web Locks serialize read/modify/write across extension views.
-export async function storageUpdate<T>(key: string, fallback: T, update: (value: T) => T) {
+export async function storageUpdate<T>(
+  key: string,
+  fallback: T,
+  update: (value: T) => T,
+) {
   return navigator.locks.request(`nextexplorer:${key}`, async () => {
     const next = update(await storageGet(key, fallback));
     await storageSet(key, next);
@@ -160,7 +195,10 @@ export async function storageUpdate<T>(key: string, fallback: T, update: (value:
 
 export function storageSubscribe(keys: string[], refresh: () => void) {
   if (globalThis.chrome?.storage?.onChanged) {
-    const changed = (changes: Record<string, chrome.storage.StorageChange>, area: string) => {
+    const changed = (
+      changes: Record<string, chrome.storage.StorageChange>,
+      area: string,
+    ) => {
       if (area === "local" && keys.some((key) => key in changes)) refresh();
     };
     chrome.storage.onChanged.addListener(changed);

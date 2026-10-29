@@ -1,5 +1,5 @@
 import { Help } from "./Help";
-import { FolderOpen, RefreshCw, X } from "lucide-react";
+import { FolderOpen, RefreshCw, Square, X } from "lucide-react";
 import {
   useEffect,
   useId,
@@ -19,16 +19,20 @@ export function SpaceAnalysis({
   onAnalyze,
   onNavigate,
   onClose,
+  onCancel,
+  legacy = false,
 }: {
   analysis: Analysis;
   onAnalyze: (path: string) => void;
   onNavigate: (path: string) => void;
   onClose: () => void;
+  onCancel?: () => void;
+  legacy?: boolean;
 }) {
   const { preferences } = useOrganization();
   const result = analysis.result,
     total = result?.total || 0;
-  const [limit, setLimit] = useState(80);
+  const [page, setPage] = useState(0);
   const [inspection, setInspection] = useState<{
     path: string;
     size: number;
@@ -38,7 +42,7 @@ export function SpaceAnalysis({
   const tooltipId = useId();
   const tooltip = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    setLimit(80);
+    setPage(0);
     setInspection(null);
   }, [analysis.path, result]);
   useLayoutEffect(() => {
@@ -86,7 +90,9 @@ export function SpaceAnalysis({
         }
       },
       "aria-describedby":
-        preferences.tooltips && inspection?.path === item.path ? tooltipId : undefined,
+        preferences.tooltips && inspection?.path === item.path
+          ? tooltipId
+          : undefined,
     };
   }
   return (
@@ -112,9 +118,19 @@ export function SpaceAnalysis({
           <FolderOpen size={16} />
           Ouvrir
         </button>
+        {analysis.loading && analysis.jobId && onCancel && (
+          <button onClick={onCancel}>
+            <Square size={16} /> Arrêter
+          </button>
+        )}
       </div>
       {analysis.loading && (
-        <p role="status">Analyse en cours… La navigation reste disponible.</p>
+        <p role="status">
+          Analyse en cours…{" "}
+          {analysis.scanned
+            ? `${analysis.scanned.toLocaleString("fr-FR")} fichier(s) mesuré(s).`
+            : "La navigation reste disponible."}
+        </p>
       )}
       {analysis.error && (
         <p role="alert" className="error">
@@ -161,10 +177,15 @@ export function SpaceAnalysis({
             Survolez un bloc ou utilisez Tab pour voir son nom, son chemin et sa
             taille. La surface indique l’espace occupé ; les couleurs
             distinguent les éléments. Un clic ouvre le dossier sans fermer cette
-            analyse. Carte : les 40 plus gros éléments et le reste.
+            analyse. Carte : les 40 plus gros éléments et le reste. Analyse : le
+            parcours ne s’arrête pas après un nombre fixe de fichiers. Les
+            dossiers vides et la corbeille sont comptés. Les tailles sont
+            logiques ; les éléments inaccessibles et les liens non suivis sont
+            signalés. Les résultats sont conservés localement et transmis par
+            pages.
           </Help>
           <div className="space-items">
-            {result.items.slice(0, limit).map((item) => (
+            {result.items.slice(page * 80, (page + 1) * 80).map((item) => (
               <button
                 key={item.path}
                 type="button"
@@ -183,24 +204,48 @@ export function SpaceAnalysis({
               </button>
             ))}
           </div>
-          {result.items.length > limit && (
-            <button onClick={() => setLimit((n) => n + 80)}>
-              Voir 80 éléments de plus
-            </button>
+          {result.items.length > 80 && (
+            <nav
+              className="organization-actions"
+              aria-label="Pages de l’analyse"
+            >
+              <button
+                disabled={page === 0}
+                onClick={() => setPage((n) => n - 1)}
+              >
+                Précédent
+              </button>
+              <span aria-live="polite">
+                {page * 80 + 1}–{Math.min((page + 1) * 80, result.items.length)}{" "}
+                sur {result.items.length}
+              </span>
+              <button
+                disabled={(page + 1) * 80 >= result.items.length}
+                onClick={() => setPage((n) => n + 1)}
+              >
+                Suivant
+              </button>
+            </nav>
           )}
           {!result.items.length && <p>Aucun fichier mesuré dans ce dossier.</p>}
           {(result.skipped > 0 || result.truncated) && (
             <p className="muted" role="status">
               Résultat partiel : {result.skipped} emplacement(s) non lisible(s)
+              ou lien(s) non suivi(s)
               {result.truncated
-                ? " ; limite de parcours ou de résultats atteinte"
+                ? legacy
+                  ? " ; mettez à jour le compagnon pour analyser les gros volumes"
+                  : result.omitted
+                    ? ` ; ${result.omitted} ligne(s) non conservée(s) dans la limite de mémoire, mais incluses dans la taille totale`
+                    : " ; profondeur maximale de dossier atteinte"
                 : ""}
               .
             </p>
           )}
         </>
       )}
-      {preferences.tooltips && inspection &&
+      {preferences.tooltips &&
+        inspection &&
         createPortal(
           <div
             ref={tooltip}

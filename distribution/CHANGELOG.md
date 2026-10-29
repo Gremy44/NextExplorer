@@ -1,5 +1,18 @@
 # Historique
 
+## 1.0.7 — candidat pilote gratuit, 29 octobre 2026
+
+- Installateur et extension reconstruits ensemble pour le pilote ; chargement manuel guidé sous Chrome ou Edge.
+- Recherche locale élargie, résultats paginés, contrôle de fraîcheur et arrêt sans perdre le cache précédent.
+- Aperçus bornés et arrêtables : gros TIFF via moteur facultatif, PDF page par page, polices locales, lecture progressive des médias compatibles.
+- Éditeur texte dans l’aperçu, brouillons récupérables après fermeture, téléchargement du brouillon, contrôle des changements externes et versions conservées.
+- Déplacement/duplication au curseur dans le double panneau, corbeille directe avec restauration, atelier et conversion image/vidéo avec copies conservées.
+- Rangement automatique activé explicitement par règle et vrai glissement Windows depuis le panneau latéral vers une page web.
+- Interface compacte, réglages recherchables sans accents, tailles ajustables, aides clavier et actions contextuelles harmonisées.
+- Connexions distantes disponibles à titre expérimental, désactivées par défaut ; aucun modèle d’IA intégré.
+
+Les moteurs spécialisés restent facultatifs et ne sont pas inclus dans le paquet léger. L’EXE n’est pas signé. [Guide de test et retours](TESTER.md).
+
 ## Préversion privée — 27 octobre 2026
 
 - Compagnon Windows 1.0.6 recompilé depuis les sources courantes, avec l’extension correspondante dans une archive de test.

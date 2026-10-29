@@ -46,6 +46,9 @@ const fields: Record<string, string> = {
 export function DetailsPane({
   visible,
   onDocument,
+  onSaved,
+  editorAvailable = false,
+  previewSuspended = false,
   onGallery,
   onExtract,
   path,
@@ -67,6 +70,9 @@ export function DetailsPane({
 }: {
   visible: boolean;
   onDocument?: (entry: Entry, mode: "edit" | "versions") => void;
+  onSaved?: () => void;
+  editorAvailable?: boolean;
+  previewSuspended?: boolean;
   onGallery?: (entry: Entry) => void;
   onExtract?: (entry: Entry, members: string[], expected: Entry) => void;
   path: string;
@@ -347,34 +353,38 @@ export function DetailsPane({
               {entry ? (
                 <>
                   {entry.type === "file" ? (
-                    <Preview
-                      onExtract={
-                        !isRemote(path) && onExtract
-                          ? (members, expected) =>
-                              onExtract(entry, members, expected)
-                          : undefined
-                      }
-                      onGallery={
-                        !isRemote(path) && onGallery
-                          ? () => onGallery(entry)
-                          : undefined
-                      }
-                      onDocument={
-                        !isRemote(path) && onDocument
-                          ? (mode) => onDocument(entry, mode)
-                          : undefined
-                      }
-                      key={`${entry.path}:${entry.mtime}:${entry.size}`}
-                      entry={entry}
-                      embedded
-                      onClose={onClose}
-                      onError={onError}
-                      onConvert={
-                        !isRemote(path) && onConvert
-                          ? () => onConvert(entry)
-                          : undefined
-                      }
-                    />
+                    !previewSuspended && (
+                      <Preview
+                        onSaved={onSaved}
+                        editorAvailable={editorAvailable}
+                        onExtract={
+                          !isRemote(path) && onExtract
+                            ? (members, expected) =>
+                                onExtract(entry, members, expected)
+                            : undefined
+                        }
+                        onGallery={
+                          !isRemote(path) && onGallery
+                            ? () => onGallery(entry)
+                            : undefined
+                        }
+                        onDocument={
+                          !isRemote(path) && onDocument
+                            ? (mode) => onDocument(entry, mode)
+                            : undefined
+                        }
+                        key={entry.path}
+                        entry={entry}
+                        embedded
+                        onClose={onClose}
+                        onError={onError}
+                        onConvert={
+                          !isRemote(path) && onConvert
+                            ? () => onConvert(entry)
+                            : undefined
+                        }
+                      />
+                    )
                   ) : (
                     <div className="details-placeholder">
                       <FileIcon entry={entry} size={80} />

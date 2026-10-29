@@ -10,6 +10,7 @@ import {
 } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { conversionKind } from "./media-conversion";
+import { defaultQuickAction } from "./quick-actions";
 import { isRemote, remoteActions } from "./remote";
 import { fileMetrics } from "./interface-layout";
 import {
@@ -32,7 +33,6 @@ import {
   FileCog,
   Archive,
   ArchiveRestore,
-  Fingerprint,
   Trash2,
   Tags,
   Palette,
@@ -77,14 +77,19 @@ const contextActionGroups = [
     ],
   },
   {
+    label: "Modifier",
+    actions: [
+      ["cut", "Couper", "Ctrl+X", Scissors],
+      ["copy", "Copier", "Ctrl+C", Copy],
+      ["rename", "Renommer", "F2", Pencil],
+      ["trash", "Mettre à la corbeille", "Suppr", Trash2],
+    ],
+  },
+  {
     label: "Organiser",
     actions: [
       ["stash", "Ajouter à la collecte", "", Plus],
-      ["copy", "Copier", "Ctrl+C", Copy],
-      ["cut", "Couper", "Ctrl+X", Scissors],
-      ["rename", "Renommer", "F2", Pencil],
       ["batch", "Renommer par lot", "", ListOrdered],
-      ["tags", "Tags…", "", Tags],
       ["appearance", "Personnaliser les dossiers…", "", Palette],
     ],
   },
@@ -98,12 +103,8 @@ const contextActionGroups = [
     ],
   },
   {
-    label: "Vérifier",
-    actions: [["hash", "Calculer une empreinte", "", Fingerprint]],
-  },
-  {
-    label: "Supprimer",
-    actions: [["trash", "Mettre à la corbeille", "Suppr", Trash2]],
+    label: "Tags",
+    actions: [["tags", "Tags…", "", Tags]],
   },
   {
     label: "Serveur",
@@ -137,7 +138,9 @@ export function Pane({
   onOpenTab,
   onPreview,
   onAction,
+  onRename,
   onDrop,
+  onDragPaths,
   links,
   onPin,
   showHidden,
@@ -154,7 +157,9 @@ export function Pane({
   onOpenTab: (path: string) => void;
   onPreview: (entry: Entry) => void;
   onAction: (action: string) => void;
+  onRename: (entry: Entry, name: string) => Promise<void>;
   onDrop: (e: React.DragEvent, path: string) => void;
+  onDragPaths: (paths: string[]) => void;
   links: Quicklink[];
   onPin: (link?: Quicklink) => void;
   showHidden: boolean;
@@ -172,6 +177,54 @@ export function Pane({
   } | null>(null);
   const [tagBusy, setTagBusy] = useState(false);
   const [tagError, setTagError] = useState("");
+  const [renaming, setRenaming] = useState<Entry | null>(null);
+  const [renameError, setRenameError] = useState("");
+  const [renameBusy, setRenameBusy] = useState(false);
+  const renameSaving = useRef(false);
+  const renameCancelled = useRef(false);
+  const renameTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastClick = useRef({ path: "", time: 0 });
+  const selectedPaths = pane.selected.map((entry) => entry.path).join("\n");
+  function cancelRenameTimer() {
+    if (renameTimer.current) clearTimeout(renameTimer.current);
+    renameTimer.current = null;
+  }
+  useEffect(() => {
+    cancelRenameTimer();
+    renameCancelled.current = true;
+    setRenaming(null);
+    return cancelRenameTimer;
+  }, [pane.path, selectedPaths, active]);
+  function startRename(entry: Entry) {
+    cancelRenameTimer();
+    renameCancelled.current = false;
+    setRenameError("");
+    setRenaming(entry);
+  }
+  async function finishRename(name: string) {
+    if (!renaming || renameSaving.current || renameCancelled.current) return;
+    if (name === renaming.name) {
+      setRenaming(null);
+      return;
+    }
+    if (!name.trim()) {
+      setRenameError("Saisissez un nom.");
+      return;
+    }
+    renameSaving.current = true;
+    setRenameBusy(true);
+    setRenameError("");
+    try {
+      await onRename(renaming, name);
+      setRenaming(null);
+      scroll.current?.focus();
+    } catch (error) {
+      setRenameError((error as Error).message);
+    } finally {
+      renameSaving.current = false;
+      setRenameBusy(false);
+    }
+  }
   const scroll = useRef<HTMLDivElement>(null);
   const contextMenu = useRef<HTMLDivElement>(null);
   const anchor = useRef(0);
@@ -254,6 +307,7 @@ export function Pane({
       scroll.current.scrollTop = pane.scrollTop || 0;
   }, [pane.path, pane.loading]);
   const [width, setWidth] = useState(0);
+  const drives = pane.path === DRIVES_PATH;
   const baseView = fileView(pane.viewMode);
   const view = { ...baseView, ...fileMetrics(baseView, preferences) };
   const visibleColumns = preferences.columns
@@ -270,12 +324,14 @@ export function Pane({
     overscan: 8,
   });
   useLayoutEffect(() => {
+    const element = scroll.current;
+    if (!element) return;
     const observer = new ResizeObserver(([entry]) =>
       setWidth(entry.contentRect.width),
     );
-    observer.observe(scroll.current!);
+    observer.observe(element);
     return () => observer.disconnect();
-  }, []);
+  }, [drives]);
   useLayoutEffect(() => {
     virtual.measure();
     const index = rows.findIndex(
@@ -310,6 +366,7 @@ export function Pane({
   }, [address, editing, showHidden]);
   useEffect(() => {
     const close = (event: Event) => {
+      cancelRenameTimer();
       if (
         !(event.target instanceof Node) ||
         !contextMenu.current?.contains(event.target)
@@ -361,12 +418,22 @@ export function Pane({
   const trail = pathBreadcrumbs(pane.path);
   const allowed = (action: string) =>
     !preferences.hiddenActions.includes(action) &&
+    (action !== "rename" || pane.selected.length === 1) &&
+    (action !== "batch" || pane.selected.length > 1) &&
+    (action !== "quick" || !!defaultQuickAction(pane.selected, null)) &&
+    (action !== "convert" ||
+      pane.selected.some((entry) => conversionKind(entry))) &&
+    (action !== "appearance" ||
+      pane.selected.every((entry) => entry.type === "directory")) &&
+    (action !== "extract" ||
+      (pane.selected.length === 1 &&
+        /\.(zip|7z|rar)$/i.test(pane.selected[0].name))) &&
     (isRemote(pane.path)
       ? remoteActions.has(action) &&
         (!["rename", "remote-permissions"].includes(action) ||
           remoteProtocol === "sftp")
       : !action.startsWith("remote-"));
-  if (pane.path === DRIVES_PATH)
+  if (drives)
     return (
       <section
         className={"pane " + (active ? "active" : "")}
@@ -390,6 +457,7 @@ export function Pane({
     <section
       className={"pane " + (active ? "active" : "")}
       data-view={pane.viewMode}
+      data-narrow={width < 640}
       onPointerDown={onActive}
       onDragOver={(e) => {
         e.preventDefault();
@@ -750,7 +818,19 @@ export function Pane({
         }
         tabIndex={0}
         onKeyDown={(e) => {
+          if (e.target instanceof HTMLInputElement) return;
           if (!rows.length || e.altKey || e.ctrlKey || e.metaKey) return;
+          if (
+            e.key === "F2" &&
+            preferences.shortcuts.rename === "F2" &&
+            pane.selected.length === 1 &&
+            allowed("rename")
+          ) {
+            e.preventDefault();
+            e.stopPropagation();
+            startRename(pane.selected[0]);
+            return;
+          }
           if (e.key === "ContextMenu" || (e.shiftKey && e.key === "F10")) {
             const entry = pane.selected.at(-1);
             if (!entry) return;
@@ -886,11 +966,14 @@ export function Pane({
                               : {}),
                           } as CSSProperties
                         }
-                        draggable
+                        draggable={!renaming}
                         onDragStart={(e) => {
+                          cancelRenameTimer();
+                          lastClick.current = { path: "", time: 0 };
                           const paths = selected
                             ? pane.selected.map((s) => s.path)
                             : [entry.path];
+                          onDragPaths(paths);
                           e.dataTransfer.setData(
                             "application/x-nextexplorer",
                             JSON.stringify(paths),
@@ -901,6 +984,7 @@ export function Pane({
                           );
                           e.dataTransfer.effectAllowed = "copyMove";
                         }}
+                        onDragEnd={() => onDragPaths([])}
                         onDragOver={(e) => {
                           if (entry.type === "directory") {
                             e.preventDefault();
@@ -918,7 +1002,7 @@ export function Pane({
                           }
                         }}
                         onPointerEnter={() => {
-                          if (preferences.hoverSelect)
+                          if (preferences.hoverSelect && !renaming)
                             hoverTimer.current = setTimeout(
                               () => onChange({ selected: [entry] }),
                               600,
@@ -929,6 +1013,28 @@ export function Pane({
                             clearTimeout(hoverTimer.current);
                         }}
                         onClick={(e) => {
+                          if (e.target instanceof HTMLInputElement) return;
+                          cancelRenameTimer();
+                          const now = performance.now();
+                          if (
+                            !preferences.singleClick &&
+                            allowed("rename") &&
+                            !e.ctrlKey &&
+                            !e.metaKey &&
+                            !e.shiftKey &&
+                            selected &&
+                            pane.selected.length === 1 &&
+                            lastClick.current.path === entry.path &&
+                            now - lastClick.current.time >= 600 &&
+                            e.target instanceof Element &&
+                            e.target.closest(".file-name, .file-item-name")
+                          ) {
+                            renameTimer.current = setTimeout(
+                              () => startRename(entry),
+                              500,
+                            );
+                          }
+                          lastClick.current = { path: entry.path, time: now };
                           select(entry, v.index * columns + k, e);
                           if (
                             preferences.singleClick &&
@@ -946,14 +1052,18 @@ export function Pane({
                             onOpenTab(entry.path);
                           }
                         }}
-                        onDoubleClick={() =>
-                          !preferences.singleClick &&
-                          (entry.type === "directory"
-                            ? navigate(entry.path)
-                            : onPreview(entry))
-                        }
+                        onDoubleClick={() => {
+                          cancelRenameTimer();
+                          lastClick.current = { path: "", time: 0 };
+                          if (!renaming && !preferences.singleClick)
+                            entry.type === "directory"
+                              ? navigate(entry.path)
+                              : onPreview(entry);
+                        }}
                         onContextMenu={(e) => {
                           e.preventDefault();
+                          cancelRenameTimer();
+                          lastClick.current = { path: "", time: 0 };
                           if (!selected) onChange({ selected: [entry] });
                           setMenu({
                             x: e.clientX,
@@ -983,6 +1093,64 @@ export function Pane({
                           />
                         )}
                         <FileEntryContent
+                          nameContent={
+                            renaming?.path === entry.path ? (
+                              <span
+                                className="inline-rename"
+                                onClick={(event) => event.stopPropagation()}
+                                onDoubleClick={(event) =>
+                                  event.stopPropagation()
+                                }
+                              >
+                                <input
+                                  aria-label={`Renommer ${entry.name}`}
+                                  aria-invalid={!!renameError}
+                                  defaultValue={entry.name}
+                                  disabled={renameBusy}
+                                  maxLength={255}
+                                  ref={(input) => {
+                                    if (
+                                      !input ||
+                                      document.activeElement === input
+                                    )
+                                      return;
+                                    input.focus();
+                                    input.setSelectionRange(
+                                      0,
+                                      entry.type === "file" && entry.ext
+                                        ? entry.name.length - entry.ext.length
+                                        : entry.name.length,
+                                    );
+                                  }}
+                                  onBlur={(event) =>
+                                    void finishRename(event.currentTarget.value)
+                                  }
+                                  onKeyDown={(event) => {
+                                    event.stopPropagation();
+                                    if (event.key === "Escape") {
+                                      event.preventDefault();
+                                      renameCancelled.current = true;
+                                      setRenaming(null);
+                                      scroll.current?.focus();
+                                    } else if (event.key === "Enter") {
+                                      event.preventDefault();
+                                      void finishRename(
+                                        event.currentTarget.value,
+                                      );
+                                    }
+                                  }}
+                                />
+                                {renameError && (
+                                  <span
+                                    role="alert"
+                                    className="inline-rename-error"
+                                  >
+                                    {renameError}
+                                  </span>
+                                )}
+                              </span>
+                            ) : undefined
+                          }
                           entry={entry}
                           mode={pane.viewMode}
                           customDetails
@@ -1066,7 +1234,15 @@ export function Pane({
                 {index > 0 && (
                   <div className="context-separator" role="separator" />
                 )}
-                <div role="group" aria-label={group.label}>
+                <div
+                  role="group"
+                  aria-label={group.label}
+                  className={
+                    group.label === "Modifier"
+                      ? "context-edit-actions"
+                      : undefined
+                  }
+                >
                   <div className="context-group-label" aria-hidden="true">
                     {group.label}
                   </div>
@@ -1087,7 +1263,7 @@ export function Pane({
                     )}
                   {group.actions
                     .filter(([action]) => allowed(action))
-                    .map(([action, label, shortcut, Icon]) => (
+                    .map(([action, label, , Icon]) => (
                       <Fragment key={action}>
                         {action === "tags" && (
                           <>
@@ -1126,10 +1302,25 @@ export function Pane({
                             action === "trash" ? "context-trash" : undefined
                           }
                           aria-label={label}
+                          title={
+                            group.label === "Modifier"
+                              ? [label, preferences.shortcuts[action]]
+                                  .filter(Boolean)
+                                  .join(" · ")
+                              : undefined
+                          }
                           onClick={() => {
                             setMenu(null);
                             scroll.current?.focus();
-                            onAction(action === "tags" ? "tag-picker" : action);
+                            if (
+                              action === "rename" &&
+                              pane.selected.length === 1
+                            )
+                              startRename(pane.selected[0]);
+                            else
+                              onAction(
+                                action === "tags" ? "tag-picker" : action,
+                              );
                           }}
                         >
                           <Icon size={18} aria-hidden="true" />

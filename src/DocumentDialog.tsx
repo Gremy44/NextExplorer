@@ -1,21 +1,31 @@
 import { useEffect, useRef, useState } from "react";
-import { Save, X, History, Pencil, Search } from "lucide-react";
+import { Save, X, History, Pencil, Search, Download } from "lucide-react";
 import DOMPurify from "dompurify";
 import { bridge } from "./bridge";
 import { mediaType, size, type Entry } from "./types";
 
 type Revision = { id: string; date: string; size: number };
-type Document = { text: string; hash: string; entry: Entry };
+import {
+  documentDrafts,
+  downloadDraft,
+  type DocumentDraft,
+  type TextDocument as Document,
+} from "./document-drafts";
+export { hasDocumentDraft } from "./document-drafts";
 export function DocumentDialog({
   entry,
   initial,
   onClose,
   onSaved,
+  embedded = false,
+  draftId,
 }: {
   entry: Entry;
   initial: "edit" | "versions";
   onClose: () => void;
   onSaved: () => void;
+  embedded?: boolean;
+  draftId?: string;
 }) {
   const [tab, setTab] = useState(initial),
     [document, setDocument] = useState<Document | null>(null),
@@ -32,20 +42,53 @@ export function DocumentDialog({
     paint = useRef<HTMLPreElement>(null),
     lines = useRef<HTMLDivElement>(null),
     box = useRef<HTMLElement>(null);
+  const activeDraft = useRef<DocumentDraft | undefined>(undefined);
+  const loadGeneration = useRef(0);
+  const [draftError, setDraftError] = useState("");
+  function discardDraft() {
+    if (activeDraft.current) documentDrafts.remove(activeDraft.current);
+    activeDraft.current = undefined;
+    setDraftError("");
+  }
   const dirty = !!document && draft !== document.text;
   const close = () => {
     if (
       !busy &&
       (!dirty || confirm("Abandonner les modifications non enregistrées ?"))
-    )
+    ) {
+      try {
+        if (dirty) discardDraft();
+      } catch (e) {
+        setError((e as Error).message);
+        return;
+      }
       onClose();
+    }
   };
-  async function load() {
+  async function load(resume = false) {
+    const generation = ++loadGeneration.current;
+    const saved = resume && documentDrafts.get(entry.path, draftId);
+    if (saved) {
+      setDocument(saved.document);
+      setDraft(saved.text);
+      activeDraft.current = saved;
+      setDraftError(
+        documentDrafts.isPending(saved.id)
+          ? "Brouillon conservé uniquement dans cette page. Ne la fermez pas ; téléchargez le texte ou réessayez de le modifier pour relancer la sauvegarde locale."
+          : "",
+      );
+      setMessage(
+        "Brouillon récupéré sur cet appareil. Enregistrez pour modifier le fichier ; si celui-ci a changé, l’enregistrement sera refusé.",
+      );
+      return;
+    }
     const value = await bridge.request<Document>("EDITOR_READ", {
       path: entry.path,
     });
+    if (generation !== loadGeneration.current) return;
     setDocument(value);
     setDraft(value.text);
+    discardDraft();
   }
   async function refresh() {
     setVersions(
@@ -73,6 +116,7 @@ export function DocumentDialog({
         snapshot: document.hash,
         text: draft,
       });
+      discardDraft();
       await load();
       onSaved();
       setMessage("Enregistré. La version précédente est conservée.");
@@ -80,9 +124,12 @@ export function DocumentDialog({
   }
   useEffect(() => {
     void perform(async () => {
-      await refresh();
-      if (initial === "edit") await load();
+      if (initial === "edit") await load(true);
+      if (!embedded || initial === "versions") await refresh();
     });
+    return () => {
+      loadGeneration.current++;
+    };
   }, [entry.path]);
   useEffect(() => {
     const handler = (event: BeforeUnloadEvent) => {
@@ -96,7 +143,7 @@ export function DocumentDialog({
   }, [dirty, busy]);
   useEffect(() => {
     const previous = window.document.activeElement as HTMLElement;
-    box.current?.focus();
+    if (!embedded) box.current?.focus();
     return () => previous?.focus();
   }, []);
   useEffect(() => {
@@ -127,11 +174,11 @@ export function DocumentDialog({
     };
   }, [draft]);
   return (
-    <div className="overlay">
+    <div className={embedded ? "embedded-document" : "overlay"}>
       <section
-        className="modal wide document-dialog"
-        role="dialog"
-        aria-modal="true"
+        className={embedded ? "inline-document" : "modal wide document-dialog"}
+        role={embedded ? "region" : "dialog"}
+        aria-modal={embedded ? undefined : true}
         aria-label={`Document : ${entry.name}`}
         ref={box}
         tabIndex={-1}
@@ -148,7 +195,7 @@ export function DocumentDialog({
             event.preventDefault();
             if (!busy && dirty) void save();
           }
-          if (event.key === "Tab") {
+          if (!embedded && event.key === "Tab") {
             const items = Array.from(
               box.current!.querySelectorAll<HTMLElement>(
                 'button:not(:disabled),input,textarea,select,[tabindex="0"]',
@@ -170,12 +217,12 @@ export function DocumentDialog({
         }}
       >
         <header>
-          <strong>
-            {entry.name}
+          <strong title={entry.name}>
+            {embedded ? "Texte" : entry.name}
             {dirty ? " •" : ""}
           </strong>
           <button
-            aria-label="Fermer le document"
+            aria-label={embedded ? "Quitter l’édition" : "Fermer le document"}
             disabled={busy}
             onClick={close}
           >
@@ -189,7 +236,7 @@ export function DocumentDialog({
               disabled={busy}
               onClick={() => {
                 setTab("edit");
-                if (!document) void perform(load);
+                if (!document) void perform(() => load(true));
               }}
             >
               <Pencil size={16} />
@@ -215,12 +262,19 @@ export function DocumentDialog({
             </p>
           )}
           {message && <p role="status">{message}</p>}
+          {draftError && (
+            <p role="alert" className="error">
+              {draftError}
+            </p>
+          )}
           {tab === "edit" ? (
             <>
-              <p className="muted">
-                Texte UTF-8 · 128 Kio maximum · une version est conservée avant
-                chaque modification.
-              </p>
+              {!embedded && (
+                <p className="muted">
+                  Texte UTF-8 · 128 Kio maximum · une version est conservée
+                  avant chaque modification.
+                </p>
+              )}
               <div className="document-search">
                 <Search size={16} />
                 <input
@@ -276,7 +330,24 @@ export function DocumentDialog({
                     disabled={busy || !document}
                     spellCheck={false}
                     wrap="off"
-                    onChange={(e) => setDraft(e.target.value)}
+                    maxLength={128 * 1024}
+                    onChange={(e) => {
+                      const text = e.target.value;
+                      setDraft(text);
+                      try {
+                        if (document && text !== document.text) {
+                          const saved = documentDrafts.write(
+                            document,
+                            text,
+                            activeDraft.current,
+                          );
+                          activeDraft.current = saved.draft;
+                          setDraftError(saved.error);
+                        } else discardDraft();
+                      } catch (e) {
+                        setDraftError((e as Error).message);
+                      }
+                    }}
                     onScroll={(e) => {
                       if (paint.current) {
                         paint.current.scrollTop = e.currentTarget.scrollTop;
@@ -288,6 +359,22 @@ export function DocumentDialog({
                   />
                 </div>
               </div>
+              {dirty && activeDraft.current && (
+                <div className="draft-status">
+                  <small role="status">
+                    {draftError
+                      ? "Récupération non garantie après fermeture"
+                      : "Brouillon sauvegardé sur cet appareil"}
+                  </small>
+                  <button
+                    onClick={() =>
+                      activeDraft.current && downloadDraft(activeDraft.current)
+                    }
+                  >
+                    <Download size={16} /> Télécharger le brouillon
+                  </button>
+                </div>
+              )}
               <button
                 disabled={busy}
                 onClick={() => {
@@ -297,7 +384,7 @@ export function DocumentDialog({
                       "Abandonner les modifications et relire le fichier ?",
                     )
                   )
-                    void perform(load);
+                    void perform(() => load());
                 }}
               >
                 Recharger depuis le disque

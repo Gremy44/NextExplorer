@@ -23,8 +23,7 @@ export function QuickActions({
 }) {
   const actions = quickActions(entries, hello);
   const convert =
-    activeAction === "convert" ||
-    (entries.length > 0 && entries.every((e) => conversionKind(e)));
+    activeAction === "convert" || entries.some((e) => conversionKind(e));
   if (!actions.length && !convert) return null;
   const icons = {
     rotate: RotateCcw,
@@ -50,6 +49,7 @@ export function QuickActions({
                 activeAction ? activeAction === action.id : undefined
               }
               title={action.disabled ? action.reason : undefined}
+              aria-description={action.disabled ? action.reason : undefined}
               onClick={() => onAction(action.id)}
             >
               <Icon size={16} />

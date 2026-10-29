@@ -1,5 +1,7 @@
 # Interface compacte — checklist de recette
 
+Complément du 29 octobre 2026 : [la passe de cohérence V1](COHERENCE_UI_V1.md) corrige les accès et les libellés, la recherche des réglages et les aides, et qualifie thèmes/densités/grands textes. Les cases de recette utilisateur ci-dessous restent réservées aux retours de l’utilisateur.
+
 Demandes du 26 octobre 2026. Les cases « réalisé » concernent le code ; les cases de recette restent à cocher après essai utilisateur. Ne pas reconstruire l’installateur EXE pour ce lot.
 
 ## Réglages
@@ -93,4 +95,6 @@ Les aides `ⓘ` s’ouvrent au survol ou au focus clavier ; Échap les referme. 
 
 Captures locales : `test-results/ergonomics-*.png`. Les cases **Recette** plus haut sont réservées à la validation utilisateur.
 
-Les EXE existants sont inchangés. Le build web est dans `dist` ; l’installation issue de l’ancien EXE ne reçoit pas ces changements automatiquement.
+Le build web est dans `dist` ; l’installation issue de l’ancien EXE ne reçoit pas ces changements automatiquement. Le compagnon a depuis été recompilé pour les dossiers distants puis pour l’analyse disque ; l’installateur Setup reste inchangé.
+
+Le lot du 27 octobre applique les retours du premier PDF utilisateur : [checklist dédiée](RETOURS_USAGE_01.md). Il ajoute la navigation réduite en icônes, compacte l’en-tête, réorganise le clic droit et les outils, et apporte le renommage direct au second clic lent.

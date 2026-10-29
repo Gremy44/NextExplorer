@@ -28,4 +28,12 @@ func TestDirectoryListingIsBoundedAndFilterCanFindLaterNames(t *testing.T) {
 	if listing["total"].(int) != 1 || listing["truncated"] != false {
 		t.Fatal("filter did not examine later names")
 	}
+	value, err = listDir(Payload{Path: dir, Mode: "search", Limit: -1})
+	if err != nil {
+		t.Fatal(err)
+	}
+	listing = value.(M)
+	if listing["total"].(int) != 10003 || listing["truncated"] != false {
+		t.Fatal("search missed files beyond the regular listing limit", listing["total"])
+	}
 }

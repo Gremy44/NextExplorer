@@ -219,10 +219,10 @@ export async function runVisualJourney({
     if (
       width === 390 &&
       (await page
-        .getByTitle("Masquer la navigation", { exact: true })
+        .getByTitle("Réduire la navigation", { exact: true })
         .isVisible())
     )
-      await page.getByTitle("Masquer la navigation", { exact: true }).click();
+      await page.getByTitle("Réduire la navigation", { exact: true }).click();
     await shot(page, `explorateur-${width}`);
     await page.getByTitle("Nouveau dossier", { exact: true }).click();
     await shot(page, `dialogue-${width}`);

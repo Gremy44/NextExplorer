@@ -1,10 +1,13 @@
-import type { Entry, Listing } from "./types";
+import { mediaType, type Entry, type Listing } from "./types";
 import { fileKey, sameFamilyFile } from "./file-families";
 import { previewText } from "./preview-text";
 
-export const INDEX_LIMIT = 1000;
+export const INDEX_LIMIT = 50_000;
+export const INDEX_DIRECTORIES = 5_000;
+export const INDEX_DEPTH = 64;
+export const INDEX_METADATA_BYTES = 32 * 1024 * 1024;
 export const INDEX_TEXT_BYTES = 16 * 1024;
-export const INDEX_TEXT_LIMIT = 2 * 1024 * 1024;
+export const INDEX_TEXT_LIMIT = 16 * 1024 * 1024;
 export const textRulesKey = "textKeywordRules";
 export type TextRule = { id: string; name: string; keywords: string };
 export function restoreTextRules(value: unknown): TextRule[] {
@@ -50,6 +53,23 @@ export type LocalIndex = {
   errors: number;
   milliseconds: number;
   hidden: boolean;
+  coverage?: {
+    scanned: number;
+    extracted: number;
+    partialTexts: number;
+    skipped: number;
+    reasons: string[];
+    unreadable: string[];
+    content: boolean;
+  };
+};
+export type IndexProgress = {
+  phase: "list" | "content";
+  processed: number;
+  files: number;
+  directories: number;
+  pending: number;
+  path: string;
 };
 export type IndexIO = {
   list: (
@@ -63,6 +83,14 @@ export type IndexIO = {
   pdf?: (path: string) => Promise<{ text: string; note: string }>;
   office?: (path: string) => Promise<{ text: string; note: string }>;
 };
+export const normalizeSearch = (text: string) =>
+  text.normalize("NFD").replace(/\p{M}/gu, "").toLocaleLowerCase("fr");
+export const searchTerms = (text: string) =>
+  normalizeSearch(text).trim().split(/\s+/u).filter(Boolean).slice(0, 50);
+const searchDocuments = new WeakMap<
+  LocalIndex,
+  { name: string; content: string; source: string }[]
+>();
 export function words(text: string) {
   return (
     text
@@ -73,13 +101,34 @@ export function words(text: string) {
       ?.slice(0, 5000) || []
   );
 }
-export function searchIndex(index: LocalIndex, query: string, extension = "") {
-  const terms = [...new Set(words(query))];
-  return index.files.filter(({ entry, text, source }) => {
-    const tokens = new Set(words(`${entry.name} ${text} ${source || ""}`));
+export function searchIndex(
+  index: LocalIndex,
+  query: string,
+  extension = "",
+  keyword = "",
+) {
+  let documents = searchDocuments.get(index);
+  if (!documents) {
+    documents = index.files.map(({ entry, text, source }) => ({
+      name: normalizeSearch(entry.name),
+      content: normalizeSearch(text),
+      source: normalizeSearch(source || ""),
+    }));
+    searchDocuments.set(index, documents);
+  }
+  const terms = searchTerms(query),
+    keywords = searchTerms(keyword);
+  return index.files.filter(({ entry }, i) => {
+    const doc = documents![i];
     return (
       (!extension || entry.ext === extension) &&
-      terms.every((term) => tokens.has(term))
+      terms.every(
+        (term) =>
+          doc.name.includes(term) ||
+          doc.content.includes(term) ||
+          doc.source.includes(term),
+      ) &&
+      keywords.every((term) => doc.content.includes(term))
     );
   });
 }
@@ -113,6 +162,7 @@ export function relatedTexts(files: IndexedFile[], path: string) {
   if (target < 0) return [];
   const norm = (v: Map<string, number>) =>
     Math.sqrt([...v.values()].reduce((sum, value) => sum + value * value, 0));
+  const norms = vectors.map(norm);
   return files
     .map((file, i) => ({
       file,
@@ -122,7 +172,7 @@ export function relatedTexts(files: IndexedFile[], path: string) {
           : [...vectors[target]].reduce(
               (sum, [word, value]) => sum + value * (vectors[i].get(word) || 0),
               0,
-            ) / (norm(vectors[target]) * norm(vectors[i]) || 1),
+            ) / (norms[target] * norms[i] || 1),
     }))
     .filter((item) => item.score > 0.15)
     .sort((a, b) => b.score - a.score)
@@ -134,7 +184,8 @@ export async function buildIndex(
   hidden: boolean,
   io: IndexIO,
   signal: AbortSignal,
-  progress: (count: number) => void,
+  progress: (value: IndexProgress) => void,
+  content = true,
 ) {
   const started = performance.now();
   const result: LocalIndex = {
@@ -148,106 +199,164 @@ export async function buildIndex(
     omitted: 0,
     errors: 0,
     milliseconds: 0,
+    coverage: {
+      scanned: 0,
+      extracted: 0,
+      partialTexts: 0,
+      skipped: 0,
+      reasons: [],
+      unreadable: [],
+      content,
+    },
+  };
+  const coverage = result.coverage!;
+  const reason = (message: string) => {
+    if (!coverage.reasons.includes(message)) coverage.reasons.push(message);
   };
   const queue = [{ path: root, depth: 0 }],
     seen = new Set<string>();
   let textBudget = INDEX_TEXT_LIMIT,
-    visited = 0;
-  while (queue.length && visited < INDEX_LIMIT && result.directories < 100) {
+    visited = 0,
+    metadataBytes = 0,
+    head = 0,
+    lastProgress = 0,
+    processed = 0;
+  let phase: "list" | "content" = "list";
+  const report = (path: string, force = false) => {
+    if (force || performance.now() - lastProgress > 100) {
+      lastProgress = performance.now();
+      progress({
+        phase,
+        processed,
+        files: result.files.length,
+        directories: result.directories,
+        pending: queue.length - head,
+        path,
+      });
+    }
+  };
+  while (
+    head < queue.length &&
+    visited < INDEX_LIMIT &&
+    result.directories < INDEX_DIRECTORIES &&
+    metadataBytes < INDEX_METADATA_BYTES
+  ) {
     signal.throwIfAborted();
-    const dir = queue.shift()!;
+    const dir = queue[head++];
     if (seen.has(fileKey(dir.path))) continue;
     seen.add(fileKey(dir.path));
     let offset = 0,
       snapshot = "";
     result.directories++;
+    report(dir.path, true);
     try {
       const stamp = await io.stat(dir.path);
       signal.throwIfAborted();
       if (stamp.type !== "directory")
         throw new Error("Le dossier a changé pendant l’indexation");
+      const folderBytes = new TextEncoder().encode(
+        JSON.stringify(stamp),
+      ).length;
+      if (metadataBytes + folderBytes > INDEX_METADATA_BYTES) {
+        reason("Budget de métadonnées de 32 Mio atteint");
+        metadataBytes = INDEX_METADATA_BYTES;
+        result.omitted++;
+        break;
+      }
       result.folders.push(stamp);
+      metadataBytes += folderBytes;
       do {
         const page = await io.list(dir.path, offset, snapshot, hidden);
         signal.throwIfAborted();
+        if (
+          page.currentPath !== dir.path ||
+          !Number.isSafeInteger(page.total) ||
+          page.total < 0 ||
+          !Array.isArray(page.entries) ||
+          !page.snapshot ||
+          (snapshot && page.snapshot !== snapshot) ||
+          !Number.isSafeInteger(page.nextOffset) ||
+          page.nextOffset !== offset + page.entries.length ||
+          page.nextOffset > page.total
+        )
+          throw new Error(
+            "Pagination du dossier invalide : relancez l’analyse",
+          );
+        if (page.truncated) {
+          reason(
+            "Liste native partielle : certains noms du dossier ne sont pas fournis par le compagnon",
+          );
+          if (offset === 0 && coverage.unreadable.length < 20)
+            coverage.unreadable.push(dir.path);
+        }
+        if (offset === 0 && page.skipped) {
+          result.errors += page.skipped;
+          reason(
+            "Métadonnées inaccessibles : certains fichiers ne sont pas indexés",
+          );
+        }
         snapshot = page.snapshot;
         for (const entry of page.entries) {
           signal.throwIfAborted();
-          if (++visited > INDEX_LIMIT) {
-            result.omitted += Math.max(
-              1,
-              page.total - offset - page.entries.indexOf(entry),
+          const weight = new TextEncoder().encode(JSON.stringify(entry)).length;
+          if (
+            visited >= INDEX_LIMIT ||
+            metadataBytes + weight > INDEX_METADATA_BYTES
+          ) {
+            reason(
+              visited >= INDEX_LIMIT
+                ? "Plafond de 50 000 entrées atteint"
+                : "Budget de métadonnées de 32 Mio atteint",
             );
+            result.omitted += page.total - offset - page.entries.indexOf(entry);
+            if (metadataBytes + weight > INDEX_METADATA_BYTES)
+              metadataBytes = INDEX_METADATA_BYTES;
             break;
           }
+          visited++;
+          coverage.scanned = visited;
+          metadataBytes += weight;
           if (entry.type === "directory") {
-            if (dir.depth < 8)
+            if (dir.depth < INDEX_DEPTH && queue.length < INDEX_DIRECTORIES)
               queue.push({ path: entry.path, depth: dir.depth + 1 });
-            else result.omitted++;
+            else {
+              result.omitted++;
+              reason(
+                dir.depth >= INDEX_DEPTH
+                  ? "Profondeur maximale de 64 niveaux atteinte"
+                  : "Plafond de 5 000 dossiers atteint",
+              );
+            }
             continue;
           }
-          if (entry.type !== "file" || entry.name.endsWith(".source.json"))
+          if (
+            entry.type !== "file" ||
+            entry.name.toLowerCase().endsWith(".source.json")
+          ) {
+            coverage.skipped++;
             continue;
+          }
           const file: IndexedFile = {
             entry,
             text: "",
             note: "Nom uniquement · format non extrait",
           };
-          try {
-            if (
-              /^\.(txt|md|markdown|csv|json|log|xml|html?|css|[cm]?js|tsx?|ya?ml|weblink)$/i.test(
-                entry.ext,
-              ) &&
-              textBudget > 0
-            ) {
-              const value = await io.read(entry.path);
-              signal.throwIfAborted();
-              const parsed = previewText(value.bytes, value.size);
-              file.text = parsed.text.slice(0, Math.min(8192, textBudget));
-              file.note = parsed.binary
-                ? "Nom uniquement · données binaires"
-                : parsed.truncated || file.text.length < parsed.text.length
-                  ? "Extrait tronqué (16 Kio / 1 000 lignes / 8 192 caractères)"
-                  : "Texte extrait";
-            } else if (/^\.(docx|xlsx|pptx)$/i.test(entry.ext) && io.office && textBudget > 0) {
-              const parsed = await io.office(entry.path);
-              signal.throwIfAborted();
-              file.text = parsed.text.slice(0, Math.min(8192, textBudget));
-              file.note = parsed.note;
-            } else if (entry.ext === ".pdf") {
-              file.note = "Nom uniquement · pdftotext non installé";
-              if (io.pdf && textBudget > 0) {
-                const parsed = await io.pdf(entry.path);
-                signal.throwIfAborted();
-                file.text = parsed.text.slice(0, Math.min(8192, textBudget));
-                file.note = parsed.note;
-              }
-            } else if (textBudget <= 0)
-              file.note = "Nom uniquement · budget de texte atteint";
-            if (file.text) {
-              const actual = await io.stat(entry.path);
-              if (
-                !sameFamilyFile(entry, actual) ||
-                (entry.stamp && entry.stamp !== actual.stamp)
-              )
-                throw new Error("Fichier modifié pendant la lecture");
-            }
-          } catch (error) {
-            signal.throwIfAborted();
-            file.text = "";
-            file.note = (error as Error).message.slice(0, 1024);
-            result.errors++;
-          }
-          textBudget -= file.text.length;
           result.files.push(file);
-          progress(result.files.length);
+          report(dir.path);
         }
-        if (visited >= INDEX_LIMIT) {
-          if (page.nextOffset < page.total)
+        if (visited >= INDEX_LIMIT || metadataBytes >= INDEX_METADATA_BYTES) {
+          if (
+            visited === INDEX_LIMIT &&
+            page.nextOffset < page.total &&
+            !coverage.reasons.includes("Plafond de 50 000 entrées atteint")
+          ) {
             result.omitted += page.total - page.nextOffset;
+            reason("Plafond de 50 000 entrées atteint");
+          }
           break;
         }
-        if (page.nextOffset <= offset) break;
+        if (page.nextOffset <= offset && page.nextOffset < page.total)
+          throw new Error("Pagination du dossier interrompue");
         offset = page.nextOffset;
         if (offset >= page.total) break;
       } while (true);
@@ -255,10 +364,78 @@ export async function buildIndex(
       signal.throwIfAborted();
       if (dir.depth === 0) throw error;
       result.errors++;
+      reason("Sous-dossiers inaccessibles ou modifiés pendant le parcours");
+      if (coverage.unreadable.length < 20) coverage.unreadable.push(dir.path);
     }
   }
   signal.throwIfAborted();
-  result.omitted += queue.length;
+  result.omitted += queue.length - head;
+  if (head < queue.length)
+    reason(
+      visited >= INDEX_LIMIT
+        ? "Plafond de 50 000 entrées atteint"
+        : metadataBytes >= INDEX_METADATA_BYTES
+          ? "Budget de métadonnées de 32 Mio atteint"
+          : "Plafond de 5 000 dossiers atteint",
+    );
+  // Capture directory pages before slow document extraction can expire their snapshots.
+  phase = "content";
+  for (const file of result.files) {
+    signal.throwIfAborted();
+    const entry = file.entry;
+    try {
+      if (!content) file.note = "Nom uniquement · contenu non demandé";
+      else if (entry.size === 0) file.note = "Fichier vide";
+      else if (["text", "link"].includes(mediaType(entry)) && textBudget > 0) {
+        const value = await io.read(entry.path);
+        signal.throwIfAborted();
+        const parsed = previewText(value.bytes, value.size);
+        file.text = parsed.text.slice(0, Math.min(8192, textBudget));
+        file.note = parsed.binary
+          ? "Nom uniquement · données binaires"
+          : parsed.truncated || file.text.length < parsed.text.length
+            ? "Extrait tronqué (16 Kio / 1 000 lignes / 8 192 caractères)"
+            : "Texte extrait";
+      } else if (
+        /^\.(docx|xlsx|pptx)$/i.test(entry.ext) &&
+        io.office &&
+        textBudget > 0
+      ) {
+        const parsed = await io.office(entry.path);
+        signal.throwIfAborted();
+        file.text = parsed.text.slice(0, Math.min(8192, textBudget));
+        file.note = parsed.note;
+      } else if (entry.ext === ".pdf") {
+        file.note = "Nom uniquement · pdftotext non installé";
+        if (io.pdf && textBudget > 0) {
+          const parsed = await io.pdf(entry.path);
+          signal.throwIfAborted();
+          file.text = parsed.text.slice(0, Math.min(8192, textBudget));
+          file.note = parsed.note;
+        }
+      } else if (textBudget <= 0)
+        file.note = "Nom uniquement · budget de texte atteint";
+      if (file.text) {
+        const actual = await io.stat(entry.path);
+        if (
+          !sameFamilyFile(entry, actual) ||
+          (entry.stamp && entry.stamp !== actual.stamp)
+        )
+          throw new Error("Fichier modifié pendant la lecture");
+        coverage.extracted++;
+        if (/tronqu|partiel/i.test(file.note)) coverage.partialTexts++;
+      }
+    } catch (error) {
+      signal.throwIfAborted();
+      file.text = "";
+      file.note = (error as Error).message.slice(0, 1024);
+      result.errors++;
+    }
+    textBudget -= file.text.length;
+    processed++;
+    report(entry.path);
+  }
+  report(root, true);
   result.milliseconds = Math.round(performance.now() - started);
   return result;
 }
@@ -267,8 +444,33 @@ export async function indexIsCurrent(
   index: LocalIndex,
   stat: IndexIO["stat"],
   signal: AbortSignal,
+  check?: (entries: Entry[]) => Promise<boolean>,
 ) {
   const entries = [...index.folders, ...index.files.map((file) => file.entry)];
+  if (check) {
+    let batch: Entry[] = [],
+      bytes = 0;
+    for (const entry of entries) {
+      signal.throwIfAborted();
+      const weight = new TextEncoder().encode(JSON.stringify(entry)).length;
+      if (
+        batch.length &&
+        (batch.length === 100 || bytes + weight > 128 * 1024)
+      ) {
+        if (!(await check(batch))) {
+          signal.throwIfAborted();
+          return false;
+        }
+        batch = [];
+        bytes = 0;
+      }
+      batch.push(entry);
+      bytes += weight;
+    }
+    const current = !batch.length || (await check(batch));
+    signal.throwIfAborted();
+    return current;
+  }
   let next = 0,
     current = true;
   await Promise.all(

@@ -1,4 +1,5 @@
 import {
+  useCallback,
   useEffect,
   useId,
   useLayoutEffect,
@@ -17,8 +18,8 @@ export function Help({ children }: { children: ReactNode }) {
   const button = useRef<HTMLButtonElement>(null);
   const tooltip = useRef<HTMLSpanElement>(null);
   const [position, setPosition] = useState({ left: 8, top: 8 });
-  useLayoutEffect(() => {
-    if (!open || !button.current || !tooltip.current) return;
+  const place = useCallback(() => {
+    if (!button.current || !tooltip.current) return;
     const anchor = button.current.getBoundingClientRect(),
       box = tooltip.current.getBoundingClientRect();
     setPosition({
@@ -28,17 +29,30 @@ export function Help({ children }: { children: ReactNode }) {
         Math.min(anchor.bottom - 1, innerHeight - box.height - 8),
       ),
     });
-  }, [open]);
+  }, []);
+  useLayoutEffect(() => {
+    if (open) place();
+  }, [open, place]);
   useEffect(() => {
     if (!open) return;
     const close = () => setOpen(false);
-    window.addEventListener("scroll", close, true);
+    const scroll = (event: Event) => {
+      if (
+        event.target instanceof Node &&
+        tooltip.current?.contains(event.target)
+      )
+        return;
+      // Focusing an offscreen help button scrolls its section before the tooltip settles.
+      if (document.activeElement === button.current) place();
+      else close();
+    };
+    window.addEventListener("scroll", scroll, true);
     window.addEventListener("resize", close);
     return () => {
-      window.removeEventListener("scroll", close, true);
+      window.removeEventListener("scroll", scroll, true);
       window.removeEventListener("resize", close);
     };
-  }, [open]);
+  }, [open, place]);
   if (!preferences.tooltips) return null;
   return (
     <span
@@ -97,7 +111,10 @@ export function useOptionalTooltips(enabled: boolean) {
       document.querySelectorAll<HTMLElement>("[title]").forEach((element) => {
         if (
           element.matches("button, a, input") &&
-          !element.getAttribute("aria-label") &&
+          (!element.getAttribute("aria-label") ||
+            element.dataset.tooltipLabel ===
+              element.getAttribute("aria-label")) &&
+          element.title &&
           !element.textContent?.trim()
         ) {
           element.setAttribute("aria-label", element.title);

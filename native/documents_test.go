@@ -111,6 +111,52 @@ func TestEditorLimitsAndQuota(t *testing.T) {
 	lock.Close()
 }
 
+func TestVersionsSurviveRestartAndRestoreMissingOriginal(t *testing.T) {
+	root := t.TempDir()
+	folder := t.TempDir()
+	file := filepath.Join(folder, "notes.txt")
+	original := []byte("\xef\xbb\xbfTexte à récupérer\r\n")
+	if err := os.WriteFile(file, original, 0600); err != nil {
+		t.Fatal(err)
+	}
+	h := &Host{journalDir: root}
+	v, err := h.keepVersion(file, original)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err = os.Remove(file); err != nil {
+		t.Fatal(err)
+	}
+	occupied := filepath.Join(folder, "notes-restaure.txt")
+	put(t, occupied, "copie existante")
+	reopened := &Host{journalDir: root}
+	versions, err := reopened.versionList(file)
+	if err != nil || len(versions) != 1 || versions[0].ID != v.ID {
+		t.Fatal(versions, err)
+	}
+	for i := 0; i < 2; i++ {
+		result, err := reopened.fileVersions("FILE_VERSION_RESTORE", Payload{Path: file, Name: v.ID})
+		if err != nil {
+			t.Fatal(err)
+		}
+		restored := result.(M)["path"].(string)
+		data, err := os.ReadFile(restored)
+		if err != nil || !bytes.Equal(data, original) || restored == occupied || restored == file {
+			t.Fatal("invalid restored copy", restored, err)
+		}
+	}
+	if data, err := os.ReadFile(occupied); err != nil || string(data) != "copie existante" {
+		t.Fatal("collision overwritten", err)
+	}
+	if _, err := os.Stat(file); !os.IsNotExist(err) {
+		t.Fatal("original recreated", err)
+	}
+	files, _ := os.ReadDir(folder)
+	if len(files) != 3 {
+		t.Fatal("restored copies missing", len(files))
+	}
+}
+
 func TestOfficeExtraction(t *testing.T) {
 	for _, tc := range []struct{ ext, part, xml, want string }{
 		{"docx", "word/document.xml", `<document><p><r><t>astro</t></r><r><t>naute</t></r></p></document>`, "astronaute"},

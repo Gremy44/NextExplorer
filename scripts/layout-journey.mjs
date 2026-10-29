@@ -139,7 +139,7 @@ export async function runLayoutJourney({ page }) {
   await page.getByTitle("Changer de thème", { exact: true }).click();
   await divider.dblclick();
   await jobs.getByTitle("Fermer l’activité", { exact: true }).click();
-  await page.getByTitle("Masquer la navigation", { exact: true }).click();
+  await page.getByTitle("Réduire la navigation", { exact: true }).click();
   for (const viewportWidth of [320, 390, 900, 1440]) {
     await page.setViewportSize({ width: viewportWidth, height: 960 });
     await toggle.click();

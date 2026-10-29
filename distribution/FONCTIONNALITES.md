@@ -63,6 +63,17 @@ La lecture audio/vidéo dépend notamment des codecs du navigateur. Les formats
 spécialisés et certaines métadonnées exigent un moteur complémentaire.
 L’aperçu n’est pas un éditeur universel.
 
+Les PDF s’affichent page par page dans un lecteur local borné (16 Mio dans le
+volet, 32 Mio en fenêtre). Les polices TTF/OTF/WOFF/WOFF2 proposent un spécimen
+réglable, sans installation Windows. Arrêt, limites et erreurs sont signalés.
+
+**Modifier** dans l’aperçu texte ouvre l’éditeur UTF-8 (128 Kio maximum).
+L’enregistrement est explicite et conserve la version précédente ; un changement
+externe refuse l’écriture. Les brouillons peuvent être repris ou téléchargés
+après fermeture, depuis **Brouillons à récupérer**. Ils restent dans le profil
+local, sans synchronisation ni sauvegarde indépendante ; une alerte signale
+lorsque le stockage est refusé. Une restauration de version crée une copie.
+
 Selon la sélection et les moteurs disponibles : rotation, annotation d’image
 ou de PDF, assemblage PDF, découpe audio/vidéo et conversion. Les traitements
 prévus pour créer une copie conservent les originaux.
@@ -130,10 +141,12 @@ et ses sous-dossiers. Recherche dans les noms et extraits textuels pris en charg
 avec rapprochement lexical par vocabulaire. Une recherche commune retrouve
 également les liens et espaces enregistrés.
 
-L’index est borné : jusqu’à 1 000 entrées, 100 dossiers et une profondeur de 8.
-Les extraits TXT/Markdown sont limités ; les PDF textuels exigent un connecteur
-optionnel. Pas d’OCR ni de recherche sémantique par modèle d’IA. Une modification
-peut demander une réindexation explicite.
+L’index est borné : jusqu’à 50 000 entrées, 5 000 dossiers et une profondeur de 64,
+avec budgets de métadonnées et d’extraits. Les résultats sont paginés ; un parcours
+partiel est signalé. Le mode noms seuls ne lit pas le contenu. Les extraits des
+documents compatibles restent limités ; les PDF textuels exigent Poppler,
+facultatif. Pas d’OCR ni de recherche sémantique par modèle d’IA. La fraîcheur
+est contrôlée, et un changement peut demander une réindexation explicite.
 
 **Regrouper les fichiers** propose format, nom normalisé, mois, taille,
 origine web, destination et relations enregistrées. Les familles manuelles

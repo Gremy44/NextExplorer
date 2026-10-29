@@ -16,6 +16,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Maximize2,
+  Type,
 } from "lucide-react";
 import DOMPurify from "dompurify";
 import { marked } from "marked";
@@ -31,6 +32,10 @@ import { GalleryImage } from "./GalleryImage";
 import { ArchiveBrowser } from "./ArchiveBrowser";
 import { MediaOptions } from "./MediaOptions";
 import { isRemote } from "./remote";
+import { FontPreview, isFont } from "./FontPreview";
+import { DocumentDialog, hasDocumentDraft } from "./DocumentDialog";
+import { imagePreviewError, readImagePreview } from "./image-preview";
+import { PdfPreview } from "./PdfPreview";
 export function FileIcon({
   entry,
   size: dim = 18,
@@ -42,17 +47,19 @@ export function FileIcon({
   const appearance =
     entry.type === "directory" ? appearances[fileKey(entry.path)] : undefined;
   const kind = mediaType(entry);
-  const Icon = {
-    folder: Folder,
-    image: Image,
-    video: Film,
-    audio: Music,
-    archive: Archive,
-    link: Link,
-    pdf: FileText,
-    text: entry.ext ? FileCode : File,
-    binary: File,
-  }[kind];
+  const Icon = isFont(entry)
+    ? Type
+    : {
+        folder: Folder,
+        image: Image,
+        video: Film,
+        audio: Music,
+        archive: Archive,
+        link: Link,
+        pdf: FileText,
+        text: entry.ext ? FileCode : File,
+        binary: File,
+      }[kind];
   if (appearance)
     return (
       <span
@@ -276,6 +283,8 @@ export function Preview({
   onNavigate,
   onGallery,
   onExtract,
+  onSaved,
+  editorAvailable = false,
 }: {
   entry: Entry;
   onClose: () => void;
@@ -288,7 +297,10 @@ export function Preview({
   onNavigate?: (entry: Entry) => void;
   onGallery?: () => void;
   onExtract?: (members: string[], expected: Entry) => void;
+  onSaved?: () => void;
+  editorAvailable?: boolean;
 }) {
+  const [editing, setEditing] = useState(false);
   const [url, setURL] = useState("");
   const [text, setText] = useState("");
   const [error, setError] = useState("");
@@ -298,6 +310,10 @@ export function Preview({
   const [sourceError, setSourceError] = useState("");
   const [html, setHTML] = useState("");
   const [truncated, setTruncated] = useState(false);
+  const [loading, setLoading] = useState(""),
+    [stopped, setStopped] = useState(false),
+    [attempt, setAttempt] = useState(0);
+  const stopPreview = useRef<(() => void) | null>(null);
   const gallery = siblings.filter((item) =>
     ["image", "video"].includes(mediaType(item)),
   );
@@ -314,14 +330,20 @@ export function Preview({
   const tiff = /\.tiff?$/i.test(entry.ext);
   const remote = isRemote(entry.path);
   const office = /\.(docx|xlsx|pptx)$/i.test(entry.ext);
+  const font = isFont(entry);
   const unsupported =
-    (kind === "binary" && !office) ||
+    (kind === "binary" && !office && !font) ||
     (embedded && kind === "folder") ||
     (remote &&
       (office ||
         ["archive", "audio", "video"].includes(kind) ||
         (kind === "image" &&
-          (tiff || entry.ext === ".svg" || entry.size > 8 * 1024 * 1024))));
+          (tiff ||
+            [".svg", ".heic", ".heif"].includes(entry.ext) ||
+            entry.size > 8 * 1024 * 1024))));
+  useEffect(() => {
+    setEditing(false);
+  }, [entry.path]);
   useEffect(() => {
     setSourceOpen(false);
     setSource(null);
@@ -346,11 +368,37 @@ export function Preview({
     let mediaToken = "";
     let live = true;
     const controller = new AbortController();
+    const cleanup = () => {
+      live = false;
+      controller.abort();
+      if (object) {
+        URL.revokeObjectURL(object);
+        object = "";
+      }
+      if (mediaToken) {
+        void bridge
+          .request("MEDIA_CLOSE", { name: mediaToken })
+          .catch(() => {});
+        mediaToken = "";
+      }
+      if (stopPreview.current === cleanup) stopPreview.current = null;
+    };
+    stopPreview.current = cleanup;
     setURL("");
     setText("");
     setError("");
+    setStopped(false);
+    setLoading("");
     setTruncated(false);
-    if (unsupported) return () => controller.abort();
+    if (unsupported || font || kind === "pdf" || kind === "archive")
+      return cleanup;
+    setLoading(
+      kind === "image"
+        ? "Création de l’aperçu…"
+        : office
+          ? "Extraction du texte…"
+          : "Chargement de l’aperçu…",
+    );
     (async () => {
       try {
         if (office) {
@@ -360,9 +408,6 @@ export function Preview({
             10000,
           );
           if (live) setText(`${result.note}\n\n${result.text}`);
-          return;
-        }
-        if (kind === "archive") {
           return;
         }
         if (kind === "text") {
@@ -385,11 +430,31 @@ export function Preview({
           return;
         }
         if (kind === "link") {
-          const t = await bridge.text(entry.path, controller.signal);
+          const data = await bridge.bytes(
+            entry.path,
+            256 * 1024,
+            controller.signal,
+          );
+          const t = new TextDecoder().decode(data);
+          const link = JSON.parse(t);
+          if (
+            !link ||
+            typeof link.url !== "string" ||
+            !safeURL(link.url) ||
+            typeof link.title !== "string" ||
+            (link.description !== undefined &&
+              typeof link.description !== "string") ||
+            (link.image !== undefined && typeof link.image !== "string")
+          )
+            throw new Error(
+              "Ce fichier de lien est invalide. Ouvrez-le dans son application.",
+            );
           if (live) setText(t);
           return;
         }
         if (kind === "image") {
+          const error = imagePreviewError(entry);
+          if (error) throw new Error(error);
           if (remote) {
             const data = await bridge.bytes(
               entry.path,
@@ -407,18 +472,20 @@ export function Preview({
           const expected = await bridge.request<Entry>("FS_STAT", {
             path: entry.path,
           });
-          const value = await bridge.request<{ data: string }>(
-            "IMAGE_PREVIEW",
-            { path: entry.path, expected, width: embedded ? 640 : 1600 },
-            12000,
+          controller.signal.throwIfAborted();
+          const value = await readImagePreview(
+            expected,
+            embedded ? 640 : 1600,
+            controller.signal,
           );
-          if (live) setURL(`data:image/jpeg;base64,${value.data}`);
+          if (live) setURL(value);
           return;
         }
         if (kind === "video" || kind === "audio") {
           const expected = await bridge.request<Entry>("FS_STAT", {
             path: entry.path,
           });
+          controller.signal.throwIfAborted();
           const value = await bridge.request<{ url: string; token: string }>(
             "MEDIA_OPEN",
             { path: entry.path, expected },
@@ -464,18 +531,12 @@ export function Preview({
         if (live) setURL(object);
       } catch (e) {
         if (live && !controller.signal.aborted) setError(String(e));
+      } finally {
+        if (live) setLoading("");
       }
     })();
-    return () => {
-      live = false;
-      controller.abort();
-      if (object) URL.revokeObjectURL(object);
-      if (mediaToken)
-        void bridge
-          .request("MEDIA_CLOSE", { name: mediaToken })
-          .catch(() => {});
-    };
-  }, [entry.path, entry.mtime, entry.stamp]);
+    return cleanup;
+  }, [entry.path, entry.mtime, entry.stamp, embedded, attempt]);
   useEffect(() => {
     setHTML("");
     if (kind !== "text" || !text) return;
@@ -545,15 +606,28 @@ export function Preview({
           <FileIcon entry={entry} />
           <strong>{entry.name}</strong>
           <span>{size(entry.size)}</span>
-          {!remote && onDocument && kind === "text" && (
+          {!remote && !editing && kind === "text" && (
             <button
-              title="Modifier le texte"
-              onClick={() => onDocument("edit")}
+              title={
+                entry.size > 128 * 1024
+                  ? "Édition limitée aux textes UTF-8 de 128 Kio"
+                  : "Modifier le texte dans l’aperçu"
+              }
+              disabled={entry.size > 128 * 1024}
+              onClick={() =>
+                editorAvailable
+                  ? setEditing(true)
+                  : onError(
+                      "Mettez à jour le compagnon pour modifier le texte.",
+                    )
+              }
             >
-              Modifier
+              {hasDocumentDraft(entry.path)
+                ? "Reprendre le brouillon"
+                : "Modifier"}
             </button>
           )}
-          {!remote && onDocument && entry.type === "file" && (
+          {!remote && !editing && onDocument && entry.type === "file" && (
             <button
               title="Historique des versions"
               onClick={() => onDocument("versions")}
@@ -619,14 +693,31 @@ export function Preview({
             </button>
           </div>
         )}
-        <div className="preview-body">
-          {truncated && (
+        <div
+          className={
+            "preview-body" +
+            (editing ? " editing-preview" : "") +
+            (font ? " font-preview-body" : "")
+          }
+        >
+          {truncated && !editing && (
             <p className="muted" role="status">
               Aperçu partiel : 64 Ko ou 1 000 lignes maximum. Le fichier
               original est conservé en entier.
             </p>
           )}
-          {unsupported ? (
+          {editing ? (
+            <DocumentDialog
+              key={entry.path}
+              entry={entry}
+              initial="edit"
+              embedded
+              onClose={() => setEditing(false)}
+              onSaved={() => onSaved?.()}
+            />
+          ) : font ? (
+            <FontPreview key={entry.path} entry={entry} />
+          ) : unsupported ? (
             <p className="muted">
               {remote ? (
                 "Copiez ce fichier dans un dossier local avec le double panneau pour utiliser son aperçu ou ses outils."
@@ -634,14 +725,47 @@ export function Preview({
                 <>
                   Ce format ne dispose pas d’un aperçu intégré. Ouvrez ce
                   fichier dans son application
-                  {onConvert
+                  {kind === "image" && onConvert
                     ? " ou créez une copie PNG pour le consulter."
                     : "."}
                 </>
               )}
             </p>
+          ) : stopped ? (
+            <div className="preview-loading">
+              <p role="status">Aperçu arrêté.</p>
+              <button onClick={() => setAttempt((value) => value + 1)}>
+                Réessayer l’aperçu
+              </button>
+            </div>
+          ) : kind === "pdf" ? (
+            <PdfPreview key={entry.path} entry={entry} embedded={embedded} />
           ) : error ? (
-            <p className="error">{error}</p>
+            <div className="preview-loading">
+              <p className="error" role="alert">
+                {error}
+              </p>
+              <button onClick={() => setAttempt((value) => value + 1)}>
+                Réessayer l’aperçu
+              </button>
+            </div>
+          ) : loading ? (
+            <div className="preview-loading">
+              <p className="muted" role="status">
+                {loading}
+              </p>
+              <button
+                onClick={() => {
+                  stopPreview.current?.();
+                  setLoading("");
+                  setURL("");
+                  setText("");
+                  setStopped(true);
+                }}
+              >
+                Arrêter l’aperçu
+              </button>
+            </div>
           ) : kind === "text" && entry.size === 0 ? (
             <p className="muted">Fichier vide.</p>
           ) : kind === "image" && url ? (
@@ -652,6 +776,11 @@ export function Preview({
               ref={video}
               src={url}
               controls
+              onError={() =>
+                setError(
+                  "Cette vidéo est illisible ou son codec n’est pas pris en charge par le navigateur. Ouvrez-la dans son application ou créez une copie compatible.",
+                )
+              }
               onPointerMove={(e) => {
                 if (e.shiftKey && video.current?.duration) {
                   const r = e.currentTarget.getBoundingClientRect();
@@ -677,6 +806,11 @@ export function Preview({
                     ref={audio}
                     src={url}
                     controls
+                    onError={() =>
+                      setError(
+                        "Ce fichier audio est illisible ou son codec n’est pas pris en charge par le navigateur. Ouvrez-le dans son application.",
+                      )
+                    }
                     onPlay={() => setPlaying(true)}
                     onPause={() => setPlaying(false)}
                   />
@@ -691,8 +825,6 @@ export function Preview({
                 </>
               )}
             </div>
-          ) : kind === "pdf" && url ? (
-            <iframe src={url} title={entry.name} />
           ) : kind === "link" && link ? (
             <article className="web-card">
               {link.image?.startsWith("data:image/") && (
@@ -736,6 +868,11 @@ export function Preview({
             <p className="muted">Chargement de l’aperçu…</p>
           )}
         </div>
+        {!remote && kind === "image" && url && !stopped && !error && (
+          <small className="preview-note">
+            Aperçu réduit · première image/page
+          </small>
+        )}
         {!remote && (kind === "video" || kind === "audio") && (
           <MediaOptions
             key={entry.path}

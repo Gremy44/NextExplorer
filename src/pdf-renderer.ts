@@ -1,12 +1,15 @@
 import * as pdfjs from "pdfjs-dist/legacy/build/pdf.mjs";
 import workerURL from "pdfjs-dist/legacy/build/pdf.worker.min.mjs?url";
 pdfjs.GlobalWorkerOptions.workerSrc = workerURL;
-export function openPDF(data: Uint8Array) {
+export function openPDF(data: Uint8Array, preview = false) {
   return pdfjs.getDocument({
     data: data.slice(),
     enableXfa: false,
     useWasm: false,
     useSystemFonts: false,
+    ...(preview
+      ? { maxImageSize: 16_000_000, canvasMaxAreaInBytes: 16 * 1024 * 1024 }
+      : {}),
     cMapUrl: new URL("pdfjs/cmaps/", document.baseURI).href,
     cMapPacked: true,
     standardFontDataUrl: new URL("pdfjs/standard_fonts/", document.baseURI)

@@ -178,7 +178,9 @@ func (h *Host) runJob(j *Job) {
 	}()
 }
 func (h *Host) executeJob(j *Job) {
-	h.mutateMu.Lock()
+	if j.Kind != "scan" {
+		h.mutateMu.Lock()
+	}
 	j.mu.Lock()
 	j.executing = true
 	if j.State != "paused" && j.ctx.Err() == nil {
@@ -240,7 +242,9 @@ func (h *Host) executeJob(j *Job) {
 		}
 	}
 	// Finished jobs must release mutations before callers observe completion.
-	h.mutateMu.Unlock()
+	if j.Kind != "scan" {
+		h.mutateMu.Unlock()
+	}
 	j.mu.Lock()
 	j.Result = r
 	j.executing = false
@@ -641,18 +645,15 @@ func (j *Job) copyTree(src, dst string, move, overwrite bool) error {
 	return nil
 }
 func (j *Job) scan(path string, duplicates bool) (any, error) {
+	if !duplicates {
+		return j.scanSpace(path)
+	}
 	root, e := validPath(path)
 	if e != nil {
 		return nil, e
 	}
-	type item struct {
-		Path string `json:"path"`
-		Size int64  `json:"size"`
-	}
-	items := []item{}
 	groups := map[int64][]string{}
 	skipped := 0
-	total := int64(0)
 	scanned, pathBytes := 0, 0
 	truncated := false
 	e = filepath.WalkDir(root, func(p string, d os.DirEntry, err error) error {
@@ -683,36 +684,12 @@ func (j *Job) scan(path string, duplicates bool) (any, error) {
 			skipped++
 			return nil
 		}
-		total += s.Size()
-		if duplicates {
-			groups[s.Size()] = append(groups[s.Size()], p)
-		}
-		rel, _ := filepath.Rel(root, p)
-		top := strings.Split(rel, string(filepath.Separator))[0]
-		found := false
-		for i := range items {
-			if items[i].Path == filepath.Join(root, top) {
-				items[i].Size += s.Size()
-				found = true
-				break
-			}
-		}
-		if !found {
-			items = append(items, item{filepath.Join(root, top), s.Size()})
-		}
+		groups[s.Size()] = append(groups[s.Size()], p)
 		j.progress(1)
 		return nil
 	})
 	if e != nil {
 		return nil, e
-	}
-	if !duplicates {
-		sort.Slice(items, func(i, k int) bool { return items[i].Size > items[k].Size })
-		if len(items) > 500 {
-			truncated = true
-			items = items[:500]
-		}
-		return M{"path": root, "items": items, "total": total, "skipped": skipped, "truncated": truncated}, nil
 	}
 	byHash := map[string][]string{}
 	tasks := make(chan string)

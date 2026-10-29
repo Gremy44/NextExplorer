@@ -60,7 +60,7 @@ Name: "{userprograms}\NextExplorer\Aide"; Filename: "{app}\package\GUIDE_UTILISA
 Name: "{userprograms}\NextExplorer\Dossier de l'extension"; Filename: "{app}\package\dist"
 
 [Run]
-Filename: "{code:StoreURL}"; Description: "Ouvrir la fiche Chrome Web Store"; Flags: shellexec postinstall unchecked skipifsilent; Check: OfferStore
+Filename: "{app}\package\dist"; Description: "Ouvrir le dossier de l'extension à charger"; Flags: shellexec postinstall unchecked skipifsilent
 
 [Code]
 var
@@ -85,16 +85,6 @@ begin
     3: Result := 'All';
   else Result := 'Chrome';
   end;
-end;
-
-function OfferStore: Boolean;
-begin
-  Result := (BrowserPage.SelectedValueIndex = 0) and not AdvancedSettings.Checked;
-end;
-
-function StoreURL(Param: String): String;
-begin
-  Result := 'https://chromewebstore.google.com/detail/' + PackagedId;
 end;
 
 function ValidId(Value: String; RequiredLength: Integer; Alphabet: String): Boolean;
@@ -212,17 +202,13 @@ end;
 procedure CurPageChanged(CurPageID: Integer);
 begin
   if CurPageID = wpFinished then begin
-    WizardForm.FinishedLabel.Caption := 'Le compagnon Windows est prêt.' + #13#10#13#10 +
-      'Revenez dans NextExplorer puis cliquez sur « Vérifier la connexion ». Vous pourrez ensuite choisir votre premier dossier.';
-    if OfferStore then
-      WizardForm.FinishedLabel.Caption := WizardForm.FinishedLabel.Caption + #13#10#13#10 +
-        'Si l''extension manque, ajoutez-la depuis le Chrome Web Store. Le compagnon ne l''installe pas silencieusement.'
-    else
-      WizardForm.FinishedLabel.Caption := WizardForm.FinishedLabel.Caption + #13#10#13#10 +
-        'Chargement avancé : dans la gestion des extensions, activez le mode développeur puis chargez :' + #13#10 + ExpandConstant('{app}\package\dist');
-    WizardForm.FinishedLabel.Caption := WizardForm.FinishedLabel.Caption + #13#10#13#10 +
-      'Les moteurs images, vidéo et archives avancées sont facultatifs. Consultez « Réglages et moteurs » dans l''extension.' + #13#10#13#10 +
-      'Après une mise à jour, désactivez puis réactivez l''extension avant de vérifier la connexion.';
+    WizardForm.FinishedLabel.Caption := 'Le compagnon Windows {#ReleaseVersion} est installé.' + #13#10#13#10 +
+      'Pour ce pilote, chargez aussi l''extension :' + #13#10 +
+      'Chrome : chrome://extensions   |   Edge : edge://extensions' + #13#10 +
+      'Activez « Mode développeur », puis « Charger l''extension non empaquetée » et sélectionnez :' + #13#10 +
+      ExpandConstant('{app}\package\dist') + #13#10#13#10 +
+      'Ouvrez NextExplorer, vérifiez la connexion et choisissez un dossier de copies pour le test.' + #13#10#13#10 +
+      'Mise à jour : gardez une seule copie active et rechargez l''extension. Les moteurs spécialisés restent facultatifs ; consultez le guide TESTER.md du paquet.';
   end;
 end;
 

@@ -9,13 +9,13 @@ body:
     id: version
     attributes:
       label: Version de NextExplorer
-      placeholder: "1.0.1"
+      placeholder: "1.0.7"
     validations:
       required: true
   - type: input
     id: system
     attributes:
-      label: Versions de Windows et Chrome
+      label: Versions de Windows et du navigateur (Chrome ou Edge)
   - type: textarea
     id: problem
     attributes:

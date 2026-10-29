@@ -54,7 +54,7 @@ export async function runConnectionJourney({
       await target.setViewportSize({ width, height: 960 });
       if (target === page && width < 760) {
         const collapse = page.getByRole("button", {
-          name: "Masquer la navigation",
+          name: "Réduire la navigation",
           exact: true,
         });
         if (await collapse.isVisible()) await collapse.click();

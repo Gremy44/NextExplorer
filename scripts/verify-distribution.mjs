@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
-import { copyFile, readFile, readdir, stat, writeFile } from "node:fs/promises";
+import { readFile, readdir, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
 
 const { version } = JSON.parse(await readFile("package.json", "utf8"));
@@ -99,9 +99,14 @@ for (const directory of ["dist/licenses", "licenses"]) {
 }
 await writeFile(noticesPath, notices.join("\n\n") + "\n");
 const setupName = `NextExplorer-${version}-Setup.exe`;
-await copyFile(
-  path.join(root, "NextExplorer-Setup.exe"),
-  path.join(root, setupName),
+const security = JSON.parse(
+  await readFile(path.join(root, setupName + ".security.json"), "utf8"),
+);
+assert.equal(security.version, version, "Installer build version");
+assert.equal(
+  security.files.find((file) => file.file === setupName)?.sha256,
+  digest(await readFile(path.join(root, setupName))),
+  "Installer build hash",
 );
 const names = [
   setupName,

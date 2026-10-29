@@ -7,6 +7,11 @@ import { runStoreScreenshots } from "./store-screenshots.mjs";
 import { runPresentationScreenshots } from "./presentation-screenshots.mjs";
 import { runConnectionJourney } from "./connection-journey.mjs";
 import { runEngineJourney } from "./engine-journey.mjs";
+import { runPackagedPreviews } from "./packaged-preview-journey.mjs";
+import { runProtectionJourney } from "./protection-journey.mjs";
+import { runMainWorkflows } from "./main-workflows-journey.mjs";
+import { runDownloadFiling } from "./download-filing-journey.mjs";
+import { runUIConsistency } from "./ui-consistency-journey.mjs";
 
 assert.equal(process.platform, "win32", "Recette ConPTY Windows uniquement");
 process.env.PLAYWRIGHT_BROWSERS_PATH = path.resolve(".tools/browsers");
@@ -63,6 +68,13 @@ if (demo) {
     JSON.stringify(testManifest),
   );
 } else await cp(path.resolve("dist"), extension, { recursive: true });
+if (process.argv.includes("--filing")) {
+  const manifestPath = path.join(extension, "manifest.json");
+  const testManifest = JSON.parse(await readFile(manifestPath, "utf8"));
+  // Isolated test copy: simulate acceptance of the optional downloads permission.
+  testManifest.permissions.push("downloads");
+  await writeFile(manifestPath, JSON.stringify(testManifest));
+}
 const id = (await readFile("extension-id.txt", "utf8")).trim();
 const manifest = path.join(root, "com.local.file_explorer.json");
 await writeFile(
@@ -124,6 +136,21 @@ try {
   // Only Chromium's registration changes during this test; Chrome's installed companion stays untouched.
   if (!installed)
     reg(["add", registryKey, "/ve", "/t", "REG_SZ", "/d", manifest, "/f"]);
+  if (process.argv.includes("--filing")) {
+    const downloads = path.join(fixture, "Browser-downloads");
+    await mkdir(downloads);
+    await mkdir(path.join(root, "profile", "Default"), { recursive: true });
+    await writeFile(
+      path.join(root, "profile", "Default", "Preferences"),
+      JSON.stringify({
+        download: {
+          default_directory: downloads,
+          prompt_for_download: false,
+          directory_upgrade: true,
+        },
+      }),
+    );
+  }
   context = await chromium.launchPersistentContext(path.join(root, "profile"), {
     channel: "chromium",
     // The setup journey needs real focus events when returning from a download.
@@ -163,70 +190,87 @@ try {
     workerInfo.tasks,
     path.join(appdata, "NextExplorer", "worker", "tasks"),
   );
-  await runEngineJourney({
-    page,
-    tools: (await rpc(page, "HELLO", { protocolVersion: 1 })).tools,
-  });
-  if (store) await runStoreScreenshots({ page, context, fixture });
-  if (presentation)
-    await runPresentationScreenshots({ page, context, fixture });
-  await runConsoleJourney({ page, fixture });
+  if (process.argv.includes("--ui")) {
+    await runUIConsistency({ page, fixture, label: "extension" });
+    assert.deepEqual(errors, []);
+  } else if (process.argv.includes("--filing")) {
+    page = await runDownloadFiling({ page, fixture });
+    assert.deepEqual(errors, []);
+  } else if (process.argv.includes("--workflows")) {
+    await runMainWorkflows({ page, fixture, rpc });
+    assert.deepEqual(errors, []);
+  } else if (process.argv.includes("--protection")) {
+    page = await runProtectionJourney({ page, fixture, label: "extension" });
+    assert.deepEqual(errors, []);
+  } else if (process.argv.includes("--previews")) {
+    await runPackagedPreviews({ page, fixture });
+    assert.deepEqual(errors, []);
+  } else {
+    await runEngineJourney({
+      page,
+      tools: (await rpc(page, "HELLO", { protocolVersion: 1 })).tools,
+    });
+    if (store) await runStoreScreenshots({ page, context, fixture });
+    if (presentation)
+      await runPresentationScreenshots({ page, context, fixture });
+    await runConsoleJourney({ page, fixture });
 
-  await page
-    .getByRole("button", {
-      name: "Ouvrir une nouvelle session PowerShell",
+    await page
+      .getByRole("button", {
+        name: "Ouvrir une nouvelle session PowerShell",
+        exact: true,
+      })
+      .click();
+    await page.waitForFunction(
+      () => document.querySelector(".console-pane")?.dataset.ready === "true",
+    );
+    const session = await page
+      .locator(".console-pane")
+      .getAttribute("data-session");
+    const pidFile = path.join(root, "shell-pid.txt");
+    const input = page.getByRole("textbox", {
+      name: "Saisir une commande PowerShell",
       exact: true,
-    })
-    .click();
-  await page.waitForFunction(
-    () => document.querySelector(".console-pane")?.dataset.ready === "true",
-  );
-  const session = await page
-    .locator(".console-pane")
-    .getAttribute("data-session");
-  const pidFile = path.join(root, "shell-pid.txt");
-  const input = page.getByRole("textbox", {
-    name: "Saisir une commande PowerShell",
-    exact: true,
-  });
-  await input.pressSequentially(
-    `[IO.File]::WriteAllText('${pidFile.replaceAll("'", "''")}', [string]$PID)`,
-  );
-  await page.keyboard.press("Enter");
-  let pid;
-  for (let i = 0; i < 100 && !pid; i++) {
-    try {
-      pid = Number(await readFile(pidFile, "utf8"));
-    } catch {}
-    if (!pid) await new Promise((resolve) => setTimeout(resolve, 50));
-  }
-  assert.ok(Number.isInteger(pid) && pid > 0, "PowerShell PID missing");
-  const other = await context.newPage();
-  await other.goto(
-    `chrome-extension://${id}/index.html?path=${encodeURIComponent(fixture)}`,
-  );
-  await other.getByText("Compagnon connecté", { exact: true }).waitFor();
-  await assert.rejects(
-    rpc(other, "TERMINAL_READ", { session, owner: "spoofed" }),
-    /introuvable/,
-  );
-  await page.close();
-  let stopped = false;
-  for (let i = 0; i < 100; i++) {
-    try {
-      process.kill(pid, 0);
-    } catch {
-      stopped = true;
-      break;
+    });
+    await input.pressSequentially(
+      `[IO.File]::WriteAllText('${pidFile.replaceAll("'", "''")}', [string]$PID)`,
+    );
+    await page.keyboard.press("Enter");
+    let pid;
+    for (let i = 0; i < 100 && !pid; i++) {
+      try {
+        pid = Number(await readFile(pidFile, "utf8"));
+      } catch {}
+      if (!pid) await new Promise((resolve) => setTimeout(resolve, 50));
     }
-    await new Promise((resolve) => setTimeout(resolve, 50));
+    assert.ok(Number.isInteger(pid) && pid > 0, "PowerShell PID missing");
+    const other = await context.newPage();
+    await other.goto(
+      `chrome-extension://${id}/index.html?path=${encodeURIComponent(fixture)}`,
+    );
+    await other.getByText("Compagnon connecté", { exact: true }).waitFor();
+    await assert.rejects(
+      rpc(other, "TERMINAL_READ", { session, owner: "spoofed" }),
+      /introuvable/,
+    );
+    await page.close();
+    let stopped = false;
+    for (let i = 0; i < 100; i++) {
+      try {
+        process.kill(pid, 0);
+      } catch {
+        stopped = true;
+        break;
+      }
+      await new Promise((resolve) => setTimeout(resolve, 50));
+    }
+    assert.ok(stopped, "Closing the page retained PowerShell");
+    assert.deepEqual(errors, []);
+    console.log(
+      "Extension console : Native Messaging réel, session par vue, propriétaire imposé, fermeture de page arrêtant PowerShell : OK",
+      root,
+    );
   }
-  assert.ok(stopped, "Closing the page retained PowerShell");
-  assert.deepEqual(errors, []);
-  console.log(
-    "Extension console : Native Messaging réel, session par vue, propriétaire imposé, fermeture de page arrêtant PowerShell : OK",
-    root,
-  );
 } catch (error) {
   if (page && !page.isClosed()) {
     await page

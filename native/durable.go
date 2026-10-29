@@ -74,6 +74,12 @@ func (j *Job) saveDurable() error {
 	r := taskRecord{Version: 1, ID: j.ID, Kind: j.Kind, State: j.State, Error: j.Error, Started: j.started, Payload: j.payload, Expected: j.expected, Destination: j.destination, Next: j.next, Active: j.active, Step: j.checkpointStep, Completed: append([]string{}, j.completed...), Done: j.Done, Total: j.Total, Result: j.Result, Audit: j.Audit}
 	r.Audit.Entries = append([]TransferEntry{}, j.Audit.Entries...)
 	r.NeedsPassword = j.needsPassword || j.payload.Password != ""
+	if result, ok := r.Result.(*spaceResult); ok && r.Kind == "scan" {
+		summary := *result
+		summary.Items = nil
+		summary.ItemsStored = true
+		r.Result = &summary
+	}
 	r.Payload.Password = ""
 	if r.Active && (r.State == "running" || r.State == "paused" || r.State == "queued" || r.State == "cancelling") {
 		r.Done = j.checkpointDone
@@ -143,6 +149,7 @@ func (h *Host) prepareJob(j *Job, p Payload) error {
 		if err := os.Remove(filepath.Join(h.durableDir, oldest.ID+".json")); err != nil && !os.IsNotExist(err) {
 			return err
 		}
+		_ = os.Remove(filepath.Join(h.durableDir, oldest.ID+".space"))
 		delete(h.jobs, oldest.ID)
 	}
 	if err := j.saveDurable(); err != nil {

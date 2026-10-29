@@ -16,6 +16,64 @@ import (
 
 const imageFileLimit = 256 << 20
 
+type imageOperation struct {
+	ctx     context.Context
+	cancel  context.CancelFunc
+	created time.Time
+	started bool
+}
+
+func (h *Host) imageOperation(id string) (*imageOperation, error) {
+	if len(id) < 1 || len(id) > 80 || strings.Trim(id, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-") != "" {
+		return nil, fmt.Errorf("Identifiant d’aperçu invalide")
+	}
+	h.mu.Lock()
+	defer h.mu.Unlock()
+	if h.imageRequests == nil {
+		h.imageRequests = map[string]*imageOperation{}
+	}
+	for key, operation := range h.imageRequests {
+		if time.Since(operation.created) > 12*time.Second {
+			operation.cancel()
+			delete(h.imageRequests, key)
+		}
+	}
+	if operation := h.imageRequests[id]; operation != nil {
+		return operation, nil
+	}
+	if len(h.imageRequests) >= 64 {
+		return nil, fmt.Errorf("Trop d’aperçus en attente ; réessayez dans quelques secondes")
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 8*time.Second)
+	operation := &imageOperation{ctx: ctx, cancel: cancel, created: time.Now()}
+	h.imageRequests[id] = operation
+	return operation, nil
+}
+
+func (h *Host) previewImage(p Payload, sample bool) (any, error) {
+	if p.Session == "" {
+		return imagePreview(p, sample)
+	}
+	operation, err := h.imageOperation(p.Session)
+	if err != nil {
+		return nil, err
+	}
+	h.mu.Lock()
+	if operation.started {
+		h.mu.Unlock()
+		return nil, fmt.Errorf("Aperçu déjà demandé")
+	}
+	operation.started = true
+	h.mu.Unlock()
+	defer func() {
+		operation.cancel()
+		h.mu.Lock()
+		delete(h.imageRequests, p.Session)
+		h.mu.Unlock()
+	}()
+	return imagePreviewContext(operation.ctx, p, sample)
+}
+
 var imageSlots = make(chan struct{}, 2)
 
 func rasterImage(path string) bool {
@@ -28,10 +86,15 @@ func imageOutput(ctx context.Context, args []string, limit int) ([]byte, error) 
 	if err != nil {
 		return nil, err
 	}
+	scratch, err := os.MkdirTemp("", "nxe-preview-")
+	if err != nil {
+		return nil, err
+	}
+	defer os.RemoveAll(scratch)
 	c := exec.CommandContext(ctx, p, append([]string{"-limit", "memory", "128MiB", "-limit", "map", "256MiB", "-limit", "disk", "256MiB", "-limit", "thread", "2", "-limit", "time", "8"}, args...)...)
 	quiet(c)
 	exe, _ := os.Executable()
-	c.Env = append(os.Environ(), "MAGICK_CONFIGURE_PATH="+filepath.Join(filepath.Dir(exe), "security"))
+	c.Env = append(os.Environ(), "MAGICK_CONFIGURE_PATH="+filepath.Join(filepath.Dir(exe), "security"), "MAGICK_TEMPORARY_PATH="+scratch)
 	var out strictBuffer
 	out.limit = limit
 	var stderr limitedBuffer
@@ -43,7 +106,11 @@ func imageOutput(ctx context.Context, args []string, limit int) ([]byte, error) 
 }
 
 func imagePreview(p Payload, sample bool) (any, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 8*time.Second)
+	return imagePreviewContext(context.Background(), p, sample)
+}
+
+func imagePreviewContext(parent context.Context, p Payload, sample bool) (any, error) {
+	ctx, cancel := context.WithTimeout(parent, 8*time.Second)
 	defer cancel()
 	select {
 	case imageSlots <- struct{}{}:
@@ -51,12 +118,24 @@ func imagePreview(p Payload, sample bool) (any, error) {
 	case <-ctx.Done():
 		return nil, ctx.Err()
 	}
+	if err := ctx.Err(); err != nil {
+		return nil, err
+	}
 	entry, err := statEntry(p.Path)
 	if err != nil {
 		return nil, err
 	}
-	if entry.Type != "file" || !rasterImage(entry.Path) || entry.Size <= 0 || entry.Size > imageFileLimit || p.Expected == nil || entry != *p.Expected {
-		return nil, fmt.Errorf("image modifiée ou non admissible (fichier ordinaire de 256 Mio maximum)")
+	if entry.Type != "file" || entry.Size <= 0 {
+		return nil, fmt.Errorf("Aperçu réservé aux fichiers image ordinaires non vides")
+	}
+	if !rasterImage(entry.Path) {
+		return nil, fmt.Errorf("Format d’image non pris en charge par cet aperçu")
+	}
+	if entry.Size > imageFileLimit {
+		return nil, fmt.Errorf("Aperçu limité aux images de 256 Mio maximum ; ouvrez le fichier dans son application")
+	}
+	if p.Expected == nil || entry != *p.Expected {
+		return nil, fmt.Errorf("Image modifiée : actualisez le dossier puis réessayez")
 	}
 	before, err := os.Lstat(entry.Path)
 	if err != nil || !before.Mode().IsRegular() {

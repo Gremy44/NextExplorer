@@ -38,12 +38,12 @@
 }
 .console-toolbar > strong {
   flex: 1;
-  font-size: 13px;
+  font-size: calc(13px * var(--text-scale, 1));
 }
 .console-toolbar button {
   min-height: 32px;
   padding: 6px 8px;
-  font-size: 12px;
+  font-size: calc(12px * var(--text-scale, 1));
 }
 .console-actions {
   display: flex;
@@ -66,7 +66,7 @@
   flex-direction: column;
   gap: 8px;
   margin-top: 16px;
-  font-size: 12px;
+  font-size: calc(12px * var(--text-scale, 1));
 }
 .console-colors-popover select {
   width: 100%;
@@ -90,14 +90,14 @@
 .console-colors-popover p {
   margin: 16px 0 0;
   color: var(--muted);
-  font-size: 12px;
+  font-size: calc(12px * var(--text-scale, 1));
 }
 .console-path,
 .console-status,
 .console-hint,
 .console-error {
   margin: 4px 16px;
-  font-size: 12px;
+  font-size: calc(12px * var(--text-scale, 1));
   overflow-wrap: anywhere;
 }
 .console-appearance-note {
@@ -106,7 +106,7 @@
   border-radius: var(--md-sys-shape-corner-small);
   background: var(--md-sys-color-secondary-container);
   color: var(--md-sys-color-on-secondary-container);
-  font-size: 12px;
+  font-size: calc(12px * var(--text-scale, 1));
 }
 .console-path {
   white-space: nowrap;

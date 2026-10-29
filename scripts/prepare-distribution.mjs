@@ -91,6 +91,7 @@ const docs = [
   "INSTALLATION.md",
   "CONFIDENTIALITE.md",
   "CHANGELOG.md",
+  "TESTER.md",
   "THIRD_PARTY.md",
   ".github/ISSUE_TEMPLATE/bug_report.yml",
   ".github/ISSUE_TEMPLATE/config.yml",
@@ -112,7 +113,7 @@ for (const [source, target] of [
   [".tools/go-mod/github.com/fsnotify/fsnotify@v1.9.0/LICENSE", "fsnotify"],
   [".tools/go-mod/lukechampine.com/blake3@v1.4.1/LICENSE", "blake3"],
   [".tools/go-mod/github.com/klauspost/cpuid/v2@v2.0.9/LICENSE", "cpuid"],
-  [".tools/go-mod/golang.org/x/sys@v0.13.0/LICENSE", "x-sys"],
+  [".tools/go-mod/golang.org/x/sys@v0.49.0/LICENSE", "x-sys"],
   [".tools/inno/license.txt", "inno-setup"],
 ])
   await copyFile(source, path.join(payload, `licenses/${target}.txt`));

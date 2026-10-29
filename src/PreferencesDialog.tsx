@@ -25,6 +25,7 @@ import {
   shortcutKey,
   commandList,
   menuActionNames,
+  matchesSetting,
   type Preferences,
 } from "./preferences";
 import { restoreTags, tagsKey, type TagStore } from "./tags";
@@ -45,7 +46,7 @@ const sections = [
   ["columns", "Colonnes", Columns3],
   ["shortcuts", "Raccourcis", Keyboard],
   ["menus", "Menus", List],
-  ["engines", "Compagnons", HardDrive],
+  ["engines", "Moteurs", HardDrive],
   ["connections", "Connexions", Server],
   ["backup", "Sauvegarde", Archive],
 ] as const;
@@ -77,10 +78,7 @@ export function PreferencesDialog({
         const category =
           field.closest("fieldset")?.querySelector("legend")?.textContent || "";
         field.hidden =
-          !!query &&
-          !`${category} ${field.textContent}`
-            .toLocaleLowerCase("fr")
-            .includes(query);
+          !!query && !matchesSetting(query, `${category} ${field.textContent}`);
       });
     const groups = [
       ...(content.current?.querySelectorAll<HTMLFieldSetElement>(
@@ -89,7 +87,7 @@ export function PreferencesDialog({
     ];
     groups.forEach((group, index) => {
       group.hidden = query
-        ? !group.textContent?.toLocaleLowerCase("fr").includes(query)
+        ? !matchesSetting(query, group.textContent || "")
         : sections[index][0] !== section;
     });
     setNoMatches(!!query && groups.every((group) => group.hidden));
@@ -456,7 +454,7 @@ export function PreferencesDialog({
               ))}
           </fieldset>
           <fieldset hidden={!showSection("engines")}>
-            <legend>Compagnons</legend>
+            <legend>Moteurs facultatifs</legend>
             {engines}
           </fieldset>
           <fieldset hidden={!showSection("connections")}>

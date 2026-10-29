@@ -14,7 +14,12 @@ import { runOriginDestinationJourney } from "./origin-destination-journey.mjs";
 import { runFileFamilyJourney } from "./file-family-journey.mjs";
 import { runFileCopyJourney } from "./file-copies-journey.mjs";
 
-export async function runFileGroupJourney({ context, baseURL, fixture }) {
+export async function runFileGroupJourney({
+  context,
+  baseURL,
+  fixture,
+  menuOnly = false,
+}) {
   const folder = path.join(fixture, "Référence française C0");
   await mkdir(folder);
   await mkdir(path.join(folder, "Sous-dossier"));
@@ -124,16 +129,21 @@ export async function runFileGroupJourney({ context, baseURL, fixture }) {
     await contextMenu.waitFor();
     for (const label of [
       "Ouvrir",
+      "Modifier",
       "Organiser",
       "Transformer",
-      "Vérifier",
-      "Supprimer",
+      "Tags",
     ])
       await contextMenu
         .getByRole("group", { name: label, exact: true })
         .waitFor();
     assert.equal(await contextMenu.getByRole("separator").count(), 4);
-    assert.equal(await contextMenu.getByRole("menuitem").count(), 15);
+    assert.equal(
+      await contextMenu
+        .getByRole("menuitem", { name: "Calculer une empreinte", exact: true })
+        .count(),
+      0,
+    );
     assert.equal(await contextMenu.getByRole("menuitemcheckbox").count(), 7);
     assert.equal(
       await contextMenu
@@ -147,12 +157,16 @@ export async function runFileGroupJourney({ context, baseURL, fixture }) {
           name: "Personnaliser les dossiers…",
           exact: true,
         })
-        .isDisabled(),
-      true,
+        .count(),
+      0,
     );
-    await contextMenu
-      .getByRole("menuitem", { name: "Actions rapides…", exact: true })
-      .waitFor();
+    assert.equal(
+      await contextMenu
+        .getByRole("menuitem", { name: "Actions rapides…", exact: true })
+        .count(),
+      0,
+      "la sélection PDF + texte ne propose pas d’action rapide compatible",
+    );
     assert.ok(
       await contextMenu
         .getByRole("menuitem")
@@ -214,6 +228,13 @@ export async function runFileGroupJourney({ context, baseURL, fixture }) {
       await page.locator(".pane.active .file-scroll").focus();
       await page.keyboard.press("Shift+F10");
       await contextMenu.waitFor();
+      await contextMenu.evaluate((menu) =>
+        Promise.all(
+          menu
+            .getAnimations()
+            .map((animation) => animation.finished.catch(() => {})),
+        ),
+      );
       const box = await contextMenu.boundingBox();
       assert.ok(box.x >= 8 && box.x + box.width <= viewport.width - 7);
       assert.ok(box.y >= 8 && box.y + box.height <= viewport.height - 7);
@@ -223,15 +244,17 @@ export async function runFileGroupJourney({ context, baseURL, fixture }) {
         ),
       );
       await page.keyboard.press("End");
-      const trash = contextMenu.getByRole("menuitem", {
-        name: "Mettre à la corbeille",
+      const lastItem = contextMenu.getByRole("menuitem", {
+        name: "Tags…",
         exact: true,
       });
       assert.equal(
-        await trash.evaluate((element) => element === document.activeElement),
+        await lastItem.evaluate(
+          (element) => element === document.activeElement,
+        ),
         true,
       );
-      const last = await trash.boundingBox();
+      const last = await lastItem.boundingBox();
       assert.ok(
         last.y >= box.y && last.y + last.height <= box.y + box.height + 1,
       );
@@ -305,7 +328,14 @@ export async function runFileGroupJourney({ context, baseURL, fixture }) {
         exact: true,
       })
       .waitFor();
-    assert.equal(await contextMenu.getByRole("menuitem").count(), 16);
+    assert.ok(
+      await contextMenu
+        .getByRole("menuitem", {
+          name: "Personnaliser les dossiers…",
+          exact: true,
+        })
+        .isEnabled(),
+    );
     await page
       .getByRole("heading", { name: path.basename(folder), exact: true })
       .click();
@@ -321,6 +351,25 @@ export async function runFileGroupJourney({ context, baseURL, fixture }) {
       await contextMenu.waitFor();
       await page.keyboard.press(shortcut);
       await contextMenu.waitFor({ state: "hidden" });
+      if (shortcut === "Delete") {
+        await page
+          .getByRole("option", { name: "README", exact: true })
+          .waitFor({ state: "hidden" });
+        assert.equal(await page.getByRole("dialog").count(), 0);
+        await page
+          .locator(".sidebar")
+          .getByRole("button", { name: "Corbeille", exact: true })
+          .click();
+        await page
+          .getByRole("dialog")
+          .getByRole("button", { name: "Restaurer", exact: true })
+          .click();
+        await page
+          .getByRole("option", { name: "README", exact: true })
+          .waitFor();
+        await page.keyboard.press("Escape");
+        continue;
+      }
       const confirmation = page.getByRole("dialog");
       await confirmation.waitFor();
       if (shortcut === "F2")
@@ -338,6 +387,7 @@ export async function runFileGroupJourney({ context, baseURL, fixture }) {
     console.log(
       "Clic droit : icônes, cinq groupes et séparateurs, sélection multiple conservée, copie au clavier, Shift+F10/flèches/Échap/Tab, dossier et 320/390/1024 px : OK",
     );
+    if (menuOnly) return;
     await page.getByRole("option", { name: /rapport-final-v2.PDF/ }).click();
     let dialog = await openGroups(page);
     await dialog
@@ -831,7 +881,14 @@ export async function runFileGroupJourney({ context, baseURL, fixture }) {
         item.hash,
       );
     }
-    assert.equal((await readdir(folder)).length, 8);
+    assert.deepEqual(
+      (await readdir(folder)).sort(),
+      [".nextexplorer-trash", "Sous-dossier", ...Object.keys(samples)].sort(),
+    );
+    assert.equal(
+      (await readdir(path.join(folder, ".nextexplorer-trash"))).length,
+      0,
+    );
     assert.deepEqual(errors, []);
     console.log(
       `C0 : sélection/dossier/espace, filtre ignoré, 1000/1003 entrées, corpus français mixte, TIFF 24 Mio sans FS_READ, catégories persistées, conflit entre vues, 320/390/1024 px et fichiers intacts : OK (${elapsedMs} ms, recette locale synthétique)`,

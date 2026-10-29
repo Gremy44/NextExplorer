@@ -256,7 +256,7 @@ export async function runQuickTagsJourney({ page, fixture }) {
     await panel.close();
   }
 
-  await page.getByTitle("Masquer la navigation", { exact: true }).click();
+  await page.getByTitle("Réduire la navigation", { exact: true }).click();
   for (const theme of ["dark", "light"]) {
     if (theme === "light")
       await page.getByTitle("Changer de thème", { exact: true }).click();

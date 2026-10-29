@@ -2,12 +2,14 @@
 
 Prototype validé localement, 17 octobre 2026 : compilation, 176 tests TypeScript, suite Go et recette J4 avec le compagnon réussis. Aucun modèle d’IA, compte ou service distant ajouté.
 
+**Complément V1 gratuite — 28 octobre 2026 :** recherche élargie, résultats paginés, fragments de noms et contenus sans accents, filtrage et TF-IDF en worker, contrôles de fraîcheur natifs par lots. La recherche reste locale et n’indexe que le dossier choisi. Aucun Setup reconstruit.
+
 ## Retrouver un fichier par son contenu
 
 1. Dans l’explorateur, ouvrez **Recherche locale**, ou la commande **Rechercher dans mes fichiers et espaces** (`Ctrl+Maj+F` par défaut).
 2. Dans le panneau, utilisez la même commande depuis **Options → Rechercher dans mes fichiers…** ou la palette `Ctrl+K`.
-3. Vérifiez **Dossier à indexer**, puis cliquez sur **Indexer ce dossier**. Les sous-dossiers sont inclus dans les limites ci-dessous. Aucun disque entier n’est indexé sans ce choix.
-4. Saisissez des mots du nom, du contenu ou de l’origine déclarée. Tous les mots sont requis ; casse et accents sont ignorés. Ce n’est pas une recherche par sens ou par préfixe.
+3. Vérifiez **Dossier à indexer**, ou utilisez **Choisir un dossier**. **Contenu des documents** peut être décoché pour une recherche rapide des noms sans lecture du contenu ni des provenances. Les fichiers cachés sont exclus par défaut, avec inclusion explicite possible. Cliquez sur **Indexer ce dossier** ; les sous-dossiers sont inclus dans les limites ci-dessous. Aucun disque entier n’est indexé sans ce choix.
+4. Saisissez des mots ou fragments du nom, du contenu ou de l’origine déclarée. Tous les fragments séparés par des espaces sont requis ; casse et accents sont ignorés. Extensions et noms composés sont recherchables, y compris un caractère seul. Les jokers et expressions régulières ne sont pas interprétés ; ce n’est pas une recherche par sens.
 5. Affinez avec le format, un tag ou des mots-clés du contenu. **Règles de mots-clés enregistrées** permet de nommer et réutiliser ces derniers ; une règle filtre, sans déplacer de fichier.
 6. **Vocabulaire proche** compare les textes par TF-IDF/cosinus. Le score exprime un vocabulaire commun, sans garantir un sujet identique, une copie ou une filiation.
 
@@ -15,13 +17,13 @@ Les fichiers locaux, liens/captures web et espaces sont présentés séparément
 
 ### Formats et limites
 
-| Périmètre | Limite du prototype |
+| Périmètre | Limite actuelle |
 | --- | --- |
-| Index local | Un dossier courant conservé dans IndexedDB ; 1 000 entrées parcourues, 100 dossiers, profondeur 8 ; liens symboliques ignorés ; cachés exclus. |
-| Texte | TXT, Markdown, CSV, JSON, logs, XML, HTML et sources texte reconnues ; 16 Kio lus, 1 000 lignes, 8 192 caractères conservés par fichier ; 2 097 152 caractères cumulés. Les binaires renommés en texte sont refusés. |
+| Index local | Un dossier conservé dans IndexedDB ; 50 000 entrées parcourues, 5 000 dossiers, profondeur 64 ; 32 Mio de métadonnées de références. Liens symboliques et fichiers `.source.json` voisins ignorés ; cachés au choix. |
+| Texte | Formats texte reconnus par l’aperçu, ainsi que les liens `.weblink` ; 16 Kio lus, 1 000 lignes, 8 192 caractères conservés par fichier ; 16 777 216 caractères cumulés. Le budget atteint n’empêche pas la suite du parcours des noms. Les binaires renommés en texte sont refusés. |
 | PDF | Connecteur natif `pdftotext` optionnel : PDF régulier avec signature valide, 8 Mio, 10 premières pages, 8 secondes et sortie bornée ; aucun rendu d’image. Moteur absent du paquet actuel : nom uniquement. Extraction PDF réelle non validée sur ce poste. |
 | Origine web | Réutilise le contrôle C1 : 20 fichiers et JSON voisins réguliers de 64 Kio maximum ; nom/taille/stabilité contrôlés, URL épurée. Métadonnées déclaratives, sans authenticité prouvée. |
-| Résultats | 100 fichiers visibles ; affiner les filtres pour les suivants. 50 règles de mots-clés au maximum. |
+| Résultats | 100 fichiers par page, tous les résultats locaux accessibles par Précédent/Suivant. Recherche et TF-IDF dans un worker, réponses aux anciennes requêtes ignorées. 50 règles de mots-clés au maximum. |
 | Images / scans | Nom, format et tags seulement. Aucun décodage TIFF, OCR, classement d’image ou recherche visuelle. |
 
 La [documentation du moteur PDF](https://github.com/davidben/poppler/blob/master/utils/pdftotext.1) décrit ses options d’extraction. Aucun téléchargement de moteur n’est déclenché par cette interface.
@@ -30,7 +32,11 @@ La [documentation du moteur PDF](https://github.com/davidben/poppler/blob/master
 
 Pendant l’ouverture, les notifications du compagnon invalident les résultats puis relancent l’analyse. Un contrôle des métadonnées des dossiers/fichiers toutes les 15 secondes détecte aussi les changements hors des dossiers surveillés. Le compagnon fournit une date de modification précise pour détecter les écritures de même taille dans la même seconde ; cette date reste une métadonnée, sans preuve cryptographique du contenu.
 
-À la réouverture, l’index conservé doit être actualisé avant de présenter ses fichiers. **Actualiser l’index** reconstruit le périmètre et répercute ajouts, modifications et suppressions ; les résultats périmés sont masqués. Les fichiers sont encore contrôlés avant ouverture.
+À la réouverture dans le même dossier avec les options de contenu/cachés par défaut, l’index récent conservé est revalidé sans relire ses documents. Les anciens caches restent chargeables mais demandent une reconstruction. **Actualiser l’index** reconstruit le périmètre et répercute ajouts, modifications et suppressions ; les résultats périmés sont masqués. Les fichiers sont encore contrôlés avant ouverture, y compris leur date précise. Le nouveau compagnon regroupe les contrôles par lots de 100 références au maximum et les requêtes de l’interface restent sous 128 Kio environ ; l’ancien compagnon utilise les contrôles individuels.
+
+Les listes de noms sont capturées avant les extractions lentes de documents, pour éviter de laisser expirer les instantanés de pagination pendant ces extractions. Le compagnon à jour accepte jusqu’à 50 000 entrées et 32 Mio de métadonnées par liste de recherche ; son parcours natif reste borné à 200 000 noms examinés par dossier. Les listes de navigation gardent leur limite distincte de 10 000 entrées / 8 Mio. Une ancienne version du compagnon garde également cette limite en recherche.
+
+**Parcours terminé** désigne la couverture des noms fournis dans le périmètre. Le nombre d’extraits est affiché séparément ; un texte non extrait ou tronqué n’est pas intégralement couvert. **Parcours partiel** signale une limite d’entrées, de dossiers, de profondeur, de métadonnées ou de liste native, ainsi que les sous-dossiers inaccessibles. Les motifs et jusqu’à vingt chemins concernés sont consultables dans **Périmètre et limites**. Les éléments omis ne sont pas comptés comme absents : le contenu des sous-dossiers non explorés n’est pas dénombré.
 
 **Arrêter l’indexation** bloque les lectures suivantes et ignore les réponses tardives. Une extraction PDF native déjà lancée peut finir pendant ses 8 secondes maximum. Fermer le dialogue arrête également l’analyse ; aucune tâche d’indexation autonome n’est créée. **Effacer l’index** supprime les extraits locaux ; les analyses déjà en cours dans les autres vues ne peuvent pas rétablir le cache supprimé, grâce au contrôle de révision à l’écriture.
 
@@ -65,7 +71,7 @@ L’affichage **Colonnes de dossiers** ajoute une navigation sur les trois derni
 
 Dans **Filtres et organisation → Calculer les tailles des dossiers**, le calcul natif existant remonte ses éléments traités dans l’activité et peut être annulé. Une fois terminé, les totaux disponibles alimentent les listes et leur tri par taille. Un résultat partiel affiche `≥` ; une taille inconnue reste `—`, après les tailles connues au tri. Les changements de fichiers invalident ces totaux. Le calcul ne lit pas le contenu des fichiers ; 500 totaux d’enfants maximum sont fournis par le moteur d’analyse actuel.
 
-Les listes natives sont désormais lues par lots de 256 noms : 10 000 résultats, environ 8 Mio de métadonnées ou 200 000 noms parcourus maximum. Un avertissement **Liste partielle** demande d’affiner le filtre par nom. Un résultat omis n’est pas assimilé à un fichier absent. L’interface reste virtualisée ; l’index possède son plafond distinct de 1 000 entrées.
+Les listes natives de navigation sont lues par lots de 256 noms : 10 000 résultats, environ 8 Mio de métadonnées ou 200 000 noms parcourus maximum. Un avertissement **Liste partielle** demande d’affiner le filtre par nom. Un résultat omis n’est pas assimilé à un fichier absent. L’interface reste virtualisée ; l’index possède son plafond distinct de 50 000 entrées et sa pagination de résultats.
 
 ## Raccourcis, menus et export
 
