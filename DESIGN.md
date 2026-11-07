@@ -24,6 +24,8 @@ Règles de rangement repliées dans le dialogue des téléchargements, éditeur 
 
 ## Système visuel
 
+Dans les fenêtres de 500 px de hauteur ou moins, les réglages regroupent recherche, catégories et champs dans une zone défilante unique ; les actions Enregistrer et Réinitialiser restent accessibles en bas. Le focus clavier fait défiler le champ dans cette zone. Sur les fenêtres plus hautes, la disposition par sections existante est conservée. Les tailles de texte choisies par l'utilisateur restent appliquées.
+
 La séparation du volet d’aperçu possède une poignée Material 3, commune visuellement à celle des deux panneaux : survol et focus visibles, réglage à la souris et au clavier, largeur mémorisée (260–640 px, limitée par l’espace disponible). Le double-clic rétablit 330 px. La poignée est masquée dans la disposition verticale sur petit écran.
 
 Le volet **Aperçu et détails** accompagne la liste dans la vue complète : surface tonale à droite, aperçu en haut, informations et métadonnées en dessous. Le bouton **Aperçu** indique son état et le volet possède une fermeture dédiée. Il suit la sélection du panneau actif ; une sélection multiple donne un résumé. À 700 px et moins, le volet passe sous la liste avec son propre défilement. L’aperçu intégré est une région, sans fenêtre modale ni déplacement automatique du focus.

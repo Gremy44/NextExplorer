@@ -316,11 +316,15 @@ export async function runUIConsistency({ page, fixture, label = "browser" }) {
     try {
       await panel.goto(`${url.split("?")[0]}?panel=1`);
       await panel.getByText("Fichiers connectés", { exact: true }).waitFor();
-      for (const [width, height] of [
-        [320, 320],
-        [390, 600],
-        [600, 960],
+      for (const [width, height, theme, textSize] of [
+        [320, 320, "dark", 100],
+        [320, 320, "light", 150],
+        [390, 320, "dark", 150],
+        [900, 320, "light", 150],
+        [390, 600, "dark", 100],
+        [600, 960, "dark", 100],
       ]) {
+        await prefs({ ...basePrefs, theme, textSize });
         await panel.setViewportSize({ width, height });
         await panel.getByLabel("Options du panneau", { exact: true }).click();
         await panel
@@ -343,8 +347,32 @@ export async function runUIConsistency({ page, fixture, label = "browser" }) {
           save.y >= 0 && save.y + save.height <= height + 1,
           `enregistrement du panneau à ${width}x${height}`,
         );
+        const textSizeControl = modal.getByRole("slider", {
+          name: "Taille du texte",
+          exact: true,
+        });
+        await textSizeControl.focus();
+        await textSizeControl.press("ArrowLeft");
+        assert.equal(await textSizeControl.inputValue(), String(textSize - 5));
+        const field = await textSizeControl.boundingBox();
+        const visibleArea = await modal
+          .locator(
+            height <= 500 ? ".preferences-scroll" : ".preferences-content",
+          )
+          .boundingBox();
+        assert.ok(
+          visibleArea.height >= field.height &&
+            field.y >= visibleArea.y - 1 &&
+            field.y + field.height <= visibleArea.y + visibleArea.height + 1 &&
+            field.y + field.height <= save.y,
+          `champ modifiable et entièrement visible à ${width}x${height}, texte ${textSize}%`,
+        );
+        assert.equal(
+          await textSizeControl.evaluate((el) => document.activeElement === el),
+          true,
+        );
         await panel.screenshot({
-          path: `test-results/v1-ui-panel-${label}-${width}x${height}.png`,
+          path: `test-results/v1-ui-panel-${label}-${width}x${height}-${theme}-${textSize}.png`,
           animations: "disabled",
         });
         await modal

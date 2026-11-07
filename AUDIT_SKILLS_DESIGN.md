@@ -2,6 +2,16 @@
 
 7 novembre 2026 · branche `design/impeccable-audit` · base `583726df3f80a54854792398d47e5473b259e495`.
 
+## Suite appliquée — tâche Kanzo #35
+
+Les deux skills sont présents dans le catalogue de la session et ont été appliqués à la correction. Le P1 ci-dessous est corrigé : à 500 px de hauteur ou moins, recherche, catégories et champs défilent ensemble, tandis que les actions restent en bas. Au-delà, la disposition existante est conservée. Le défilement des champs est contenu.
+
+La recette vérifie désormais qu'un champ est entièrement visible dans sa zone et modifiable au clavier, et pas seulement que le bouton Enregistrer tient dans la fenêtre. Six variantes du panneau : 320×320 sombre/100 %, 320×320 clair/150 %, 390×320 sombre/150 %, 900×320 clair/150 %, 390×600 et 600×960. Les contrôles généraux conservent thèmes, densités et tailles jusqu'à 1440 px. Les captures ciblées ont été inspectées ; le déplacement du curseur de 150 à 145 % est volontaire dans le test clavier et n'est pas enregistré.
+
+Typage et **292 tests** réussis ; compilation et recettes navigateur/extension compilée réussies ; détecteur Impeccable sur les fichiers UI modifiés : **aucune alerte**, code 0. Journaux `test-results/impeccable-adapt-{check,ui,build,extension}.log`, rapport mécanique `impeccable-adapt-detector.json`. Capture de l'extension à 320×320 clair/150 % inspectée également. Essais Chromium sur Windows avec compagnon réel ; gestes tactiles et lecteur d'écran non qualifiés par cette passe.
+
+La suite de ce document décrit l'audit initial avant correction. Les autres points restent des propositions ; ni le document de design complet ni tous les outils ne sont refondus dans cette tâche. Aucun EXE ou fichier de release publique remplacé.
+
 ## Installation vérifiée
 
 - **Impeccable 4.8.0**, dépôt `pbakaus/impeccable`, commit `687bc381bc9091bf252c0a05303640561014a425`, licence Apache 2.0. Skill global : `~/.codex/skills/impeccable`.
