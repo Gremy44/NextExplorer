@@ -1,0 +1,13 @@
+{
+  "id": "P015",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "convenience",
+  "reason": "Je cherche souvent des fichiers, mais entre l'installation manuelle et un nouvel outil à apprendre, je risque d'y passer plus de temps que j'en gagne. À 49 €, je veux d'abord voir la recherche retrouver mes documents sans réglages compliqués.",
+  "objection": "Est-ce que je vais encore devoir tout configurer avant de gagner quelques minutes ?",
+  "would_change_my_mind": "Un essai sur mes dossiers qui me permet de retrouver mes fichiers plus vite dès la première utilisation, sans configuration compliquée.",
+  "price_too_cheap": 8,
+  "price_cheap": 25,
+  "price_expensive": 45,
+  "price_too_expensive": 75
+}

@@ -1,0 +1,13 @@
+{
+  "id": "P019",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "trust",
+  "reason": "Je reste avec mes outils gratuits : une extension à charger manuellement et un compagnon non signé ne me donnent pas envie de tester. Même pour une licence future, je n'engage pas 49 € sans voir la recherche retrouver un document que mes outils actuels me font manquer.",
+  "objection": "Le guide sur des copies est rassurant, mais il ne règle pas mon manque de confiance dans l'installation.",
+  "would_change_my_mind": "Un essai avec une installation signée et simple qui retrouve sur mes fichiers un document que je n'arrivais pas à retrouver avec mes outils gratuits.",
+  "price_too_cheap": 5,
+  "price_cheap": 15,
+  "price_expensive": 35,
+  "price_too_expensive": 60
+}

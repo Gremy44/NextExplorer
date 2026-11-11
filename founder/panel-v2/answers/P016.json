@@ -1,0 +1,13 @@
+{
+ "id": "P016",
+ "buys": false,
+ "purchases_first_month": 0,
+ "reason_code": "trust",
+ "reason": "Pour mes démarches, mon Explorateur et les fenêtres de sélection font déjà le travail. Je ne paierais pas 49 € pour un concept dont je ne peux pas encore vérifier le gain et la façon dont mes fichiers et brouillons sont conservés.",
+ "objection": "Que deviennent exactement mes documents et mes brouillons, et comment les récupérer si le compagnon ne fonctionne plus ?",
+ "would_change_my_mind": "Un essai sur mes copies qui me montre un gain régulier et me permet de vérifier clairement où restent mes données et comment les récupérer.",
+ "price_too_cheap": 8,
+ "price_cheap": 19,
+ "price_expensive": 39,
+ "price_too_expensive": 60
+}

@@ -1,0 +1,13 @@
+{
+  "id": "P010",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "convenience",
+  "reason": "Je veux gagner du temps pour préparer mes pièces jointes, mais je ne veux pas passer ma soirée à installer une extension, un compagnon et un modèle. Pour l'instant, je resterais sur le gratuit avant d'envisager la licence future à 49 €.",
+  "objection": "Est-ce que mon PC pourra le faire tourner, et combien faudra-t-il télécharger et configurer ?",
+  "would_change_my_mind": "Un essai sur mon PC qui s'installe simplement et me fait retrouver mes pièces jointes nettement plus vite dès la première utilisation.",
+  "price_too_cheap": 8,
+  "price_cheap": 25,
+  "price_expensive": 45,
+  "price_too_expensive": 70
+}

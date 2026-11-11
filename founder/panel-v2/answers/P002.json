@@ -1,0 +1,13 @@
+{
+  "id": "P002",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "need",
+  "reason": "Pour adapter mes images avant de les déposer sur un site client, mes outils gratuits me suffisent. Je ne mets pas 49 € dans une recherche et un classement futurs sans avoir constaté ce qui me manque aujourd'hui.",
+  "objection": "Est-ce que le Pro m'apporterait un résultat utile que mes outils gratuits ne savent pas déjà obtenir ?",
+  "would_change_my_mind": "Pendant l'essai sur mes fichiers, retrouver facilement des images que je n'arrive pas à retrouver avec mes outils actuels.",
+  "price_too_cheap": 5,
+  "price_cheap": 15,
+  "price_expensive": 30,
+  "price_too_expensive": 50
+}

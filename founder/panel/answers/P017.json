@@ -1,0 +1,13 @@
+{
+  "id": "P017",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "trust",
+  "reason": "Je prépare mes images avec mes habitudes actuelles et je ne paierais pas pour une recherche dont le gain reste à démontrer. Installer une extension manuellement et un compagnon non signé me freine déjà avant de parler des 49 €.",
+  "objection": "Est-ce que mon PC peut faire tourner ce modèle et combien faudra-t-il télécharger pour que cela fonctionne ?",
+  "would_change_my_mind": "Un essai simple sur mon PC qui montre que je retrouve mes vrais fichiers sensiblement plus vite, avec la compatibilité et le téléchargement clairement indiqués avant installation.",
+  "price_too_cheap": 5,
+  "price_cheap": 19,
+  "price_expensive": 35,
+  "price_too_expensive": 60
+}

@@ -1,0 +1,13 @@
+{
+  "id": "P010",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "convenience",
+  "reason": "Pour préparer mes pièces jointes, je veux gagner du temps dès le départ. Entre l’extension à charger à la main et les vérifications encore à développer, je n’ai pas envie de passer ma soirée à installer ce concept Pro.",
+  "objection": "Je ne sais toujours pas si mon PC pourra faire tourner le modèle ni combien il faudra télécharger.",
+  "would_change_my_mind": "Un essai sur mon PC qui vérifie clairement la compatibilité et le téléchargement nécessaire, puis me fait retrouver mes vrais documents plus vite sans configuration compliquée.",
+  "price_too_cheap": 8,
+  "price_cheap": 25,
+  "price_expensive": 49,
+  "price_too_expensive": 80
+}

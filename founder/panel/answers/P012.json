@@ -1,0 +1,13 @@
+{
+  "id": "P012",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "trust",
+  "reason": "Pour mes fichiers clients, je ne paierais pas cette licence future sans vérifier la provenance du compagnon et ce qui reste réellement sur mon PC. Le classement par sens ne suffit pas à me faire changer mes habitudes.",
+  "objection": "Le compagnon Windows non signé me freine, même avec la promesse d'un modèle local.",
+  "would_change_my_mind": "Un essai sur une version signée, avec un fonctionnement local vérifiable et des permissions clairement expliquées.",
+  "price_too_cheap": 8,
+  "price_cheap": 20,
+  "price_expensive": 40,
+  "price_too_expensive": 65
+}

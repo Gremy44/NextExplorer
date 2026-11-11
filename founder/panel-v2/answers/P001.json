@@ -1,0 +1,13 @@
+{
+  "id": "P001",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "habit",
+  "reason": "Pour préparer mes pièces jointes, je garde l’Explorateur Windows : je n’ai encore aucun gain vérifié qui justifie de changer ma routine et de payer 49 €.",
+  "objection": "Je veux savoir avant toute installation si mon PC convient et combien je dois télécharger ; ces vérifications restent à développer.",
+  "would_change_my_mind": "Un essai sur mon PC qui montre, sur mes propres fichiers, que je retrouve et prépare mes documents sensiblement plus vite.",
+  "price_too_cheap": 5,
+  "price_cheap": 15,
+  "price_expensive": 30,
+  "price_too_expensive": 50
+}

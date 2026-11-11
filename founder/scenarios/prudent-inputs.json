@@ -1,0 +1,51 @@
+{
+  "business": "NextExplorer — scénario non validé, EUR",
+  "unit": "licence nouvelle",
+  "price": 40.833333333333336,
+  "variable": [
+    {
+      "label": "Paiement/change/suppléments estimés, pas un devis",
+      "cost": 4
+    },
+    {
+      "label": "Support valorisé 20 EUR/h",
+      "cost": 6.666666666666666
+    },
+    {
+      "label": "Réserve remboursements 5% revenu net",
+      "cost": 2.041666666666667
+    }
+  ],
+  "fixed_monthly": [
+    {
+      "label": "40 h maintenance/acquisition/gestion valorisées 20 EUR/h",
+      "cost": 800
+    },
+    {
+      "label": "Réserve outils/frais non connus, estimation",
+      "cost": 40
+    }
+  ],
+  "startup": [
+    {
+      "label": "Dépense additionnelle autorisée dans ce scénario",
+      "cost": 0
+    }
+  ],
+  "days_per_month": 30,
+  "plan_per_day": 0.4,
+  "ramp_per_day": [
+    0.0,
+    0.0,
+    0.06666666666666667,
+    0.1,
+    0.16666666666666666,
+    0.16666666666666666,
+    0.26666666666666666,
+    0.26666666666666666,
+    0.3333333333333333,
+    0.3333333333333333,
+    0.4,
+    0.4
+  ]
+}

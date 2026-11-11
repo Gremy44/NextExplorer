@@ -1,0 +1,13 @@
+{
+  "id": "P005",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "trust",
+  "reason": "Je garde mes habitudes tant que je ne sais pas précisément comment mes fichiers et mes brouillons sont conservés. À 49 €, je pourrais envisager la licence, mais je ne paierais pas pour des fonctions encore à développer sans résultat vérifié sur mes dossiers.",
+  "objection": "Est-ce que mes originaux et mes brouillons restent intacts, et où sont conservées les données créées pendant l’analyse ?",
+  "would_change_my_mind": "Un essai sur mes copies qui me permette de vérifier la conservation de mes fichiers et de retrouver mes documents sensiblement plus vite qu’avec l’Explorateur.",
+  "price_too_cheap": 10,
+  "price_cheap": 25,
+  "price_expensive": 49,
+  "price_too_expensive": 80
+}

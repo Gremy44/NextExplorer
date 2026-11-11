@@ -1,0 +1,13 @@
+{
+  "id": "P012",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "trust",
+  "reason": "Pour adapter mes images avant un dépôt client, je garderais mes habitudes et regarderais d'abord les outils gratuits. Je n'envisage pas de payer 49 € pour une recherche future tant que je ne peux pas vérifier qui fournit le logiciel et ce qu'il fait de mes fichiers.",
+  "objection": "Installer à la main une extension et un compagnon non signé sur mon poste de travail me freine, surtout avec les documents de mes clients : je veux connaître les permissions et vérifier ce qui reste réellement en local.",
+  "would_change_my_mind": "Une version signée dont je peux vérifier la provenance et le traitement local, puis essayer la recherche Pro sur des copies de mes propres fichiers avec un résultat utile.",
+  "price_too_cheap": 8,
+  "price_cheap": 20,
+  "price_expensive": 40,
+  "price_too_expensive": 65
+}

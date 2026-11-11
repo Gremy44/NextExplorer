@@ -1,0 +1,13 @@
+{
+  "id": "P018",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "trust",
+  "reason": "Retrouver mes fichiers plus vite me serait utile, mais je ne paierais pas sur cette promesse avec une installation qui me demande autant de confiance. À 49 €, je veux pouvoir tester simplement et constater le temps gagné.",
+  "objection": "Le chargement manuel de l’extension et le compagnon Windows non signé me bloquent avant même de tester la recherche.",
+  "would_change_my_mind": "Un essai avec une installation simple et un compagnon signé, durant lequel je retrouve vraiment plus vite mes propres fichiers.",
+  "price_too_cheap": 8,
+  "price_cheap": 25,
+  "price_expensive": 49,
+  "price_too_expensive": 80
+}

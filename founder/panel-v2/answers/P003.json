@@ -1,0 +1,13 @@
+{
+  "id": "P003",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "convenience",
+  "reason": "Pour adapter mes images avant de les déposer chez un client, je veux gagner du temps dès le départ. Entre l'installation manuelle et un Pro encore à développer, je ne vois pas assez de bénéfice concret pour envisager les 49 € cette semaine.",
+  "objection": "Est-ce que ça tourne sur mon PC sans une grosse installation ni des réglages à rallonge ?",
+  "would_change_my_mind": "Un essai sur mon PC qui confirme un téléchargement raisonnable et raccourcit réellement ma préparation habituelle d'images, sans configuration compliquée.",
+  "price_too_cheap": 8,
+  "price_cheap": 25,
+  "price_expensive": 49,
+  "price_too_expensive": 80
+}

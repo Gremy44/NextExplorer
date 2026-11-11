@@ -1,0 +1,149 @@
+{
+ "business": "NextExplorer — étude hypothétique Pro, pas une offre en vente",
+ "seed": 7,
+ "dealt": 20,
+ "answered": 20,
+ "skipped": [],
+ "buys": 0,
+ "passes": 20,
+ "buy_rate": 0.0,
+ "by_segment": [
+  [
+   "Utilisateur personnel régulier",
+   6,
+   0.0
+  ],
+  [
+   "Créatif indépendant",
+   6,
+   0.0
+  ],
+  [
+   "Indépendant administratif",
+   8,
+   0.0
+  ]
+ ],
+ "by_behaviour": [
+  [
+   "Routine stable",
+   6,
+   0.0
+  ],
+  [
+   "Préfère le gratuit",
+   4,
+   0.0
+  ],
+  [
+   "Gain de temps",
+   5,
+   0.0
+  ],
+  [
+   "Prudent confidentialité",
+   5,
+   0.0
+  ]
+ ],
+ "by_income": [
+  [
+   "$31,000 to $44,000",
+   8,
+   0.0
+  ],
+  [
+   "under $31,000",
+   5,
+   0.0
+  ],
+  [
+   "$44,000 and up",
+   7,
+   0.0
+  ]
+ ],
+ "why_not": [
+  [
+   "trust",
+   13,
+   [
+    "Je cherche souvent des fichiers, mais je ne paierais pas 49 € sans pouvoir vérifier la provenance du compagnon et ce qu'il fait de mes documents. Le gratuit me suffit pour attendre une version plus rassurante.",
+    "Je reste avec l’Explorateur Windows tant que je n’ai pas vérifié comment mes documents administratifs et mes brouillons sont conservés. La recherche par sens pourrait m’aider, mais je ne paierais pas 49 € sur cette seule promesse."
+   ],
+   [
+    "P004",
+    "P005"
+   ]
+  ],
+  [
+   "convenience",
+   3,
+   [
+    "Pour préparer mes images avant de les déposer chez un client, le gratuit me suffit pour commencer. Je ne paierais pas 49 € pour la recherche par sens sans voir si elle me fait réellement gagner du temps sur mes dossiers.",
+    "Je veux gagner du temps pour préparer mes pièces jointes, mais je ne veux pas passer ma soirée à installer une extension, un compagnon et un modèle. Pour l'instant, je resterais sur le gratuit avant d'envisager la licence future à 49 €."
+   ],
+   [
+    "P003",
+    "P010"
+   ]
+  ],
+  [
+   "need",
+   2,
+   [
+    "Pour adapter mes images avant de les déposer, mes outils gratuits suffisent. Je ne mettrais pas 49 € dans une recherche par sens sans avoir constaté qu'elle résout un problème que j'ai vraiment.",
+    "Pour adapter mes images avant de les déposer chez un client, mes outils actuels suffisent. Retrouver des fichiers par sens ne me fait pas gagner assez de temps de façon démontrée pour payer une licence."
+   ],
+   [
+    "P002",
+    "P020"
+   ]
+  ],
+  [
+   "habit",
+   1,
+   [
+    "Pour joindre mes papiers sur un site, je retrouve déjà mes fichiers avec Windows. Je ne paierais pas 49 € pour changer ma routine sans avoir constaté que la recherche par sens me fait gagner du temps."
+   ],
+   [
+    "P001"
+   ]
+  ],
+  [
+   "quality",
+   1,
+   [
+    "Pour préparer mes pièces jointes, je peux déjà essayer les fonctions gratuites. Je ne mettrais pas 49 € dans le classement par IA sans savoir si je retrouve vraiment mes documents plus vite, surtout avec une installation à configurer."
+   ],
+   [
+    "P008"
+   ]
+  ]
+ ],
+ "why_yes": [],
+ "flip": [
+  "Un essai sur mon PC qui retrouve mes vrais documents sensiblement plus vite que ma méthode actuelle.",
+  "Un essai sur mes propres fichiers qui retrouve régulièrement des documents ou images que mes outils gratuits ne me permettent pas de retrouver facilement.",
+  "Un essai sur mon PC qui s'installe simplement et me permet de retrouver mes images nettement plus vite qu'aujourd'hui.",
+  "Un essai sur mon PC d'une version signée, avec permissions et fonctionnement local vérifiables, qui retrouve vraiment mes fichiers.",
+  "Un essai sur mes propres dossiers, avec des explications vérifiables sur la conservation et la suppression des données, qui me fasse réellement retrouver mes documents plus vite.",
+  "Un essai d’une version signée, avec des permissions clairement expliquées et un fonctionnement local vérifiable sur mes propres fichiers.",
+  "Un essai avec une installation signée et simple, qui me montre sur mes documents un résultat utile que mes outils gratuits ne donnent pas.",
+  "Un essai simple sur mes propres dossiers montrant que je retrouve régulièrement mes pièces jointes plus vite, sans réglages compliqués.",
+  "Un audit indépendant accessible qui confirme le traitement local et la sécurité d'une version signée installable normalement.",
+  "Un essai sur mon PC qui s'installe simplement et me fait retrouver mes pièces jointes nettement plus vite dès la première utilisation.",
+  "Un essai avec une installation signée et simple qui me montre un gain net sur mes propres documents.",
+  "Un essai sur une version signée, avec un fonctionnement local vérifiable et des permissions clairement expliquées.",
+  "Un essai d’une version signée et facile à installer qui me montre, sur mes propres fichiers, un résultat utile que mes outils gratuits ne donnent pas.",
+  "Un essai sur mon PC avec un compagnon signé et des permissions claires, montrant que l'analyse reste locale et retrouve réellement mes documents sans apprentissage compliqué.",
+  "Un essai simple sur mes dossiers qui me montre que je retrouve régulièrement mes images et documents en quelques secondes, sans configuration compliquée.",
+  "Un essai sur mes propres documents qui démontre un gain régulier et me permet de vérifier clairement ce qui reste enregistré localement.",
+  "Un essai simple sur mon PC qui montre que je retrouve mes vrais fichiers sensiblement plus vite, avec la compatibilité et le téléchargement clairement indiqués avant installation.",
+  "Un essai avec une installation simple et un compagnon signé, durant lequel je retrouve vraiment plus vite mes propres fichiers.",
+  "Un essai avec un compagnon signé qui retrouve, dans mes propres dossiers, plusieurs documents que mes outils gratuits ne retrouvent pas.",
+  "Un essai sur mes propres dossiers qui montre un gain de temps régulier et net pour retrouver les images demandées par mes clients."
+ ],
+ "purchases_first_month_per_buyer": null,
+ "price_answers": 20
+}

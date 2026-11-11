@@ -1,0 +1,13 @@
+{
+  "id": "P009",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "trust",
+  "reason": "Pour mes pièces jointes personnelles, je ne suis pas prête à installer une extension manuellement avec un compagnon non signé. Les précautions annoncées sont utiles, mais elles ne me donnent pas encore assez confiance pour envisager cette licence à 49 €.",
+  "objection": "Je ne peux pas vérifier suffisamment la provenance du logiciel, les permissions nécessaires et ce qui arrive à mes documents.",
+  "would_change_my_mind": "Une version distribuée par des canaux vérifiables, avec un compagnon signé et une explication vérifiable des permissions et du traitement local, que je puisse essayer sur mes fichiers avant de payer.",
+  "price_too_cheap": 5,
+  "price_cheap": 19,
+  "price_expensive": 39,
+  "price_too_expensive": 69
+}

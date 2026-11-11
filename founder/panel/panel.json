@@ -1,0 +1,76 @@
+{
+ "n": 20,
+ "seed": 7,
+ "customer": {
+  "business": "NextExplorer — étude hypothétique Pro, pas une offre en vente",
+  "target": "Utilisateurs francophones Windows/Chrome préparant régulièrement documents et images pour des sites web ; segment de travail non confirmé par enquête",
+  "where": "France francophone et usage en ligne ; hypothèse d'étude, pas une domiciliation juridique",
+  "age": [
+   25,
+   60
+  ],
+  "segments": [
+   {
+    "name": "Indépendant administratif",
+    "share": 0.4,
+    "income": [
+     24000,
+     60000
+    ]
+   },
+   {
+    "name": "Créatif indépendant",
+    "share": 0.3,
+    "income": [
+     24000,
+     65000
+    ]
+   },
+   {
+    "name": "Utilisateur personnel régulier",
+    "share": 0.3,
+    "income": [
+     18000,
+     45000
+    ]
+   }
+  ],
+  "behaviours": [
+   {
+    "name": "Routine stable",
+    "share": 0.3,
+    "how": "Utilise Explorateur Windows et les dialogues de fichiers, ne change que pour un gain vérifié."
+   },
+   {
+    "name": "Prudent confidentialité",
+    "share": 0.25,
+    "how": "Vérifie provenance, permissions et traitement local avant d'installer."
+   },
+   {
+    "name": "Gain de temps",
+    "share": 0.25,
+    "how": "Teste un outil si une tâche répétée devient plus courte, sans vouloir tout configurer."
+   },
+   {
+    "name": "Préfère le gratuit",
+    "share": 0.2,
+    "how": "Utilise des outils gratuits ; ne paie qu'après démonstration d'un résultat manquant."
+   }
+  ],
+  "objections": [
+   "Extension manuelle et EXE non signé : je n'ai pas confiance",
+   "Le gratuit ou mes outils actuels me suffisent",
+   "Je ne veux pas apprendre encore un explorateur",
+   "49 euros pour une IA dont je ne connais pas la qualité",
+   "Mon PC est-il compatible et combien faut-il télécharger ?",
+   "Comment sont conservés mes fichiers et mes brouillons ?"
+  ],
+  "habits": [
+   "prépare des pièces jointes pour une démarche en ligne",
+   "adapte des images avant un dépôt sur un site client",
+   "cherche parmi plusieurs dossiers et téléchargements"
+  ],
+  "assumptions": "Tous les âges, revenus annuels EUR, parts et comportements sont des hypothèses de génération, pas des données démographiques. L'échantillon n'est pas représentatif. Choix de travail de 20 profils pour limiter les crédits ; question de ciblage encore modifiable. Aucun achat aujourd'hui : les réponses portent sur une intention conditionnelle future. Une licence maximum par profil, pas un abonnement."
+ },
+ "pitch": "# Concept Pro à évaluer, indisponible à l'achat aujourd'hui\n\nNextExplorer propose déjà gratuitement un explorateur local dans Chrome/Edge, avec recherche, aperçu et préparation de fichiers pour les sites web.\nLe pilote actuel demande le chargement manuel d'une extension et un compagnon Windows non signé ; certains traitements demandent des moteurs facultatifs.\nConcept futur, non livré : classer documents et images et les retrouver par sens avec un petit modèle local téléchargé explicitement ; compatibilité matérielle et qualité restent à mesurer.\nHypothèse commerciale : 49 € une fois, une personne/deux PC, version acquise conservée et 12 mois d'évolutions ; essai de 14 jours après première analyse réussie, si ce parcours est développé.\nLe gratuit resterait utilisable sans modèle ni achat. Répondre sur l'intention conditionnelle d'acheter une licence future, jamais sur un achat réalisable aujourd'hui ; au maximum une licence au premier mois."
+}

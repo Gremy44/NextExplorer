@@ -1,0 +1,13 @@
+{
+  "id": "P017",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "trust",
+  "reason": "Je prépare déjà mes images avec mes habitudes actuelles et je ne paierais pas 49 € pour des fonctions encore à vérifier. Charger une extension à la main et installer un compagnon non signé me freine avant même de pouvoir constater un gain.",
+  "objection": "Je ne sais toujours pas si mon PC pourra faire fonctionner le modèle ni combien il faudra télécharger.",
+  "would_change_my_mind": "Un essai sur mon PC et mes propres fichiers qui confirme la compatibilité, annonce le téléchargement et montre un gain régulier sur ma préparation d’images.",
+  "price_too_cheap": 5,
+  "price_cheap": 15,
+  "price_expensive": 35,
+  "price_too_expensive": 60
+}

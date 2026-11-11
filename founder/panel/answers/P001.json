@@ -1,0 +1,13 @@
+{
+  "id": "P001",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "habit",
+  "reason": "Pour joindre mes papiers sur un site, je retrouve déjà mes fichiers avec Windows. Je ne paierais pas 49 € pour changer ma routine sans avoir constaté que la recherche par sens me fait gagner du temps.",
+  "objection": "Je ne sais pas si mon PC peut faire tourner le modèle ni combien il faudrait télécharger, et l'installation manuelle me freine.",
+  "would_change_my_mind": "Un essai sur mon PC qui retrouve mes vrais documents sensiblement plus vite que ma méthode actuelle.",
+  "price_too_cheap": 5,
+  "price_cheap": 15,
+  "price_expensive": 30,
+  "price_too_expensive": 50
+}

@@ -1,0 +1,13 @@
+{
+  "id": "P020",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "need",
+  "reason": "Pour adapter mes images avant de les déposer chez un client, mes outils actuels suffisent. Retrouver des fichiers par sens ne me fait pas gagner assez de temps de façon démontrée pour payer une licence.",
+  "objection": "Est-ce que je retrouverais vraiment mes images plus vite qu’avec mes dossiers habituels ?",
+  "would_change_my_mind": "Un essai sur mes propres dossiers qui montre un gain de temps régulier et net pour retrouver les images demandées par mes clients.",
+  "price_too_cheap": 5,
+  "price_cheap": 19,
+  "price_expensive": 39,
+  "price_too_expensive": 69
+}

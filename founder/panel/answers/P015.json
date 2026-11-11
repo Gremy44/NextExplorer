@@ -1,0 +1,13 @@
+{
+  "id": "P015",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "convenience",
+  "reason": "Retrouver une image sans fouiller tous mes téléchargements m'intéresse, mais je ne veux pas passer du temps à installer plusieurs trucs et apprendre un nouvel explorateur. À 49 €, il faudrait déjà que le gain de temps soit évident sur mes propres dossiers.",
+  "objection": "Est-ce que je retrouverai vraiment mes fichiers plus vite après toute cette installation ?",
+  "would_change_my_mind": "Un essai simple sur mes dossiers qui me montre que je retrouve régulièrement mes images et documents en quelques secondes, sans configuration compliquée.",
+  "price_too_cheap": 5,
+  "price_cheap": 19,
+  "price_expensive": 39,
+  "price_too_expensive": 69
+}

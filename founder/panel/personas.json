@@ -1,0 +1,222 @@
+[
+ {
+  "id": "P001",
+  "name": "Omar",
+  "age": 25,
+  "segment": "Utilisateur personnel régulier",
+  "income": 31000,
+  "behaviour": "Routine stable",
+  "behaviour_how": "Utilise Explorateur Windows et les dialogues de fichiers, ne change que pour un gain vérifié.",
+  "objection": "Mon PC est-il compatible et combien faut-il télécharger ?",
+  "habit": "prépare des pièces jointes pour une démarche en ligne"
+ },
+ {
+  "id": "P002",
+  "name": "Raj",
+  "age": 41,
+  "segment": "Utilisateur personnel régulier",
+  "income": 26000,
+  "behaviour": "Préfère le gratuit",
+  "behaviour_how": "Utilise des outils gratuits ; ne paie qu'après démonstration d'un résultat manquant.",
+  "objection": "Le gratuit ou mes outils actuels me suffisent",
+  "habit": "adapte des images avant un dépôt sur un site client"
+ },
+ {
+  "id": "P003",
+  "name": "Emil",
+  "age": 59,
+  "segment": "Créatif indépendant",
+  "income": 39000,
+  "behaviour": "Gain de temps",
+  "behaviour_how": "Teste un outil si une tâche répétée devient plus courte, sans vouloir tout configurer.",
+  "objection": "Mon PC est-il compatible et combien faut-il télécharger ?",
+  "habit": "adapte des images avant un dépôt sur un site client"
+ },
+ {
+  "id": "P004",
+  "name": "Owen",
+  "age": 33,
+  "segment": "Utilisateur personnel régulier",
+  "income": 37000,
+  "behaviour": "Prudent confidentialité",
+  "behaviour_how": "Vérifie provenance, permissions et traitement local avant d'installer.",
+  "objection": "Mon PC est-il compatible et combien faut-il télécharger ?",
+  "habit": "cherche parmi plusieurs dossiers et téléchargements"
+ },
+ {
+  "id": "P005",
+  "name": "Sana",
+  "age": 28,
+  "segment": "Indépendant administratif",
+  "income": 40000,
+  "behaviour": "Routine stable",
+  "behaviour_how": "Utilise Explorateur Windows et les dialogues de fichiers, ne change que pour un gain vérifié.",
+  "objection": "Comment sont conservés mes fichiers et mes brouillons ?",
+  "habit": "cherche parmi plusieurs dossiers et téléchargements"
+ },
+ {
+  "id": "P006",
+  "name": "Maya",
+  "age": 50,
+  "segment": "Indépendant administratif",
+  "income": 38000,
+  "behaviour": "Prudent confidentialité",
+  "behaviour_how": "Vérifie provenance, permissions et traitement local avant d'installer.",
+  "objection": "49 euros pour une IA dont je ne connais pas la qualité",
+  "habit": "prépare des pièces jointes pour une démarche en ligne"
+ },
+ {
+  "id": "P007",
+  "name": "Selin",
+  "age": 55,
+  "segment": "Utilisateur personnel régulier",
+  "income": 35000,
+  "behaviour": "Préfère le gratuit",
+  "behaviour_how": "Utilise des outils gratuits ; ne paie qu'après démonstration d'un résultat manquant.",
+  "objection": "Extension manuelle et EXE non signé : je n'ai pas confiance",
+  "habit": "prépare des pièces jointes pour une démarche en ligne"
+ },
+ {
+  "id": "P008",
+  "name": "Ruby",
+  "age": 29,
+  "segment": "Indépendant administratif",
+  "income": 59000,
+  "behaviour": "Gain de temps",
+  "behaviour_how": "Teste un outil si une tâche répétée devient plus courte, sans vouloir tout configurer.",
+  "objection": "49 euros pour une IA dont je ne connais pas la qualité",
+  "habit": "prépare des pièces jointes pour une démarche en ligne"
+ },
+ {
+  "id": "P009",
+  "name": "Nora",
+  "age": 32,
+  "segment": "Utilisateur personnel régulier",
+  "income": 27000,
+  "behaviour": "Prudent confidentialité",
+  "behaviour_how": "Vérifie provenance, permissions et traitement local avant d'installer.",
+  "objection": "Extension manuelle et EXE non signé : je n'ai pas confiance",
+  "habit": "prépare des pièces jointes pour une démarche en ligne"
+ },
+ {
+  "id": "P010",
+  "name": "Fatima",
+  "age": 25,
+  "segment": "Indépendant administratif",
+  "income": 44000,
+  "behaviour": "Gain de temps",
+  "behaviour_how": "Teste un outil si une tâche répétée devient plus courte, sans vouloir tout configurer.",
+  "objection": "Mon PC est-il compatible et combien faut-il télécharger ?",
+  "habit": "prépare des pièces jointes pour une démarche en ligne"
+ },
+ {
+  "id": "P011",
+  "name": "Tariq",
+  "age": 48,
+  "segment": "Créatif indépendant",
+  "income": 49000,
+  "behaviour": "Routine stable",
+  "behaviour_how": "Utilise Explorateur Windows et les dialogues de fichiers, ne change que pour un gain vérifié.",
+  "objection": "Extension manuelle et EXE non signé : je n'ai pas confiance",
+  "habit": "prépare des pièces jointes pour une démarche en ligne"
+ },
+ {
+  "id": "P012",
+  "name": "Felix",
+  "age": 49,
+  "segment": "Indépendant administratif",
+  "income": 29000,
+  "behaviour": "Prudent confidentialité",
+  "behaviour_how": "Vérifie provenance, permissions et traitement local avant d'installer.",
+  "objection": "Je ne veux pas apprendre encore un explorateur",
+  "habit": "adapte des images avant un dépôt sur un site client"
+ },
+ {
+  "id": "P013",
+  "name": "Zoe",
+  "age": 48,
+  "segment": "Utilisateur personnel régulier",
+  "income": 31000,
+  "behaviour": "Préfère le gratuit",
+  "behaviour_how": "Utilise des outils gratuits ; ne paie qu'après démonstration d'un résultat manquant.",
+  "objection": "Extension manuelle et EXE non signé : je n'ai pas confiance",
+  "habit": "adapte des images avant un dépôt sur un site client"
+ },
+ {
+  "id": "P014",
+  "name": "Dev",
+  "age": 54,
+  "segment": "Créatif indépendant",
+  "income": 44000,
+  "behaviour": "Prudent confidentialité",
+  "behaviour_how": "Vérifie provenance, permissions et traitement local avant d'installer.",
+  "objection": "Je ne veux pas apprendre encore un explorateur",
+  "habit": "prépare des pièces jointes pour une démarche en ligne"
+ },
+ {
+  "id": "P015",
+  "name": "Yusuf",
+  "age": 34,
+  "segment": "Créatif indépendant",
+  "income": 28000,
+  "behaviour": "Gain de temps",
+  "behaviour_how": "Teste un outil si une tâche répétée devient plus courte, sans vouloir tout configurer.",
+  "objection": "Je ne veux pas apprendre encore un explorateur",
+  "habit": "cherche parmi plusieurs dossiers et téléchargements"
+ },
+ {
+  "id": "P016",
+  "name": "Theo",
+  "age": 41,
+  "segment": "Indépendant administratif",
+  "income": 41000,
+  "behaviour": "Routine stable",
+  "behaviour_how": "Utilise Explorateur Windows et les dialogues de fichiers, ne change que pour un gain vérifié.",
+  "objection": "Comment sont conservés mes fichiers et mes brouillons ?",
+  "habit": "prépare des pièces jointes pour une démarche en ligne"
+ },
+ {
+  "id": "P017",
+  "name": "Alma",
+  "age": 58,
+  "segment": "Indépendant administratif",
+  "income": 25000,
+  "behaviour": "Routine stable",
+  "behaviour_how": "Utilise Explorateur Windows et les dialogues de fichiers, ne change que pour un gain vérifié.",
+  "objection": "Mon PC est-il compatible et combien faut-il télécharger ?",
+  "habit": "adapte des images avant un dépôt sur un site client"
+ },
+ {
+  "id": "P018",
+  "name": "Freya",
+  "age": 34,
+  "segment": "Créatif indépendant",
+  "income": 52000,
+  "behaviour": "Gain de temps",
+  "behaviour_how": "Teste un outil si une tâche répétée devient plus courte, sans vouloir tout configurer.",
+  "objection": "Extension manuelle et EXE non signé : je n'ai pas confiance",
+  "habit": "cherche parmi plusieurs dossiers et téléchargements"
+ },
+ {
+  "id": "P019",
+  "name": "Harper",
+  "age": 44,
+  "segment": "Indépendant administratif",
+  "income": 59000,
+  "behaviour": "Préfère le gratuit",
+  "behaviour_how": "Utilise des outils gratuits ; ne paie qu'après démonstration d'un résultat manquant.",
+  "objection": "Extension manuelle et EXE non signé : je n'ai pas confiance",
+  "habit": "cherche parmi plusieurs dossiers et téléchargements"
+ },
+ {
+  "id": "P020",
+  "name": "Emma",
+  "age": 41,
+  "segment": "Créatif indépendant",
+  "income": 45000,
+  "behaviour": "Routine stable",
+  "behaviour_how": "Utilise Explorateur Windows et les dialogues de fichiers, ne change que pour un gain vérifié.",
+  "objection": "Le gratuit ou mes outils actuels me suffisent",
+  "habit": "adapte des images avant un dépôt sur un site client"
+ }
+]

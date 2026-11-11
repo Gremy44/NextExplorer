@@ -1,0 +1,13 @@
+{
+  "id": "P014",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "trust",
+  "reason": "Pour préparer mes pièces jointes, le gratuit me paraît suffisant. Je ne paierais pas pour faire analyser mes documents tant que la provenance du programme et le traitement local ne sont pas vérifiables simplement.",
+  "objection": "Le compagnon non signé et l'installation manuelle me freinent déjà ; je veux savoir précisément qui peut accéder à mes fichiers.",
+  "would_change_my_mind": "Un essai sur mon PC avec un compagnon signé et des permissions claires, montrant que l'analyse reste locale et retrouve réellement mes documents sans apprentissage compliqué.",
+  "price_too_cheap": 10,
+  "price_cheap": 25,
+  "price_expensive": 45,
+  "price_too_expensive": 70
+}

@@ -1,0 +1,1405 @@
+{
+  "prudent": {
+    "business": "NextExplorer — scénario non validé, EUR",
+    "unit": "licence nouvelle",
+    "price": 40.833333333333336,
+    "variable_per_unit": 12.708333333333332,
+    "contribution": 28.125000000000004,
+    "contribution_pct": 0.6887755102040817,
+    "fixed_monthly": 840.0,
+    "startup": 0.0,
+    "plan_per_day": 0.4,
+    "margin_at_plan": -1.0255102040816326,
+    "breakeven_per_day": 0.9955555555555554,
+    "capacity_per_day": null,
+    "year1_revenue": 3062.5000000000005,
+    "year1_profit": -7970.625,
+    "year1_after_startup": -7970.625,
+    "payback_month": null,
+    "cash_needed": 7970.625,
+    "months": [
+      {
+        "month": 1,
+        "per_day": 0.0,
+        "units": 0.0,
+        "revenue": 0.0,
+        "variable": 0.0,
+        "fixed": 840.0,
+        "profit": -840.0,
+        "cumulative": -840.0
+      },
+      {
+        "month": 2,
+        "per_day": 0.0,
+        "units": 0.0,
+        "revenue": 0.0,
+        "variable": 0.0,
+        "fixed": 840.0,
+        "profit": -840.0,
+        "cumulative": -1680.0
+      },
+      {
+        "month": 3,
+        "per_day": 0.06666666666666667,
+        "units": 2.0,
+        "revenue": 81.66666666666667,
+        "variable": 25.416666666666664,
+        "fixed": 840.0,
+        "profit": -783.75,
+        "cumulative": -2463.75
+      },
+      {
+        "month": 4,
+        "per_day": 0.1,
+        "units": 3.0,
+        "revenue": 122.5,
+        "variable": 38.125,
+        "fixed": 840.0,
+        "profit": -755.625,
+        "cumulative": -3219.375
+      },
+      {
+        "month": 5,
+        "per_day": 0.16666666666666666,
+        "units": 5.0,
+        "revenue": 204.16666666666669,
+        "variable": 63.54166666666666,
+        "fixed": 840.0,
+        "profit": -699.375,
+        "cumulative": -3918.75
+      },
+      {
+        "month": 6,
+        "per_day": 0.16666666666666666,
+        "units": 5.0,
+        "revenue": 204.16666666666669,
+        "variable": 63.54166666666666,
+        "fixed": 840.0,
+        "profit": -699.375,
+        "cumulative": -4618.125
+      },
+      {
+        "month": 7,
+        "per_day": 0.26666666666666666,
+        "units": 8.0,
+        "revenue": 326.6666666666667,
+        "variable": 101.66666666666666,
+        "fixed": 840.0,
+        "profit": -615.0,
+        "cumulative": -5233.125
+      },
+      {
+        "month": 8,
+        "per_day": 0.26666666666666666,
+        "units": 8.0,
+        "revenue": 326.6666666666667,
+        "variable": 101.66666666666666,
+        "fixed": 840.0,
+        "profit": -615.0,
+        "cumulative": -5848.125
+      },
+      {
+        "month": 9,
+        "per_day": 0.3333333333333333,
+        "units": 10.0,
+        "revenue": 408.33333333333337,
+        "variable": 127.08333333333331,
+        "fixed": 840.0,
+        "profit": -558.75,
+        "cumulative": -6406.875
+      },
+      {
+        "month": 10,
+        "per_day": 0.3333333333333333,
+        "units": 10.0,
+        "revenue": 408.33333333333337,
+        "variable": 127.08333333333331,
+        "fixed": 840.0,
+        "profit": -558.75,
+        "cumulative": -6965.625
+      },
+      {
+        "month": 11,
+        "per_day": 0.4,
+        "units": 12.0,
+        "revenue": 490.0,
+        "variable": 152.5,
+        "fixed": 840.0,
+        "profit": -502.5,
+        "cumulative": -7468.125
+      },
+      {
+        "month": 12,
+        "per_day": 0.4,
+        "units": 12.0,
+        "revenue": 490.0,
+        "variable": 152.5,
+        "fixed": 840.0,
+        "profit": -502.5,
+        "cumulative": -7970.625
+      }
+    ],
+    "flags": [
+      "Year 1 loses money on operations (-$7,971).",
+      "The startup spend is not earned back within year 1."
+    ],
+    "variable_items": [
+      {
+        "label": "Paiement/change/suppléments estimés, pas un devis",
+        "cost": 4
+      },
+      {
+        "label": "Support valorisé 20 EUR/h",
+        "cost": 6.666666666666666
+      },
+      {
+        "label": "Réserve remboursements 5% revenu net",
+        "cost": 2.041666666666667
+      }
+    ],
+    "fixed_items": [
+      {
+        "label": "40 h maintenance/acquisition/gestion valorisées 20 EUR/h",
+        "cost": 800
+      },
+      {
+        "label": "Réserve outils/frais non connus, estimation",
+        "cost": 40
+      }
+    ],
+    "startup_items": [
+      {
+        "label": "Dépense additionnelle autorisée dans ce scénario",
+        "cost": 0
+      }
+    ],
+    "scenario_only": true,
+    "currency": "EUR",
+    "implied_founder_hours_at_plan_month": 44.0
+  },
+  "central": {
+    "business": "NextExplorer — scénario non validé, EUR",
+    "unit": "licence nouvelle",
+    "price": 40.833333333333336,
+    "variable_per_unit": 12.708333333333332,
+    "contribution": 28.125000000000004,
+    "contribution_pct": 0.6887755102040817,
+    "fixed_monthly": 840.0,
+    "startup": 0.0,
+    "plan_per_day": 1.6666666666666667,
+    "margin_at_plan": 0.27734693877551025,
+    "breakeven_per_day": 0.9955555555555554,
+    "capacity_per_day": null,
+    "year1_revenue": 11229.166666666666,
+    "year1_profit": -2345.625,
+    "year1_after_startup": -2345.625,
+    "payback_month": null,
+    "cash_needed": 3770.625,
+    "months": [
+      {
+        "month": 1,
+        "per_day": 0.0,
+        "units": 0.0,
+        "revenue": 0.0,
+        "variable": 0.0,
+        "fixed": 840.0,
+        "profit": -840.0,
+        "cumulative": -840.0
+      },
+      {
+        "month": 2,
+        "per_day": 0.0,
+        "units": 0.0,
+        "revenue": 0.0,
+        "variable": 0.0,
+        "fixed": 840.0,
+        "profit": -840.0,
+        "cumulative": -1680.0
+      },
+      {
+        "month": 3,
+        "per_day": 0.16666666666666666,
+        "units": 5.0,
+        "revenue": 204.16666666666669,
+        "variable": 63.54166666666666,
+        "fixed": 840.0,
+        "profit": -699.375,
+        "cumulative": -2379.375
+      },
+      {
+        "month": 4,
+        "per_day": 0.3333333333333333,
+        "units": 10.0,
+        "revenue": 408.33333333333337,
+        "variable": 127.08333333333331,
+        "fixed": 840.0,
+        "profit": -558.75,
+        "cumulative": -2938.125
+      },
+      {
+        "month": 5,
+        "per_day": 0.5,
+        "units": 15.0,
+        "revenue": 612.5,
+        "variable": 190.62499999999997,
+        "fixed": 840.0,
+        "profit": -418.125,
+        "cumulative": -3356.25
+      },
+      {
+        "month": 6,
+        "per_day": 0.6666666666666666,
+        "units": 20.0,
+        "revenue": 816.6666666666667,
+        "variable": 254.16666666666663,
+        "fixed": 840.0,
+        "profit": -277.4999999999999,
+        "cumulative": -3633.75
+      },
+      {
+        "month": 7,
+        "per_day": 0.8333333333333334,
+        "units": 25.0,
+        "revenue": 1020.8333333333334,
+        "variable": 317.7083333333333,
+        "fixed": 840.0,
+        "profit": -136.875,
+        "cumulative": -3770.625
+      },
+      {
+        "month": 8,
+        "per_day": 1.0,
+        "units": 30.0,
+        "revenue": 1225.0,
+        "variable": 381.24999999999994,
+        "fixed": 840.0,
+        "profit": 3.75,
+        "cumulative": -3766.875
+      },
+      {
+        "month": 9,
+        "per_day": 1.1666666666666667,
+        "units": 35.0,
+        "revenue": 1429.1666666666667,
+        "variable": 444.79166666666663,
+        "fixed": 840.0,
+        "profit": 144.3750000000001,
+        "cumulative": -3622.5
+      },
+      {
+        "month": 10,
+        "per_day": 1.3333333333333333,
+        "units": 40.0,
+        "revenue": 1633.3333333333335,
+        "variable": 508.33333333333326,
+        "fixed": 840.0,
+        "profit": 285.0000000000002,
+        "cumulative": -3337.5
+      },
+      {
+        "month": 11,
+        "per_day": 1.5,
+        "units": 45.0,
+        "revenue": 1837.5,
+        "variable": 571.875,
+        "fixed": 840.0,
+        "profit": 425.625,
+        "cumulative": -2911.875
+      },
+      {
+        "month": 12,
+        "per_day": 1.6666666666666667,
+        "units": 50.0,
+        "revenue": 2041.6666666666667,
+        "variable": 635.4166666666666,
+        "fixed": 840.0,
+        "profit": 566.25,
+        "cumulative": -2345.625
+      }
+    ],
+    "flags": [
+      "Year 1 loses money on operations (-$2,346).",
+      "The startup spend is not earned back within year 1."
+    ],
+    "variable_items": [
+      {
+        "label": "Paiement/change/suppléments estimés, pas un devis",
+        "cost": 4
+      },
+      {
+        "label": "Support valorisé 20 EUR/h",
+        "cost": 6.666666666666666
+      },
+      {
+        "label": "Réserve remboursements 5% revenu net",
+        "cost": 2.041666666666667
+      }
+    ],
+    "fixed_items": [
+      {
+        "label": "40 h maintenance/acquisition/gestion valorisées 20 EUR/h",
+        "cost": 800
+      },
+      {
+        "label": "Réserve outils/frais non connus, estimation",
+        "cost": 40
+      }
+    ],
+    "startup_items": [
+      {
+        "label": "Dépense additionnelle autorisée dans ce scénario",
+        "cost": 0
+      }
+    ],
+    "scenario_only": true,
+    "currency": "EUR",
+    "implied_founder_hours_at_plan_month": 56.66666666666667
+  },
+  "traction": {
+    "business": "NextExplorer — scénario non validé, EUR",
+    "unit": "licence nouvelle",
+    "price": 40.833333333333336,
+    "variable_per_unit": 12.708333333333332,
+    "contribution": 28.125000000000004,
+    "contribution_pct": 0.6887755102040817,
+    "fixed_monthly": 840.0,
+    "startup": 0.0,
+    "plan_per_day": 5.666666666666667,
+    "margin_at_plan": 0.5677671068427371,
+    "breakeven_per_day": 0.9955555555555554,
+    "capacity_per_day": null,
+    "year1_revenue": 34095.833333333336,
+    "year1_profit": 13404.375000000002,
+    "year1_after_startup": 13404.375000000002,
+    "payback_month": 8,
+    "cash_needed": 2516.25,
+    "months": [
+      {
+        "month": 1,
+        "per_day": 0.0,
+        "units": 0.0,
+        "revenue": 0.0,
+        "variable": 0.0,
+        "fixed": 840.0,
+        "profit": -840.0,
+        "cumulative": -840.0
+      },
+      {
+        "month": 2,
+        "per_day": 0.0,
+        "units": 0.0,
+        "revenue": 0.0,
+        "variable": 0.0,
+        "fixed": 840.0,
+        "profit": -840.0,
+        "cumulative": -1680.0
+      },
+      {
+        "month": 3,
+        "per_day": 0.3333333333333333,
+        "units": 10.0,
+        "revenue": 408.33333333333337,
+        "variable": 127.08333333333331,
+        "fixed": 840.0,
+        "profit": -558.75,
+        "cumulative": -2238.75
+      },
+      {
+        "month": 4,
+        "per_day": 0.6666666666666666,
+        "units": 20.0,
+        "revenue": 816.6666666666667,
+        "variable": 254.16666666666663,
+        "fixed": 840.0,
+        "profit": -277.4999999999999,
+        "cumulative": -2516.25
+      },
+      {
+        "month": 5,
+        "per_day": 1.1666666666666667,
+        "units": 35.0,
+        "revenue": 1429.1666666666667,
+        "variable": 444.79166666666663,
+        "fixed": 840.0,
+        "profit": 144.3750000000001,
+        "cumulative": -2371.875
+      },
+      {
+        "month": 6,
+        "per_day": 1.6666666666666667,
+        "units": 50.0,
+        "revenue": 2041.6666666666667,
+        "variable": 635.4166666666666,
+        "fixed": 840.0,
+        "profit": 566.25,
+        "cumulative": -1805.625
+      },
+      {
+        "month": 7,
+        "per_day": 2.3333333333333335,
+        "units": 70.0,
+        "revenue": 2858.3333333333335,
+        "variable": 889.5833333333333,
+        "fixed": 840.0,
+        "profit": 1128.7500000000002,
+        "cumulative": -676.8749999999998
+      },
+      {
+        "month": 8,
+        "per_day": 3.0,
+        "units": 90.0,
+        "revenue": 3675.0,
+        "variable": 1143.75,
+        "fixed": 840.0,
+        "profit": 1691.25,
+        "cumulative": 1014.3750000000002
+      },
+      {
+        "month": 9,
+        "per_day": 3.6666666666666665,
+        "units": 110.0,
+        "revenue": 4491.666666666667,
+        "variable": 1397.9166666666665,
+        "fixed": 840.0,
+        "profit": 2253.7500000000005,
+        "cumulative": 3268.125000000001
+      },
+      {
+        "month": 10,
+        "per_day": 4.333333333333333,
+        "units": 130.0,
+        "revenue": 5308.333333333334,
+        "variable": 1652.0833333333333,
+        "fixed": 840.0,
+        "profit": 2816.250000000001,
+        "cumulative": 6084.375000000002
+      },
+      {
+        "month": 11,
+        "per_day": 5.0,
+        "units": 150.0,
+        "revenue": 6125.0,
+        "variable": 1906.2499999999998,
+        "fixed": 840.0,
+        "profit": 3378.75,
+        "cumulative": 9463.125000000002
+      },
+      {
+        "month": 12,
+        "per_day": 5.666666666666667,
+        "units": 170.0,
+        "revenue": 6941.666666666667,
+        "variable": 2160.4166666666665,
+        "fixed": 840.0,
+        "profit": 3941.25,
+        "cumulative": 13404.375000000002
+      }
+    ],
+    "flags": [],
+    "variable_items": [
+      {
+        "label": "Paiement/change/suppléments estimés, pas un devis",
+        "cost": 4
+      },
+      {
+        "label": "Support valorisé 20 EUR/h",
+        "cost": 6.666666666666666
+      },
+      {
+        "label": "Réserve remboursements 5% revenu net",
+        "cost": 2.041666666666667
+      }
+    ],
+    "fixed_items": [
+      {
+        "label": "40 h maintenance/acquisition/gestion valorisées 20 EUR/h",
+        "cost": 800
+      },
+      {
+        "label": "Réserve outils/frais non connus, estimation",
+        "cost": 40
+      }
+    ],
+    "startup_items": [
+      {
+        "label": "Dépense additionnelle autorisée dans ce scénario",
+        "cost": 0
+      }
+    ],
+    "scenario_only": true,
+    "currency": "EUR",
+    "implied_founder_hours_at_plan_month": 96.66666666666666
+  },
+  "central-support-5min": {
+    "business": "NextExplorer — scénario non validé, EUR",
+    "unit": "licence nouvelle",
+    "price": 40.833333333333336,
+    "variable_per_unit": 7.708333333333333,
+    "contribution": 33.125,
+    "contribution_pct": 0.8112244897959183,
+    "fixed_monthly": 840.0,
+    "startup": 0.0,
+    "plan_per_day": 1.6666666666666667,
+    "margin_at_plan": 0.3997959183673469,
+    "breakeven_per_day": 0.8452830188679246,
+    "capacity_per_day": null,
+    "year1_revenue": 11229.166666666666,
+    "year1_profit": -970.625,
+    "year1_after_startup": -970.625,
+    "payback_month": null,
+    "cash_needed": 3395.625,
+    "months": [
+      {
+        "month": 1,
+        "per_day": 0.0,
+        "units": 0.0,
+        "revenue": 0.0,
+        "variable": 0.0,
+        "fixed": 840.0,
+        "profit": -840.0,
+        "cumulative": -840.0
+      },
+      {
+        "month": 2,
+        "per_day": 0.0,
+        "units": 0.0,
+        "revenue": 0.0,
+        "variable": 0.0,
+        "fixed": 840.0,
+        "profit": -840.0,
+        "cumulative": -1680.0
+      },
+      {
+        "month": 3,
+        "per_day": 0.16666666666666666,
+        "units": 5.0,
+        "revenue": 204.16666666666669,
+        "variable": 38.541666666666664,
+        "fixed": 840.0,
+        "profit": -674.375,
+        "cumulative": -2354.375
+      },
+      {
+        "month": 4,
+        "per_day": 0.3333333333333333,
+        "units": 10.0,
+        "revenue": 408.33333333333337,
+        "variable": 77.08333333333333,
+        "fixed": 840.0,
+        "profit": -508.74999999999994,
+        "cumulative": -2863.125
+      },
+      {
+        "month": 5,
+        "per_day": 0.5,
+        "units": 15.0,
+        "revenue": 612.5,
+        "variable": 115.625,
+        "fixed": 840.0,
+        "profit": -343.125,
+        "cumulative": -3206.25
+      },
+      {
+        "month": 6,
+        "per_day": 0.6666666666666666,
+        "units": 20.0,
+        "revenue": 816.6666666666667,
+        "variable": 154.16666666666666,
+        "fixed": 840.0,
+        "profit": -177.4999999999999,
+        "cumulative": -3383.75
+      },
+      {
+        "month": 7,
+        "per_day": 0.8333333333333334,
+        "units": 25.0,
+        "revenue": 1020.8333333333334,
+        "variable": 192.70833333333331,
+        "fixed": 840.0,
+        "profit": -11.875,
+        "cumulative": -3395.625
+      },
+      {
+        "month": 8,
+        "per_day": 1.0,
+        "units": 30.0,
+        "revenue": 1225.0,
+        "variable": 231.25,
+        "fixed": 840.0,
+        "profit": 153.75,
+        "cumulative": -3241.875
+      },
+      {
+        "month": 9,
+        "per_day": 1.1666666666666667,
+        "units": 35.0,
+        "revenue": 1429.1666666666667,
+        "variable": 269.79166666666663,
+        "fixed": 840.0,
+        "profit": 319.375,
+        "cumulative": -2922.5
+      },
+      {
+        "month": 10,
+        "per_day": 1.3333333333333333,
+        "units": 40.0,
+        "revenue": 1633.3333333333335,
+        "variable": 308.3333333333333,
+        "fixed": 840.0,
+        "profit": 485.0000000000002,
+        "cumulative": -2437.5
+      },
+      {
+        "month": 11,
+        "per_day": 1.5,
+        "units": 45.0,
+        "revenue": 1837.5,
+        "variable": 346.875,
+        "fixed": 840.0,
+        "profit": 650.625,
+        "cumulative": -1786.875
+      },
+      {
+        "month": 12,
+        "per_day": 1.6666666666666667,
+        "units": 50.0,
+        "revenue": 2041.6666666666667,
+        "variable": 385.41666666666663,
+        "fixed": 840.0,
+        "profit": 816.25,
+        "cumulative": -970.625
+      }
+    ],
+    "flags": [
+      "Year 1 loses money on operations (-$971).",
+      "The startup spend is not earned back within year 1."
+    ],
+    "variable_items": [
+      {
+        "label": "Paiement/change/suppléments estimés, pas un devis",
+        "cost": 4
+      },
+      {
+        "label": "Support valorisé 20 EUR/h",
+        "cost": 1.6666666666666665
+      },
+      {
+        "label": "Réserve remboursements 5% revenu net",
+        "cost": 2.041666666666667
+      }
+    ],
+    "fixed_items": [
+      {
+        "label": "40 h maintenance/acquisition/gestion valorisées 20 EUR/h",
+        "cost": 800
+      },
+      {
+        "label": "Réserve outils/frais non connus, estimation",
+        "cost": 40
+      }
+    ],
+    "startup_items": [
+      {
+        "label": "Dépense additionnelle autorisée dans ce scénario",
+        "cost": 0
+      }
+    ]
+  },
+  "central-price-59": {
+    "business": "NextExplorer — scénario non validé, EUR",
+    "unit": "licence nouvelle",
+    "price": 49.16666666666667,
+    "variable_per_unit": 13.125,
+    "contribution": 36.04166666666667,
+    "contribution_pct": 0.7330508474576272,
+    "fixed_monthly": 840.0,
+    "startup": 0.0,
+    "plan_per_day": 1.6666666666666667,
+    "margin_at_plan": 0.3913559322033899,
+    "breakeven_per_day": 0.7768786127167628,
+    "capacity_per_day": null,
+    "year1_revenue": 13520.833333333334,
+    "year1_profit": -168.54166666666606,
+    "year1_after_startup": -168.54166666666606,
+    "payback_month": null,
+    "cash_needed": 3237.9166666666665,
+    "months": [
+      {
+        "month": 1,
+        "per_day": 0.0,
+        "units": 0.0,
+        "revenue": 0.0,
+        "variable": 0.0,
+        "fixed": 840.0,
+        "profit": -840.0,
+        "cumulative": -840.0
+      },
+      {
+        "month": 2,
+        "per_day": 0.0,
+        "units": 0.0,
+        "revenue": 0.0,
+        "variable": 0.0,
+        "fixed": 840.0,
+        "profit": -840.0,
+        "cumulative": -1680.0
+      },
+      {
+        "month": 3,
+        "per_day": 0.16666666666666666,
+        "units": 5.0,
+        "revenue": 245.83333333333337,
+        "variable": 65.625,
+        "fixed": 840.0,
+        "profit": -659.7916666666666,
+        "cumulative": -2339.7916666666665
+      },
+      {
+        "month": 4,
+        "per_day": 0.3333333333333333,
+        "units": 10.0,
+        "revenue": 491.66666666666674,
+        "variable": 131.25,
+        "fixed": 840.0,
+        "profit": -479.58333333333326,
+        "cumulative": -2819.375
+      },
+      {
+        "month": 5,
+        "per_day": 0.5,
+        "units": 15.0,
+        "revenue": 737.5000000000001,
+        "variable": 196.875,
+        "fixed": 840.0,
+        "profit": -299.3749999999999,
+        "cumulative": -3118.75
+      },
+      {
+        "month": 6,
+        "per_day": 0.6666666666666666,
+        "units": 20.0,
+        "revenue": 983.3333333333335,
+        "variable": 262.5,
+        "fixed": 840.0,
+        "profit": -119.16666666666652,
+        "cumulative": -3237.9166666666665
+      },
+      {
+        "month": 7,
+        "per_day": 0.8333333333333334,
+        "units": 25.0,
+        "revenue": 1229.1666666666667,
+        "variable": 328.125,
+        "fixed": 840.0,
+        "profit": 61.04166666666674,
+        "cumulative": -3176.875
+      },
+      {
+        "month": 8,
+        "per_day": 1.0,
+        "units": 30.0,
+        "revenue": 1475.0000000000002,
+        "variable": 393.75,
+        "fixed": 840.0,
+        "profit": 241.25000000000023,
+        "cumulative": -2935.625
+      },
+      {
+        "month": 9,
+        "per_day": 1.1666666666666667,
+        "units": 35.0,
+        "revenue": 1720.8333333333335,
+        "variable": 459.375,
+        "fixed": 840.0,
+        "profit": 421.4583333333335,
+        "cumulative": -2514.1666666666665
+      },
+      {
+        "month": 10,
+        "per_day": 1.3333333333333333,
+        "units": 40.0,
+        "revenue": 1966.666666666667,
+        "variable": 525.0,
+        "fixed": 840.0,
+        "profit": 601.666666666667,
+        "cumulative": -1912.4999999999995
+      },
+      {
+        "month": 11,
+        "per_day": 1.5,
+        "units": 45.0,
+        "revenue": 2212.5,
+        "variable": 590.625,
+        "fixed": 840.0,
+        "profit": 781.875,
+        "cumulative": -1130.6249999999995
+      },
+      {
+        "month": 12,
+        "per_day": 1.6666666666666667,
+        "units": 50.0,
+        "revenue": 2458.3333333333335,
+        "variable": 656.25,
+        "fixed": 840.0,
+        "profit": 962.0833333333335,
+        "cumulative": -168.54166666666606
+      }
+    ],
+    "flags": [
+      "Year 1 loses money on operations (-$169).",
+      "The startup spend is not earned back within year 1."
+    ],
+    "variable_items": [
+      {
+        "label": "Paiement/change/suppléments estimés, pas un devis",
+        "cost": 4
+      },
+      {
+        "label": "Support valorisé 20 EUR/h",
+        "cost": 6.666666666666666
+      },
+      {
+        "label": "Réserve remboursements 5% revenu net",
+        "cost": 2.458333333333334
+      }
+    ],
+    "fixed_items": [
+      {
+        "label": "40 h maintenance/acquisition/gestion valorisées 20 EUR/h",
+        "cost": 800
+      },
+      {
+        "label": "Réserve outils/frais non connus, estimation",
+        "cost": 40
+      }
+    ],
+    "startup_items": [
+      {
+        "label": "Dépense additionnelle autorisée dans ce scénario",
+        "cost": 0
+      }
+    ]
+  },
+  "central-price-39": {
+    "business": "NextExplorer — scénario non validé, EUR",
+    "unit": "licence nouvelle",
+    "price": 32.5,
+    "variable_per_unit": 12.291666666666666,
+    "contribution": 20.208333333333336,
+    "contribution_pct": 0.6217948717948719,
+    "fixed_monthly": 840.0,
+    "startup": 0.0,
+    "plan_per_day": 1.6666666666666667,
+    "margin_at_plan": 0.10487179487179492,
+    "breakeven_per_day": 1.385567010309278,
+    "capacity_per_day": null,
+    "year1_revenue": 8937.5,
+    "year1_profit": -4522.708333333333,
+    "year1_after_startup": -4522.708333333333,
+    "payback_month": null,
+    "cash_needed": 4762.5,
+    "months": [
+      {
+        "month": 1,
+        "per_day": 0.0,
+        "units": 0.0,
+        "revenue": 0.0,
+        "variable": 0.0,
+        "fixed": 840.0,
+        "profit": -840.0,
+        "cumulative": -840.0
+      },
+      {
+        "month": 2,
+        "per_day": 0.0,
+        "units": 0.0,
+        "revenue": 0.0,
+        "variable": 0.0,
+        "fixed": 840.0,
+        "profit": -840.0,
+        "cumulative": -1680.0
+      },
+      {
+        "month": 3,
+        "per_day": 0.16666666666666666,
+        "units": 5.0,
+        "revenue": 162.5,
+        "variable": 61.45833333333333,
+        "fixed": 840.0,
+        "profit": -738.9583333333334,
+        "cumulative": -2418.9583333333335
+      },
+      {
+        "month": 4,
+        "per_day": 0.3333333333333333,
+        "units": 10.0,
+        "revenue": 325.0,
+        "variable": 122.91666666666666,
+        "fixed": 840.0,
+        "profit": -637.9166666666666,
+        "cumulative": -3056.875
+      },
+      {
+        "month": 5,
+        "per_day": 0.5,
+        "units": 15.0,
+        "revenue": 487.5,
+        "variable": 184.375,
+        "fixed": 840.0,
+        "profit": -536.875,
+        "cumulative": -3593.75
+      },
+      {
+        "month": 6,
+        "per_day": 0.6666666666666666,
+        "units": 20.0,
+        "revenue": 650.0,
+        "variable": 245.83333333333331,
+        "fixed": 840.0,
+        "profit": -435.8333333333333,
+        "cumulative": -4029.5833333333335
+      },
+      {
+        "month": 7,
+        "per_day": 0.8333333333333334,
+        "units": 25.0,
+        "revenue": 812.5,
+        "variable": 307.29166666666663,
+        "fixed": 840.0,
+        "profit": -334.79166666666663,
+        "cumulative": -4364.375
+      },
+      {
+        "month": 8,
+        "per_day": 1.0,
+        "units": 30.0,
+        "revenue": 975.0,
+        "variable": 368.75,
+        "fixed": 840.0,
+        "profit": -233.75,
+        "cumulative": -4598.125
+      },
+      {
+        "month": 9,
+        "per_day": 1.1666666666666667,
+        "units": 35.0,
+        "revenue": 1137.5,
+        "variable": 430.2083333333333,
+        "fixed": 840.0,
+        "profit": -132.70833333333326,
+        "cumulative": -4730.833333333333
+      },
+      {
+        "month": 10,
+        "per_day": 1.3333333333333333,
+        "units": 40.0,
+        "revenue": 1300.0,
+        "variable": 491.66666666666663,
+        "fixed": 840.0,
+        "profit": -31.66666666666663,
+        "cumulative": -4762.5
+      },
+      {
+        "month": 11,
+        "per_day": 1.5,
+        "units": 45.0,
+        "revenue": 1462.5,
+        "variable": 553.125,
+        "fixed": 840.0,
+        "profit": 69.375,
+        "cumulative": -4693.125
+      },
+      {
+        "month": 12,
+        "per_day": 1.6666666666666667,
+        "units": 50.0,
+        "revenue": 1625.0,
+        "variable": 614.5833333333333,
+        "fixed": 840.0,
+        "profit": 170.41666666666674,
+        "cumulative": -4522.708333333333
+      }
+    ],
+    "flags": [
+      "Year 1 loses money on operations (-$4,523).",
+      "The startup spend is not earned back within year 1."
+    ],
+    "variable_items": [
+      {
+        "label": "Paiement/change/suppléments estimés, pas un devis",
+        "cost": 4
+      },
+      {
+        "label": "Support valorisé 20 EUR/h",
+        "cost": 6.666666666666666
+      },
+      {
+        "label": "Réserve remboursements 5% revenu net",
+        "cost": 1.625
+      }
+    ],
+    "fixed_items": [
+      {
+        "label": "40 h maintenance/acquisition/gestion valorisées 20 EUR/h",
+        "cost": 800
+      },
+      {
+        "label": "Réserve outils/frais non connus, estimation",
+        "cost": 40
+      }
+    ],
+    "startup_items": [
+      {
+        "label": "Dépense additionnelle autorisée dans ce scénario",
+        "cost": 0
+      }
+    ]
+  },
+  "central-volume-minus20": {
+    "business": "NextExplorer — scénario non validé, EUR",
+    "unit": "licence nouvelle",
+    "price": 40.833333333333336,
+    "variable_per_unit": 12.708333333333332,
+    "contribution": 28.125000000000004,
+    "contribution_pct": 0.6887755102040817,
+    "fixed_monthly": 840.0,
+    "startup": 0.0,
+    "plan_per_day": 1.3333333333333335,
+    "margin_at_plan": 0.17448979591836752,
+    "breakeven_per_day": 0.9955555555555554,
+    "capacity_per_day": null,
+    "year1_revenue": 8983.333333333336,
+    "year1_profit": -3892.4999999999995,
+    "year1_after_startup": -3892.4999999999995,
+    "payback_month": null,
+    "cash_needed": 4410.0,
+    "months": [
+      {
+        "month": 1,
+        "per_day": 0.0,
+        "units": 0.0,
+        "revenue": 0.0,
+        "variable": 0.0,
+        "fixed": 840.0,
+        "profit": -840.0,
+        "cumulative": -840.0
+      },
+      {
+        "month": 2,
+        "per_day": 0.0,
+        "units": 0.0,
+        "revenue": 0.0,
+        "variable": 0.0,
+        "fixed": 840.0,
+        "profit": -840.0,
+        "cumulative": -1680.0
+      },
+      {
+        "month": 3,
+        "per_day": 0.13333333333333333,
+        "units": 4.0,
+        "revenue": 163.33333333333334,
+        "variable": 50.83333333333333,
+        "fixed": 840.0,
+        "profit": -727.5,
+        "cumulative": -2407.5
+      },
+      {
+        "month": 4,
+        "per_day": 0.26666666666666666,
+        "units": 8.0,
+        "revenue": 326.6666666666667,
+        "variable": 101.66666666666666,
+        "fixed": 840.0,
+        "profit": -615.0,
+        "cumulative": -3022.5
+      },
+      {
+        "month": 5,
+        "per_day": 0.4,
+        "units": 12.0,
+        "revenue": 490.0,
+        "variable": 152.5,
+        "fixed": 840.0,
+        "profit": -502.5,
+        "cumulative": -3525.0
+      },
+      {
+        "month": 6,
+        "per_day": 0.5333333333333333,
+        "units": 16.0,
+        "revenue": 653.3333333333334,
+        "variable": 203.33333333333331,
+        "fixed": 840.0,
+        "profit": -389.99999999999994,
+        "cumulative": -3915.0
+      },
+      {
+        "month": 7,
+        "per_day": 0.6666666666666667,
+        "units": 20.000000000000004,
+        "revenue": 816.6666666666669,
+        "variable": 254.16666666666669,
+        "fixed": 840.0,
+        "profit": -277.4999999999998,
+        "cumulative": -4192.5
+      },
+      {
+        "month": 8,
+        "per_day": 0.8,
+        "units": 24.0,
+        "revenue": 980.0,
+        "variable": 305.0,
+        "fixed": 840.0,
+        "profit": -165.0,
+        "cumulative": -4357.5
+      },
+      {
+        "month": 9,
+        "per_day": 0.9333333333333335,
+        "units": 28.000000000000004,
+        "revenue": 1143.3333333333335,
+        "variable": 355.83333333333337,
+        "fixed": 840.0,
+        "profit": -52.499999999999886,
+        "cumulative": -4410.0
+      },
+      {
+        "month": 10,
+        "per_day": 1.0666666666666667,
+        "units": 32.0,
+        "revenue": 1306.6666666666667,
+        "variable": 406.66666666666663,
+        "fixed": 840.0,
+        "profit": 60.000000000000114,
+        "cumulative": -4350.0
+      },
+      {
+        "month": 11,
+        "per_day": 1.2000000000000002,
+        "units": 36.00000000000001,
+        "revenue": 1470.0000000000005,
+        "variable": 457.50000000000006,
+        "fixed": 840.0,
+        "profit": 172.50000000000045,
+        "cumulative": -4177.5
+      },
+      {
+        "month": 12,
+        "per_day": 1.3333333333333335,
+        "units": 40.00000000000001,
+        "revenue": 1633.3333333333337,
+        "variable": 508.33333333333337,
+        "fixed": 840.0,
+        "profit": 285.00000000000045,
+        "cumulative": -3892.4999999999995
+      }
+    ],
+    "flags": [
+      "Year 1 loses money on operations (-$3,892).",
+      "The startup spend is not earned back within year 1."
+    ],
+    "variable_items": [
+      {
+        "label": "Paiement/change/suppléments estimés, pas un devis",
+        "cost": 4
+      },
+      {
+        "label": "Support valorisé 20 EUR/h",
+        "cost": 6.666666666666666
+      },
+      {
+        "label": "Réserve remboursements 5% revenu net",
+        "cost": 2.041666666666667
+      }
+    ],
+    "fixed_items": [
+      {
+        "label": "40 h maintenance/acquisition/gestion valorisées 20 EUR/h",
+        "cost": 800
+      },
+      {
+        "label": "Réserve outils/frais non connus, estimation",
+        "cost": 40
+      }
+    ],
+    "startup_items": [
+      {
+        "label": "Dépense additionnelle autorisée dans ce scénario",
+        "cost": 0
+      }
+    ]
+  },
+  "central-fixed-20h": {
+    "business": "NextExplorer — scénario non validé, EUR",
+    "unit": "licence nouvelle",
+    "price": 40.833333333333336,
+    "variable_per_unit": 12.708333333333332,
+    "contribution": 28.125000000000004,
+    "contribution_pct": 0.6887755102040817,
+    "fixed_monthly": 440.0,
+    "startup": 0.0,
+    "plan_per_day": 1.6666666666666667,
+    "margin_at_plan": 0.47326530612244905,
+    "breakeven_per_day": 0.5214814814814814,
+    "capacity_per_day": null,
+    "year1_revenue": 11229.166666666666,
+    "year1_profit": 2454.3750000000005,
+    "year1_after_startup": 2454.3750000000005,
+    "payback_month": 10,
+    "cash_needed": 1356.25,
+    "months": [
+      {
+        "month": 1,
+        "per_day": 0.0,
+        "units": 0.0,
+        "revenue": 0.0,
+        "variable": 0.0,
+        "fixed": 440.0,
+        "profit": -440.0,
+        "cumulative": -440.0
+      },
+      {
+        "month": 2,
+        "per_day": 0.0,
+        "units": 0.0,
+        "revenue": 0.0,
+        "variable": 0.0,
+        "fixed": 440.0,
+        "profit": -440.0,
+        "cumulative": -880.0
+      },
+      {
+        "month": 3,
+        "per_day": 0.16666666666666666,
+        "units": 5.0,
+        "revenue": 204.16666666666669,
+        "variable": 63.54166666666666,
+        "fixed": 440.0,
+        "profit": -299.375,
+        "cumulative": -1179.375
+      },
+      {
+        "month": 4,
+        "per_day": 0.3333333333333333,
+        "units": 10.0,
+        "revenue": 408.33333333333337,
+        "variable": 127.08333333333331,
+        "fixed": 440.0,
+        "profit": -158.74999999999994,
+        "cumulative": -1338.125
+      },
+      {
+        "month": 5,
+        "per_day": 0.5,
+        "units": 15.0,
+        "revenue": 612.5,
+        "variable": 190.62499999999997,
+        "fixed": 440.0,
+        "profit": -18.125,
+        "cumulative": -1356.25
+      },
+      {
+        "month": 6,
+        "per_day": 0.6666666666666666,
+        "units": 20.0,
+        "revenue": 816.6666666666667,
+        "variable": 254.16666666666663,
+        "fixed": 440.0,
+        "profit": 122.50000000000011,
+        "cumulative": -1233.75
+      },
+      {
+        "month": 7,
+        "per_day": 0.8333333333333334,
+        "units": 25.0,
+        "revenue": 1020.8333333333334,
+        "variable": 317.7083333333333,
+        "fixed": 440.0,
+        "profit": 263.125,
+        "cumulative": -970.625
+      },
+      {
+        "month": 8,
+        "per_day": 1.0,
+        "units": 30.0,
+        "revenue": 1225.0,
+        "variable": 381.24999999999994,
+        "fixed": 440.0,
+        "profit": 403.75,
+        "cumulative": -566.875
+      },
+      {
+        "month": 9,
+        "per_day": 1.1666666666666667,
+        "units": 35.0,
+        "revenue": 1429.1666666666667,
+        "variable": 444.79166666666663,
+        "fixed": 440.0,
+        "profit": 544.3750000000001,
+        "cumulative": -22.499999999999886
+      },
+      {
+        "month": 10,
+        "per_day": 1.3333333333333333,
+        "units": 40.0,
+        "revenue": 1633.3333333333335,
+        "variable": 508.33333333333326,
+        "fixed": 440.0,
+        "profit": 685.0000000000002,
+        "cumulative": 662.5000000000003
+      },
+      {
+        "month": 11,
+        "per_day": 1.5,
+        "units": 45.0,
+        "revenue": 1837.5,
+        "variable": 571.875,
+        "fixed": 440.0,
+        "profit": 825.625,
+        "cumulative": 1488.1250000000005
+      },
+      {
+        "month": 12,
+        "per_day": 1.6666666666666667,
+        "units": 50.0,
+        "revenue": 2041.6666666666667,
+        "variable": 635.4166666666666,
+        "fixed": 440.0,
+        "profit": 966.25,
+        "cumulative": 2454.3750000000005
+      }
+    ],
+    "flags": [],
+    "variable_items": [
+      {
+        "label": "Paiement/change/suppléments estimés, pas un devis",
+        "cost": 4
+      },
+      {
+        "label": "Support valorisé 20 EUR/h",
+        "cost": 6.666666666666666
+      },
+      {
+        "label": "Réserve remboursements 5% revenu net",
+        "cost": 2.041666666666667
+      }
+    ],
+    "fixed_items": [
+      {
+        "label": "40 h maintenance/acquisition/gestion valorisées 20 EUR/h",
+        "cost": 400
+      },
+      {
+        "label": "Réserve outils/frais non connus, estimation",
+        "cost": 40
+      }
+    ],
+    "startup_items": [
+      {
+        "label": "Dépense additionnelle autorisée dans ce scénario",
+        "cost": 0
+      }
+    ]
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "date": "2026-11-11",
+  "skill_source": "Jakeschincariol/founder-skill",
+  "skill_commit": "fd9385b0cfe1b96bebce3898fbd506d73eff5a9d",
+  "branch": "research/founder-review",
+  "board_agents": 3,
+  "panel_agents": 40,
+  "panels": {
+    "baseline": {
+      "answered": 20,
+      "buys": 0
+    },
+    "clarified": {
+      "answered": 20,
+      "buys": 0
+    }
+  },
+  "financial_verdict": "Incomplete",
+  "actual_costs_and_time_confirmed": false,
+  "sources_are_public": true,
+  "local_links_checked": true,
+  "competitors": 8,
+  "product_modified": false,
+  "external_publication_or_contact": false,
+  "evidence": {
+    "panel\\results.json": "88a78711743abeba210c85f2bca8a6cd0540167a5fb732243df0e3b91f9d0324",
+    "panel-v2\\results.json": "dd2f0dd6ede588a5c9f4b1510b0e3a0c7426e6f2f67253bb71d2ddd8faeb6d36",
+    "scenarios\\results.json": "d9aabeee930893901d9f6de9f2ce37ac8e82dec4e3c2096358b47cf4597085ca"
+  }
+}

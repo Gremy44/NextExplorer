@@ -1,0 +1,13 @@
+{
+  "id": "P019",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "trust",
+  "reason": "Je reste sur mes outils gratuits : je ne vais pas payer 49 € pour une recherche encore à démontrer. Le compagnon non signé et l’installation manuelle me freinent déjà avant de tester.",
+  "objection": "Je manipule des documents professionnels ; je n’ai pas confiance dans un EXE non signé à installer pour les analyser.",
+  "would_change_my_mind": "Un essai avec un compagnon signé qui retrouve, dans mes propres dossiers, plusieurs documents que mes outils gratuits ne retrouvent pas.",
+  "price_too_cheap": 5,
+  "price_cheap": 15,
+  "price_expensive": 30,
+  "price_too_expensive": 50
+}

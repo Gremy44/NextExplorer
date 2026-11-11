@@ -1,5 +1,9 @@
 # Feuille de route — fichiers locaux et usages dans le navigateur
 
+## Étude Founder — 11 novembre 2026
+
+[Évaluation complète interne](founder/README.md) : trois grilles de board, huit alternatives documentées, panel fictif de 20 profils puis re-test, scénarios économiques et plans candidats de marketing/lancement. Le board recommande un test sous conditions ; le verdict économique compilé est **Incomplete**, faute de coûts et disponibilité réels. Les refus des profils concernent un concept Pro non livré et ne mesurent pas l'adoption du gratuit. Priorité proposée : observer le pilote existant avant vente Pro ; aucun changement de périmètre, paiement, publication ou dépense décidé par cette étude.
+
 ## Pilote public 1.0.7 — 29 octobre 2026
 
 Les cinq lots de consolidation sont regroupés dans [la préversion publique](https://github.com/Gremy44/NextExplorer-Downloads/releases/tag/v1.0.7-pilot.1). Nouvel installateur assorti à l’extension, guide de chargement manuel Chrome/Edge, notices et empreintes. Recette du véritable EXE sous Windows 11 isolé, compte standard, réussie dans les deux navigateurs ; téléchargements publics comparés aux empreintes. [Rapport et limites](VALIDATION_WINDOWS_NEUF.md), [parcours de test](distribution/TESTER.md). Prochaine étape : recueillir les retours de 5 à 10 testeurs avant promotion stable. Aucun modèle d’IA, aucun paiement et aucun envoi du code source privé sur le dépôt public.

@@ -1,0 +1,13 @@
+{
+  "id": "P002",
+  "buys": false,
+  "purchases_first_month": 0,
+  "reason_code": "need",
+  "reason": "Pour adapter mes images avant de les déposer, mes outils gratuits suffisent. Je ne mettrais pas 49 € dans une recherche par sens sans avoir constaté qu'elle résout un problème que j'ai vraiment.",
+  "objection": "Je risque de payer pour une fonction dont je me servirai très peu, avec une installation qui demande déjà plusieurs manipulations.",
+  "would_change_my_mind": "Un essai sur mes propres fichiers qui retrouve régulièrement des documents ou images que mes outils gratuits ne me permettent pas de retrouver facilement.",
+  "price_too_cheap": 3,
+  "price_cheap": 15,
+  "price_expensive": 30,
+  "price_too_expensive": 50
+}

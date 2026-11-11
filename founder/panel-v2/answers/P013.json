@@ -1,0 +1,13 @@
+{
+ "id": "P013",
+ "buys": false,
+ "purchases_first_month": 0,
+ "reason_code": "trust",
+ "reason": "Mes outils gratuits suffisent pour préparer mes images. Je ne me vois pas installer une extension à la main et un programme non signé pour envisager ensuite une fonction payante dont je ne connais pas encore le résultat.",
+ "objection": "Je ne fais pas assez confiance à cette installation pour lui confier mes fichiers, même en commençant sur des copies.",
+ "would_change_my_mind": "Un essai avec une installation signée et simple qui retrouve réellement mes fichiers mieux que mes outils gratuits.",
+ "price_too_cheap": 5,
+ "price_cheap": 15,
+ "price_expensive": 30,
+ "price_too_expensive": 50
+}
