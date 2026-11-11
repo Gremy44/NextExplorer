@@ -1,5 +1,9 @@
 # Feuille de route — fichiers locaux et usages dans le navigateur
 
+## Orientation communautaire et voix locale — 11 novembre 2026
+
+Le propriétaire souhaite ouvrir le projet actuel au public et à la communauté, en laissant la possibilité de fonctionnalités payantes futures. [Préparation de l'ouverture et étude voix/MCP](OUVERTURE_CODE_ET_VOIX.md). La licence actuelle doit être remplacée selon son choix avant de présenter le code comme libre ; publication du code et audit d'historique non effectués. Étude de Moshi/alternatives francophones légères et d'une façade d'outils MCP sur les services du compagnon, sans intégration implémentée. Cette orientation remplace la décision antérieure de garder le code applicatif privé ; les modèles et droits de redistribution restent à qualifier.
+
 ## Étude Founder — 11 novembre 2026
 
 [Évaluation complète interne](founder/README.md) : trois grilles de board, huit alternatives documentées, panel fictif de 20 profils puis re-test, scénarios économiques et plans candidats de marketing/lancement. Le board recommande un test sous conditions ; le verdict économique compilé est **Incomplete**, faute de coûts et disponibilité réels. Les refus des profils concernent un concept Pro non livré et ne mesurent pas l'adoption du gratuit. Priorité proposée : observer le pilote existant avant vente Pro ; aucun changement de périmètre, paiement, publication ou dépense décidé par cette étude.
