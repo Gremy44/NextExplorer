@@ -10,6 +10,8 @@ Inno Setup 6.7.3, préparé en mode portable dans `.tools/inno`, produit `NextEx
 
 Les versions exactes JavaScript figurent dans `package-lock.json` et les versions Go dans `native/go.mod` / `native/go.sum`.
 
+**1.0.8 — MCP et ouverture MIT :** le code propre à NextExplorer est désormais sous MIT. Le SDK Go MCP officiel, JSON Schema, URI templates, Segmentio et les modules Go associés conservent leurs licences. Les notices exactes des dépendances compilées sont dans `public/licenses/Go-*.txt`, avec inventaire [native-modules.json](public/licenses/native-modules.json). Régénération : `npm run native:licenses`. Ces notices sont copiées dans l'extension et le paquet ; aucun moteur ou modèle IA n'est embarqué par cette intégration.
+
 | Composant | Licence / source |
 | --- | --- |
 | React, React DOM | MIT — https://github.com/facebook/react |
@@ -44,7 +46,7 @@ Les moteurs téléchargés sont distribués séparément par leurs éditeurs. Le
 - 7-Zip : LGPL, BSD et restriction unRAR pour certaines parties — https://www.7-zip.org/license.txt.
 - yt-dlp : Unlicense pour le projet ; les exécutables regroupent aussi des dépendances avec leurs licences — https://github.com/yt-dlp/yt-dlp.
 
-Avant de redistribuer un paquet contenant les moteurs, conserver leurs licences et satisfaire les obligations de mise à disposition du code source correspondantes. Le code propre à NextExplorer est fourni dans ce dépôt sans choix de licence de redistribution imposé à son propriétaire.
+Avant de redistribuer un paquet contenant les moteurs, conserver leurs licences et satisfaire les obligations de mise à disposition du code source correspondantes. Le code propre à NextExplorer relève de la [licence MIT](LICENSE).
 
 ### Version 7-Zip qualifiée
 

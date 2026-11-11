@@ -48,6 +48,9 @@ for (const file of [
   "dist/collect-background.js",
   "dist/download-background.js",
   "dist/organization-background.js",
+  "dist/mcp-background.js",
+  "release/NextExplorer/dist/mcp-background.js",
+  "release/NextExplorer/MCP.md",
   "release/NextExplorer/dist/organization-background.js",
   "release/NextExplorer/dist/download-background.js",
   "dist/icon16.png",
@@ -130,8 +133,16 @@ for (const directory of ["dist", "release/NextExplorer/dist"]) {
     "Go-kr-fs",
     "Go-x-crypto",
     "Go-x-sys",
+    "Go-github.com-modelcontextprotocol-go-sdk",
+    "Go-github.com-google-jsonschema-go",
+    "Go-runtime",
   ])
     assert.ok((await stat(`${directory}/licenses/${license}.txt`)).size > 0);
+  const nativeModules = JSON.parse(
+    await readFile(`${directory}/licenses/native-modules.json`, "utf8"),
+  );
+  for (const module of nativeModules)
+    assert.ok((await stat(`${directory}/licenses/${module.file}`)).size > 0);
 }
 const rejected = await new Promise((resolve) => {
   const p = spawn(

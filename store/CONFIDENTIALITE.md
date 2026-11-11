@@ -4,6 +4,8 @@ Version du 20 octobre 2026. Editeur du projet : **Gremy44**. Contact : https://g
 
 ## Fonctionnement local
 
+**Sources 1.0.8 — ajout du 11 novembre 2026 :** le MCP est un serveur local stdio, avec dossiers et capacités accordés dans un fichier de configuration. Le pont vers les données et outils du navigateur exige son activation dans Connexions et peut y être coupé. Les registres de tâches restent locaux. Aucun modèle IA n'est intégré ; un client connecté à un modèle distant peut lui transmettre ce qu'il lit. Le fonctionnement entièrement local suppose aussi un client et un modèle locaux. [Périmètre](https://github.com/Gremy44/NextExplorer/blob/main/MCP.md). Cet ajout ne modifie pas les anciens binaires publiés.
+
 NextExplorer associe une extension Chrome et un compagnon Windows local. Il ne nécessite pas de compte NextExplorer. La version décrite n’intègre ni publicité, ni outil d’analyse d’audience, ni modèle d’IA, ni envoi automatique des documents à un serveur de l’éditeur.
 
 Selon les outils utilisés, NextExplorer traite les données suivantes :

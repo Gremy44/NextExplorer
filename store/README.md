@@ -1,5 +1,9 @@
 # J7.1 — dossier Chrome Web Store
 
+**11 novembre 2026 :** le code applicatif est maintenant ouvert sous MIT dans
+[Gremy44/NextExplorer](https://github.com/Gremy44/NextExplorer). La version source
+1.0.8 ajoute le MCP ; les anciens ZIP et EXE ci-dessous restent inchangés.
+
 ## Candidat officiel — 1.0.3, 20 octobre 2026
 
 Identité officielle **`afjflepinklhgicoppoobiichmjodgcp`**, clé publique récupérée
@@ -10,7 +14,7 @@ le ZIP final 1.0.3 est importé dans **le même brouillon**, sans nouvel éléme
 La [préversion GitHub 1.0.3](https://github.com/Gremy44/NextExplorer-Downloads/releases/tag/v1.0.3)
 est publiée : EXE correspondant, extension pour chargement manuel, notices,
 SHA256 et guides. Quatre téléchargements et 17 documents/visuels vérifiés
-anonymement. Le code applicatif reste privé ; la 1.0.1 reste inchangée.
+anonymement. Le code était alors privé ; la 1.0.1 reste inchangée.
 
 Description, catégorie Outils, langue française, liens, icône, deux captures et
 vignette enregistrés depuis le Chrome connecté du propriétaire. Confidentialité

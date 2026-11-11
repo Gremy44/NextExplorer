@@ -58,6 +58,7 @@ for (const file of [
   copyFileSync("scripts/" + file, "release/NextExplorer/scripts/" + file);
 for (const file of [
   "README.md",
+  "MCP.md",
   "SIGNATURE_WINDOWS.md",
   "VALIDATION_WINDOWS_NEUF.md",
   "LICENSE",

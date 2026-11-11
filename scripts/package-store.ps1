@@ -41,7 +41,7 @@ try {
             if ($item.PSIsContainer) { $pending.Enqueue($item.FullName); continue }
             $relative = $item.FullName.Substring($Source.Length + 1).Replace('\', '/')
             if ($relative.EndsWith('.map')) { continue }
-            $allowed = $relative -match '^(manifest\.json|index\.html|(?:background|collect-background|download-background|organization-background)\.js|icon(?:16|48|128)\.png|assets/[\w.-]+\.(?:js|mjs|css)|fonts/(?:[\w.-]+\.ttf|provenance\.json)|licenses/[\w@.-]+\.txt|pdfjs/cmaps/(?:[\w.-]+\.bcmap|LICENSE)|pdfjs/standard_fonts/(?:[\w.-]+\.(?:ttf|pfb)|LICENSE_FOXIT|LICENSE_LIBERATION))$'
+            $allowed = $relative -match '^(manifest\.json|index\.html|(?:background|collect-background|download-background|organization-background|mcp-background)\.js|icon(?:16|48|128)\.png|assets/[\w.-]+\.(?:js|mjs|css)|fonts/(?:[\w.-]+\.ttf|provenance\.json)|licenses/(?:[\w@.-]+\.txt|native-modules\.json)|pdfjs/cmaps/(?:[\w.-]+\.bcmap|LICENSE)|pdfjs/standard_fonts/(?:[\w.-]+\.(?:ttf|pfb)|LICENSE_FOXIT|LICENSE_LIBERATION))$'
             if (!$allowed) { throw ('Fichier inattendu dans le build : ' + $relative) }
             $target = Join-Path $staging $relative
             New-Item -ItemType Directory -Path (Split-Path $target -Parent) -Force | Out-Null
@@ -58,7 +58,7 @@ try {
         }
     }
     $inventory = @($inventory | Sort-Object { $_.path })
-    foreach ($required in @('manifest.json','index.html','background.js','collect-background.js','download-background.js','organization-background.js','icon128.png','fonts/provenance.json','licenses/@xterm-xterm.txt')) {
+    foreach ($required in @('manifest.json','index.html','background.js','collect-background.js','download-background.js','organization-background.js','mcp-background.js','icon128.png','fonts/provenance.json','licenses/@xterm-xterm.txt','licenses/native-modules.json')) {
         if ($required -notin $inventory.path) { throw ('Ressource manquante : ' + $required) }
     }
     $recordPath = Join-Path $releaseRoot 'release.json'

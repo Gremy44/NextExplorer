@@ -1,0 +1,15 @@
+title = "NextExplorer: default detectors with two reviewed fixture/public-key exceptions"
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Invented password proving durable jobs never persist archive secrets"
+condition = "AND"
+paths = ['''^native/durable_test\.go$''']
+regexes = ['''NEVER-ON-DISK-123''']
+
+[[allowlists]]
+description = "Chrome extension public RSA SPKI identity, not a signing/private key"
+condition = "AND"
+paths = ['''^public/manifest\.json$''']
+regexes = ['''MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8A[A-Za-z0-9+/=]+''']

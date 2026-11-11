@@ -52,6 +52,7 @@ type Host struct {
 	terminals      map[string]*terminalSession
 	remote         *remoteHub
 	imageRequests  map[string]*imageOperation
+	mcpBrowser     *mcpBrowserBroker
 }
 
 func newHost(out io.Writer) *Host {
@@ -161,6 +162,13 @@ func originAllowed(origin string, config []byte) bool {
 	return false
 }
 func main() {
+	if len(os.Args) > 1 && os.Args[1] == "--mcp" {
+		if err := runMCP(os.Args[2:]); err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(1)
+		}
+		return
+	}
 	if len(os.Args) == 2 && os.Args[1] == "--worker" {
 		if err := runWorker(); err != nil {
 			fmt.Fprintln(os.Stderr, err)
@@ -308,7 +316,7 @@ func (h *Host) dispatch(r Request) (any, error) {
 	switch r.Action {
 	case "WORKER_HELLO":
 		exe, err := os.Executable()
-		return M{"protocol": 1, "executable": exe, "pid": os.Getpid(), "tasks": h.durableDir}, err
+		return M{"protocol": 1, "executable": exe, "pid": os.Getpid(), "tasks": h.durableDir, "build": releaseVersion, "mcpVersion": 1}, err
 	case "RELOCATIONS":
 		if h.relocations == nil {
 			return M{"events": []relocationEvent{}, "cursor": 0, "more": false, "lost": false}, nil
@@ -321,6 +329,7 @@ func (h *Host) dispatch(r Request) (any, error) {
 			return nil, fmt.Errorf("Versions incompatibles (extension : protocole %d, compagnon : %d). Mettez à jour l’extension et le compagnon depuis le même paquet, puis désactivez et réactivez l’extension.", *p.ProtocolVersion, protocolVersion)
 		}
 		value := hello()
+		value["features"].(M)["mcpVersion"] = 1
 		value["features"].(M)["contextualConversion"] = true
 		value["features"].(M)["diskVolumes"] = true
 		value["features"].(M)["quickActions"] = true
@@ -334,8 +343,13 @@ func (h *Host) dispatch(r Request) (any, error) {
 		}
 		available := h.durableDir != ""
 		if h.workerRequired {
-			_, err := h.connectedWorker()
+			client, err := h.connectedWorker()
 			available = err == nil
+			if err == nil {
+				value["features"].(M)["mcpVersion"] = client.mcpVersion
+			} else {
+				value["features"].(M)["mcpVersion"] = 0
+			}
 			if err != nil {
 				value["workerError"] = err.Error()
 			}

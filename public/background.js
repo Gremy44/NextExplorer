@@ -1,4 +1,5 @@
 import "./collect-background.js";
+import { startMCPBridge } from "./mcp-background.js";
 import { startDownloadFiling } from "./download-background.js";
 import {
   recordRelocations,
@@ -10,6 +11,51 @@ const routes = new Map();
 const watches = new Map();
 const terminalOwners = new Map();
 const remoteTerminalClients = new Set();
+const mcpViews = new Map();
+const mcpReplies = new Map();
+const mcp = startMCPBridge(nativeRequest, async (message) => {
+  const views = [...mcpViews.entries()].filter(([client]) =>
+    clients.has(client),
+  );
+  const selected = message.arguments.viewId
+    ? views.filter(([, id]) => id === message.arguments.viewId)
+    : views;
+  if (message.action !== "BROWSER_CONTEXT" && selected.length !== 1)
+    throw new Error(
+      `${selected.length} vues disponibles : préciser viewId ou ouvrir l'explorateur.`,
+    );
+  return message.action === "BROWSER_CONTEXT"
+    ? Promise.all(views.map(([client]) => callMCPView(client, message)))
+    : callMCPView(selected[0][0], message);
+});
+function callMCPView(client, message) {
+  return new Promise((resolve, reject) => {
+    const id = crypto.randomUUID();
+    const timer = setTimeout(
+      () => {
+        mcpReplies.delete(id);
+        reject(
+          new Error(
+            "Vue sans réponse ; vérifier l'état avant de répéter une écriture.",
+          ),
+        );
+      },
+      Math.max(1, message.deadline - Date.now() - 500),
+    );
+    mcpReplies.set(id, { client, resolve, reject, timer });
+    client.postMessage({
+      event: "MCP_UI_REQUEST",
+      data: { ...message, requestId: id, viewId: mcpViews.get(client) },
+    });
+  });
+}
+chrome.storage.onChanged.addListener((changes, area) => {
+  if (area === "local" && "explorerPreferences" in changes)
+    void mcp.register().catch(() => {});
+});
+chrome.storage.local.get("explorerPreferences").then((data) => {
+  if (data.explorerPreferences?.mcpEnabled) void mcp.register().catch(() => {});
+});
 let organizationReady = Promise.resolve();
 let organizationSerial = Promise.resolve();
 function organizationError(error) {
@@ -65,6 +111,10 @@ function connect() {
   native = chrome.runtime.connectNative("com.local.file_explorer");
   native.onMessage.addListener((message) => {
     if (message.event) {
+      if (message.event === "MCP_BROWSER_REQUEST") {
+        void mcp.receive(message.data).catch(() => {});
+        return;
+      }
       if (["PATH_RELOCATED", "PATHS_RELOCATED"].includes(message.event)) {
         if (Number.isSafeInteger(message.cursor)) void syncOrganization();
         else
@@ -120,14 +170,67 @@ function connect() {
     }
   });
   organizationReady = syncOrganization();
+  void organizationReady.then(() => mcp.register()).catch(() => {});
   return native;
 }
 chrome.runtime.onConnect.addListener((client) => {
   if (client.name !== "explorer" || client.sender?.id !== chrome.runtime.id)
     return;
   clients.add(client);
+  try {
+    const url = new URL(client.sender?.url || "");
+    if (url.pathname === "/index.html" && url.hostname === chrome.runtime.id)
+      mcpViews.set(client, crypto.randomUUID());
+  } catch {}
   client.onMessage.addListener((message) => {
     if (!message.id || typeof message.action !== "string") return;
+    if (["MCP_UI_HELLO", "MCP_UI_REPLY"].includes(message.action)) {
+      let allowed = false;
+      try {
+        const url = new URL(client.sender?.url || "");
+        allowed =
+          url.origin === new URL(chrome.runtime.getURL("index.html")).origin &&
+          url.pathname === "/index.html";
+      } catch {}
+      if (!allowed) {
+        client.postMessage({
+          id: message.id,
+          status: "ERROR",
+          error: "Vue MCP non autorisée",
+        });
+        return;
+      }
+      if (message.action === "MCP_UI_HELLO") {
+        if (!mcpViews.has(client)) mcpViews.set(client, crypto.randomUUID());
+        client.postMessage({
+          id: message.id,
+          status: "SUCCESS",
+          data: { viewId: mcpViews.get(client) },
+        });
+      } else {
+        const pending = mcpReplies.get(message.payload?.requestId);
+        if (pending?.client === client) {
+          clearTimeout(pending.timer);
+          mcpReplies.delete(message.payload.requestId);
+          message.payload.error
+            ? pending.reject(new Error(message.payload.error))
+            : pending.resolve(message.payload.value);
+        }
+        client.postMessage({ id: message.id, status: "SUCCESS", data: true });
+      }
+      return;
+    }
+    if (
+      message.action.startsWith("MCP_") &&
+      !["MCP_SCOPED_CALL", "MCP_SCOPE_CHECK"].includes(message.action)
+    ) {
+      client.postMessage({
+        id: message.id,
+        status: "ERROR",
+        error: "Action MCP réservée au service de l'extension",
+      });
+      return;
+    }
     if (
       message.action.startsWith("TERMINAL_") ||
       message.action.startsWith("REMOTE_")
@@ -220,6 +323,14 @@ chrome.runtime.onConnect.addListener((client) => {
   });
   client.onDisconnect.addListener(() => {
     clients.delete(client);
+    mcpViews.delete(client);
+    for (const [id, pending] of mcpReplies) {
+      if (pending.client === client) {
+        clearTimeout(pending.timer);
+        pending.reject(new Error("Vue déconnectée"));
+        mcpReplies.delete(id);
+      }
+    }
     watches.delete(client);
     const owner = terminalOwners.get(client);
     terminalOwners.delete(client);

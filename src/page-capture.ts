@@ -33,11 +33,17 @@ export async function capturePagePDF(
   path: string,
   page: BrowserPage,
   id: string,
+  request = bridge.request.bind(bridge),
+  interactive = true,
 ) {
   const source = new URL(collectedLink(page.url, "").path);
   source.search = "";
   source.hash = "";
-  if (!(await chrome.permissions.request({ permissions: ["debugger"] })))
+  if (
+    !(await (interactive
+      ? chrome.permissions.request({ permissions: ["debugger"] })
+      : chrome.permissions.contains({ permissions: ["debugger"] })))
+  )
     throw new Error("Capture PDF non autorisée");
   await verifyPage(page);
   const target = { tabId: page.id };
@@ -93,9 +99,9 @@ export async function capturePagePDF(
     await chrome.debugger.detach(target).catch(() => {});
   }
   const name = `Page-${id}.pdf`;
-  const saved = await writeChunks(path, name, parts);
+  const saved = await writeChunks(path, name, parts, request);
   try {
-    await bridge.request("FS_WRITE", {
+    await request("FS_WRITE", {
       path,
       name: `${name}.source.json`,
       text: JSON.stringify(

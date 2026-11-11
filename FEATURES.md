@@ -1,5 +1,11 @@
 # Couverture du cahier des charges
 
+## 1.0.8 — MCP local et code ouvert, 11 novembre 2026
+
+Serveur MCP stdio dans le compagnon : 95 outils couvrant les opérations natives et le pont navigateur opt-in. Lecture/édition/versions, archives, médias, tâches et annulation, surveillance, console, profils distants, organisation, recherche, comparaison, atelier PDF/images, onglets, aperçus, brouillons et réglages. Racines, capacités et sessions contrôlées ; gestes Chrome et moteurs facultatifs restent nécessaires selon l'outil. [Configuration, périmètre et qualification](MCP.md).
+
+Le code propre au projet est désormais sous MIT ; les binaires pilotes 1.0.7 et leurs empreintes restent inchangés. Le MCP n'ajoute ni modèle IA ni microphone. Les études de voix restent prospectives. La recette du nouveau MCP ne constitue pas une qualification d'un nouvel installateur sur Windows neuf.
+
 ## Pilote public 1.0.7 — distribution du 29 octobre 2026
 
 [Installateur, extension, notices et empreintes publiés](https://github.com/Gremy44/NextExplorer-Downloads/releases/tag/v1.0.7-pilot.1). Le nouvel EXE a passé les cycles d’installation/connexion/réparation/retrait sous Windows 11 isolé avec Chrome et Edge, compte standard ; copie témoin et liaison Chrome étrangère préservées. Les téléchargements publics correspondent aux fichiers vérifiés. [Rapport](VALIDATION_WINDOWS_NEUF.md), [guide testeur](distribution/TESTER.md). Les retours externes du pilote restent à recueillir ; ce n’est pas une déclaration de stabilité pour toutes les configurations.

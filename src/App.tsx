@@ -146,6 +146,7 @@ import { TaggedFilesDialog } from "./TaggedFilesDialog";
 import { PreferencesDialog } from "./PreferencesDialog";
 import { DocumentDialog, hasDocumentDraft } from "./DocumentDialog";
 import { documentDrafts, downloadDraft } from "./document-drafts";
+import { useMCPView, mcpNative, mcpIO, mcpScope } from "./mcp-view";
 import { EngineStatus } from "./EngineStatus";
 import { HomeDialog } from "./HomeDialog";
 import {
@@ -1835,6 +1836,394 @@ export function App() {
         showDialog(a, { paths: selected });
     }
   }
+  useMCPView(async (message) => {
+    const a = message.arguments,
+      operation = a.operation || "";
+    if (!preferences.mcpEnabled)
+      throw new Error("MCP désactivé dans les réglages");
+    const request = mcpNative(message);
+    const allowed = await mcpScope(message, {
+      tabs: tabs.map((t) => ({
+        paths: t.panes.map((p) => p.path),
+        selected: t.panes.flatMap((p) => p.selected),
+      })),
+      arguments: a,
+      drafts: documentDrafts.list(),
+      spaces,
+      stash,
+      links,
+    });
+    if (message.action === "BROWSER_CONTEXT")
+      return {
+        viewId: message.viewId,
+        surface: panel ? "side-panel" : "page",
+        connected: !!hello,
+        currentTab: tabs[current].id,
+        tabs: tabs.map((t) => ({
+          id: t.id,
+          active: t.active,
+          dual: t.dual,
+          split: t.split,
+          panes: t.panes.map((p) =>
+            allowed({ path: p.path })
+              ? {
+                  path: p.path,
+                  selected: p.selected.filter((e) => allowed(e)),
+                  viewMode: p.viewMode,
+                  sortBy: p.sortBy,
+                  sortOrder: p.sortOrder,
+                  loading: p.loading,
+                  filter: p.filter,
+                }
+              : { outsideScope: true },
+          ),
+        })),
+        tool: dialog?.kind || null,
+        preview: preview && allowed(preview) ? preview : null,
+        detailsOpen,
+        commands: commandList.map(([id, label]) => ({ id, label })),
+      };
+    if (!preferences.mcpWrite)
+      throw new Error("Modifications MCP désactivées dans les réglages");
+    if (!allowed(a)) throw new Error("Chemin hors des dossiers MCP autorisés");
+    const alive = () => {
+      if (Date.now() >= message.deadline)
+        throw new Error("Requête MCP expirée");
+    };
+    alive();
+    if (message.action === "BROWSER_DRAFTS") {
+      const drafts = documentDrafts.list().filter((d) => allowed(d));
+      if (operation === "list")
+        return drafts.map((d) => ({
+          id: d.id,
+          updated: d.updated,
+          path: d.document.entry.path,
+          text: d.text,
+          snapshot: d.document.hash,
+        }));
+      const draft = drafts.find((d) => d.id === a.id);
+      if (!draft) throw new Error("Brouillon introuvable ou hors périmètre");
+      if (operation === "discard") documentDrafts.remove(draft);
+      else if (operation === "resume")
+        setDocumentTool({
+          entry: draft.document.entry,
+          mode: "edit",
+          draftId: draft.id,
+        });
+      else throw new Error("Opération list/resume/discard requise");
+      return { done: true };
+    }
+    if (message.action === "BROWSER_DOCUMENT") {
+      const { mcpDocument } = await import("./mcp-document");
+      return mcpDocument(message);
+    }
+    if (message.action === "BROWSER_WEB") {
+      const web = await import("./web");
+      const page = await web.currentBrowserPage();
+      if (!page)
+        throw new Error(
+          "Ouvrez une page HTTP(S) et accordez son accès depuis le panneau",
+        );
+      const permission = async (url: string) => {
+        const clean = collectedLink(url, "").path;
+        if (
+          !(await chrome.permissions.contains({
+            origins: [new URL(clean).origin + "/*"],
+          }))
+        )
+          throw new Error("Autorisez d'abord ce site depuis l'interface");
+        return clean;
+      };
+      if (operation === "selection") {
+        await web.captureSelection(page, permission);
+        return { pendingCapture: true };
+      }
+      if (operation === "uploads") return web.inspectUploads(page, permission);
+      if (operation === "insert") {
+        if (
+          !a.paths?.length ||
+          !a.value?.target ||
+          a.value.target.page?.id !== page.id
+        )
+          throw new Error(
+            "paths et value.target (page/documentId/field de uploads) requis",
+          );
+        const controller = new AbortController(),
+          timer = setTimeout(
+            () => controller.abort(),
+            Math.max(1, message.deadline - Date.now() - 500),
+          );
+        try {
+          await web.sendFiles(a.paths, a.value.target, {
+            io: mcpIO(message),
+            signal: controller.signal,
+            permission: async (url) => {
+              const clean = collectedLink(url, "").path;
+              if (
+                !(await chrome.permissions.contains({
+                  origins: [new URL(clean).origin + "/*"],
+                }))
+              )
+                throw new Error(
+                  "Autorisez ce site dans l'interface avant insertion",
+                );
+              return clean;
+            },
+          });
+          return { inserted: true, submitted: false };
+        } finally {
+          clearTimeout(timer);
+        }
+      }
+      if (operation === "capture") {
+        if (
+          !a.path ||
+          !a.url ||
+          !["markdown", "weblink"].includes(a.mode || "")
+        )
+          throw new Error("path, url et mode markdown/weblink requis");
+        return webCapture(a.path, a.url, a.mode!, request, async (url) => {
+          const clean = collectedLink(url, "").path;
+          if (
+            !(await chrome.permissions.contains({
+              origins: [new URL(clean).origin + "/*"],
+            }))
+          )
+            throw new Error(
+              "Autorisez d'abord ce site via l'outil de capture dans l'interface",
+            );
+          return clean;
+        });
+      }
+      if (operation === "pdf") {
+        if (!a.path) throw new Error("Dossier de destination requis");
+        return capturePagePDF(
+          a.path,
+          page,
+          crypto.randomUUID(),
+          request,
+          false,
+        );
+      }
+      throw new Error("Opération web inconnue");
+    }
+    const tabIndex = a.id ? tabs.findIndex((t) => t.id === a.id) : current;
+    if (message.action === "BROWSER_UI") {
+      if (["navigate", "tab-new"].includes(operation)) {
+        if (!a.path) throw new Error("Chemin requis");
+        const entry = await request<Entry>("FS_STAT", { path: a.path });
+        if (entry.type !== "directory") throw new Error("Dossier requis");
+        alive();
+        if (operation === "navigate") {
+          const target = a.value?.pane ?? active;
+          if (![0, 1].includes(target) || (target === 1 && !dual))
+            throw new Error("Panneau cible indisponible");
+          navigate(a.path, target);
+        } else {
+          if (tabs.length >= 30) throw new Error("30 onglets maximum");
+          openTab(a.path);
+        }
+      } else if (
+        ["tab-activate", "tab-close", "tab-move"].includes(operation)
+      ) {
+        if (
+          tabIndex < 0 ||
+          !allowed({ paths: tabs[tabIndex].panes.map((p) => p.path) })
+        )
+          throw new Error("Onglet absent ou hors périmètre");
+        if (operation === "tab-activate") activateTab(tabIndex);
+        else if (operation === "tab-close") {
+          if (tabs.length === 1)
+            throw new Error("Conservez au moins un onglet");
+          closeTab(tabIndex);
+        } else {
+          const target = a.value?.index;
+          if (!Number.isInteger(target) || target < 0 || target >= tabs.length)
+            throw new Error("Index d'onglet invalide");
+          setWorkspace((old) => moveTab(old, tabIndex, target));
+        }
+      } else if (operation === "workspace-open") {
+        const space = spaces.find((s) => s.id === a.id);
+        if (!space || !allowed(space))
+          throw new Error("Espace indisponible ou hors périmètre");
+        if (tabs.length + space.tabs.length > 30)
+          throw new Error("30 onglets maximum");
+        setWorkspace((old) => ({
+          current: old.tabs.length + space.current,
+          tabs: [
+            ...old.tabs,
+            ...space.tabs.map((t) => ({
+              id: crypto.randomUUID(),
+              active: t.active,
+              dual: t.dual,
+              split: t.split,
+              panes: t.paths.map((path, i) => ({ ...fresh(t.modes[i]), path })),
+            })),
+          ],
+        }));
+        return {
+          opened: space.id,
+          note: "Onglets locaux repris. Collecte, liens et onglets web restent accessibles via les outils dédiés.",
+        };
+      } else if (operation === "workspace-save") {
+        if (
+          !allowed({ paths: tabs.flatMap((t) => t.panes.map((p) => p.path)) })
+        )
+          throw new Error("Des onglets sont hors du périmètre MCP");
+        const { normalizeSpace, addSpace } = await import("./spaces");
+        const space = normalizeSpace({
+          version: 1,
+          id: crypto.randomUUID(),
+          name: a.value?.name,
+          date: new Date().toISOString(),
+          tabs: tabs.map((t) => ({
+            paths: t.panes.map((p) => p.path),
+            modes: t.panes.map((p) => p.viewMode),
+            active: t.active,
+            dual: t.dual,
+            split: t.split,
+          })),
+          current,
+          entries: stash.filter((e) => allowed(e)),
+          links: Object.fromEntries(
+            Object.entries(links).filter(([path]) => allowed({ path })),
+          ),
+          tasks: [],
+          browser: { tabs: [], groups: [] },
+        });
+        alive();
+        await storageUpdate<HybridSpace[]>(spacesKey, [], (current) =>
+          addSpace(restoreSpaces(current), space),
+        );
+        return { id: space.id };
+      } else {
+        if (!allowed({ path: pane.path }))
+          throw new Error("Dossier actif hors du périmètre MCP");
+        if (operation === "select") {
+          const entries = await Promise.all(
+            (a.paths || []).map((path) => request<Entry>("FS_STAT", { path })),
+          );
+          if (
+            entries.some(
+              (e) =>
+                !pane.listing?.entries.some((listed) => listed.path === e.path),
+            )
+          )
+            throw new Error(
+              "Choisissez des éléments visibles dans le dossier actif",
+            );
+          alive();
+          update(active, { selected: entries });
+        } else if (operation === "preview") {
+          const path = a.path || pane.selected[0]?.path;
+          if (!path) throw new Error("Fichier requis");
+          const entry = await request<Entry>("FS_STAT", { path });
+          alive();
+          setPreview(entry);
+        } else if (operation === "edit" || operation === "versions") {
+          const path = a.path || pane.selected[0]?.path;
+          if (!path) throw new Error("Fichier requis");
+          const entry = await request<Entry>("FS_STAT", { path });
+          alive();
+          openDocument(entry, operation === "edit" ? "edit" : "versions");
+        } else if (operation === "view") {
+          const { fileViews } = await import("./FileView");
+          if (!fileViews.some((v) => v.value === a.mode))
+            throw new Error("Affichage inconnu");
+          changePane(active, { viewMode: a.mode as ViewMode });
+        } else if (operation === "sort") {
+          if (
+            !["name", "mtime", "size", "type", "tags"].includes(a.value?.by) ||
+            !["asc", "desc"].includes(a.value?.order)
+          )
+            throw new Error("Tri invalide");
+          changePane(active, { sortBy: a.value.by, sortOrder: a.value.order });
+        } else if (operation === "split") {
+          if (typeof a.value?.enabled !== "boolean")
+            throw new Error("value.enabled requis");
+          setWorkspace((old) => ({
+            ...old,
+            tabs: old.tabs.map((t, i) =>
+              i === old.current ? { ...t, dual: a.value.enabled } : t,
+            ),
+          }));
+          if (typeof a.value?.ratio === "number") setSplit(a.value.ratio);
+        } else if (operation === "filter") {
+          if (typeof a.value?.query !== "string" || a.value.query.length > 256)
+            throw new Error("Filtre de 256 caractères maximum requis");
+          changePane(active, { filter: a.value.query });
+        } else if (operation === "pane") {
+          const index = a.value?.index;
+          if (
+            ![0, 1].includes(index) ||
+            (index === 1 && !dual) ||
+            !allowed({ path: panes[index].path })
+          )
+            throw new Error("Panneau cible indisponible ou hors périmètre");
+          setWorkspace((old) => ({
+            ...old,
+            tabs: old.tabs.map((t, i) =>
+              i === old.current ? { ...t, active: index } : t,
+            ),
+          }));
+        } else if (operation === "details") {
+          if (typeof a.value?.open !== "boolean")
+            throw new Error("value.open requis");
+          setDetailsOpen(a.value.open);
+          if (typeof a.value.expanded === "boolean")
+            setDetailsExpanded(a.value.expanded);
+        } else if (operation === "refresh") refresh();
+        else throw new Error("Opération d'interface inconnue");
+      }
+      return {
+        accepted: true,
+        note: "État visuel mis à jour au prochain rendu ; relire BROWSER_CONTEXT.",
+      };
+    }
+    if (message.action === "BROWSER_TOOL") {
+      if (
+        !commandList.some(([id]) => id === operation) ||
+        ["code", "saveSession"].includes(operation)
+      )
+        throw new Error(
+          "Commande inconnue ; utiliser les outils natifs/web dédiés pour exécuter une opération",
+        );
+      if (!allowed({ path: pane.path, selected: pane.selected }))
+        throw new Error("Dossier ou sélection hors périmètre MCP");
+      if (operation === "scan") {
+        const result = await request<{ jobId: string }>("SCAN", {
+          path: pane.path,
+        });
+        alive();
+        scanJobs.current.set(result.jobId, pane.path);
+        ++analysisGeneration.current;
+        setDetailsOpen(true);
+        setAnalysis({ path: pane.path, jobId: result.jobId, loading: true });
+        const rows = await request<Job[]>("JOBS");
+        if (rows.find((j) => j.id === result.jobId)?.state === "completed")
+          await readFolderSizes(result.jobId);
+        return result;
+      }
+      if (operation === "duplicates")
+        return request("DUPLICATES", { path: pane.path });
+      if (operation === "git") {
+        const text = await request("GIT_STATUS", { path: pane.path });
+        alive();
+        showDialog("output", { value: { title: "État Git", text } });
+      } else if (operation === "terminal") {
+        setDetailsOpen(true);
+        window.dispatchEvent(new Event("nxe-console-open"));
+      } else if (operation === "drives") navigate(DRIVES_PATH);
+      else if (operation === "pdf") {
+        const page = await currentBrowserPage();
+        if (!page) throw new Error("Page HTTP(S) requise");
+        alive();
+        showDialog("page-pdf", { value: { page, id: crypto.randomUUID() } });
+      } else action(operation, a.paths);
+      return { opened: operation };
+    }
+    throw new Error("Commande MCP inconnue");
+  });
   useEffect(() => {
     const key = (e: KeyboardEvent) => {
       if (

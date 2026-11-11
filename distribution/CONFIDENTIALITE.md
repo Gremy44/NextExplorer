@@ -4,6 +4,8 @@ Version du 29 octobre 2026, candidat pilote 1.0.7. Editeur du projet : **Gremy44
 
 ## Fonctionnement local
 
+**Sources 1.0.8 — ajout du 11 novembre 2026 :** un serveur MCP local peut être configuré avec des dossiers et capacités explicites. Son pont navigateur est désactivé par défaut et révocable dans Connexions. Les identifiants de tâches MCP sont conservés dans les données locales du compagnon ; les sessions de console et surveillances sont fermées avec le client. Aucun modèle ni service IA n'est fourni. Un client MCP utilisant un modèle distant peut transmettre les fichiers et informations qu'il lit à son fournisseur ; pour rester entièrement local, choisir aussi un client et un modèle locaux. [Configuration et limites](https://github.com/Gremy44/NextExplorer/blob/main/MCP.md). Les binaires 1.0.7 ci-dessus restent inchangés.
+
 NextExplorer associe une extension Chrome et un compagnon Windows local. Il ne nécessite pas de compte NextExplorer. La version décrite n’intègre ni publicité, ni outil d’analyse d’audience, ni modèle d’IA, ni envoi automatique des documents à un serveur de l’éditeur.
 
 Selon les outils utilisés, NextExplorer traite les données suivantes :

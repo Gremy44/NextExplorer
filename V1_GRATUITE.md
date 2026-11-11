@@ -1,5 +1,7 @@
 # Finalisation de la V1 gratuite
 
+**Orientation du 11 novembre 2026 :** code, extension, compagnon et MCP local ouverts sous MIT. Aucune fonction existante réservée à un abonnement. Version source 1.0.8 ; pilote binaire 1.0.7 conservé. [Guide MCP](MCP.md), [contribuer](CONTRIBUTING.md). La voix et les modèles locaux restent à développer et qualifier ; le MCP constitue leur interface d'outils, sans les embarquer.
+
 Périmètre retenu le 28 octobre 2026 : consolider les outils existants avant les nouvelles pistes et l’IA locale. Aucun paiement ajouté à cette phase.
 
 - [x] **1 — Recherche locale.** Index de travail élargi, noms seuls ou extraits, pagination des résultats, worker de recherche, progression et périmètre explicites, contrôle de fraîcheur par lots et conservation du cache. [Guide](J4_ORGANISATION_RECHERCHE.md).

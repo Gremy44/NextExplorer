@@ -156,6 +156,7 @@ export async function startImagePreparation(
   destination: string,
   constraints: ImageConstraints,
   sources?: Entry[],
+  request = bridge.request.bind(bridge),
 ) {
   const [preparation] = restoreImagePreparations([
     {
@@ -186,10 +187,13 @@ export async function startImagePreparation(
   });
   let started: { jobId: string };
   try {
-    started = await bridge.request<{ jobId: string }>("CONVERT", {
+    started = await request<{ jobId: string }>("CONVERT", {
       paths,
       destination: preparation.destination,
-      ...preparation.constraints,
+      format: preparation.constraints.format,
+      width: preparation.constraints.width,
+      quality: preparation.constraints.quality,
+      strip: preparation.constraints.strip,
     });
   } catch {
     throw new Error(
@@ -215,6 +219,7 @@ export async function startImagePreparation(
 export async function readImagePreparation(
   preparation: ImagePreparation,
   signal: AbortSignal,
+  request = bridge.request.bind(bridge),
 ): Promise<PreparedCopy[] | null> {
   const checkAbort = () => {
     if (signal.aborted) throw new DOMException("Annulé", "AbortError");
@@ -226,7 +231,7 @@ export async function readImagePreparation(
       throw new Error(
         "Lancement non confirmé. Vérifiez l’activité et le dossier des copies ; aucune relance automatique.",
       );
-    const job = (await bridge.request<Job[]>("JOBS")).find(
+    const job = (await request<Job[]>("JOBS")).find(
       (job) =>
         job.id === preparation.jobId && job.kind === "convert" && !job.archived,
     );
@@ -241,7 +246,7 @@ export async function readImagePreparation(
         "Préparation arrêtée ou en échec. Des copies partielles peuvent exister ; vérifiez le dossier. Aucune conversion relancée.",
       );
     const paths = outputPaths(
-      await bridge.request("JOB_RESULT", { jobId: preparation.jobId }),
+      await request("JOB_RESULT", { jobId: preparation.jobId }),
       preparation,
     );
     checkAbort();
@@ -251,7 +256,7 @@ export async function readImagePreparation(
   for (const path of preparation.paths!) {
     checkAbort();
     try {
-      const entry = await bridge.request<Entry>("FS_STAT", { path }, 5000);
+      const entry = await request<Entry>("FS_STAT", { path }, 5000);
       checkAbort();
       if (
         entry?.type !== "file" ||
@@ -260,9 +265,9 @@ export async function readImagePreparation(
         !Number.isFinite(entry.mtime)
       )
         throw new Error("Copie indisponible.");
-      const metadata = await bridge.request("METADATA", { path });
+      const metadata = await request("METADATA", { path });
       checkAbort();
-      const current = await bridge.request<Entry>("FS_STAT", { path }, 5000);
+      const current = await request<Entry>("FS_STAT", { path }, 5000);
       checkAbort();
       if (
         current?.type !== "file" ||

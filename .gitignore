@@ -29,6 +29,8 @@ id_rsa*
 id_ed25519*
 credentials.json
 credentials.csv
+/mcp-config.json
+/mcp-config.*.json
 /.aws/
 /.codex/
 /.agents/

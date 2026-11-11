@@ -59,7 +59,12 @@ export function parseOrganizationExport(text: string): OrganizationExport {
   if (data?.version !== 1) throw new Error("Version d’export incompatible");
   return {
     version: 1,
-    preferences: restorePreferences(data.preferences),
+    // Importing a backup must never enable an assistant endpoint silently.
+    preferences: restorePreferences({
+      ...data.preferences,
+      mcpEnabled: false,
+      mcpWrite: false,
+    }),
     tags: restoreTags(data.tags),
     appearances: restoreFolderAppearances(data.appearances || {}),
     folders: restoreFolderPreferences(data.folders || {}),

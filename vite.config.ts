@@ -103,6 +103,7 @@ export default defineConfig({
         "collect-background": "src/collect-background.ts",
         "download-background": "src/download-background.ts",
         "organization-background": "src/organization-background.ts",
+        "mcp-background": "src/mcp-background.ts",
       },
       output: {
         entryFileNames: (chunk) =>

@@ -55,8 +55,8 @@ export async function verifyPage(page: BrowserPage) {
     );
 }
 
-export async function captureSelection(page: BrowserPage) {
-  await grant(page.url);
+export async function captureSelection(page: BrowserPage, permission = grant) {
+  await permission(page.url);
   await verifyPage(page);
   const [result] = await chrome.scripting.executeScript({
     target: { tabId: page.id },
@@ -156,8 +156,8 @@ function uploadForm(
   return { fields, inserted: true };
 }
 
-export async function inspectUploads(page: BrowserPage) {
-  await grant(page.url);
+export async function inspectUploads(page: BrowserPage, permission = grant) {
+  await permission(page.url);
   await verifyPage(page);
   const [result] = await chrome.scripting.executeScript({
     target: { tabId: page.id },
@@ -200,8 +200,14 @@ export async function grant(url: string) {
     throw new Error("Accès à cette page refusé");
   return u;
 }
-export async function webCapture(path: string, url: string, mode: string) {
-  const clean = await grant(url);
+export async function webCapture(
+  path: string,
+  url: string,
+  mode: string,
+  request = bridge.request.bind(bridge),
+  permission = grant,
+) {
+  const clean = await permission(url);
   const response = await fetch(clean, {
     signal: AbortSignal.timeout(20000),
     credentials: "omit",
@@ -235,7 +241,7 @@ export async function webCapture(path: string, url: string, mode: string) {
             ? "```\n" + t + "\n```"
             : t;
     });
-    return bridge.request("FS_WRITE", {
+    return request("FS_WRITE", {
       path,
       name: `${safeName}-${stamp}.md`,
       text: `# ${title}\n\nSource : ${clean}\n\n${lines.join("\n\n")}`,
@@ -266,7 +272,7 @@ export async function webCapture(path: string, url: string, mode: string) {
       }
     } catch {}
   }
-  return bridge.request("FS_WRITE", {
+  return request("FS_WRITE", {
     path,
     name: `${safeName}-${stamp}.weblink`,
     text: JSON.stringify(
@@ -294,13 +300,14 @@ export async function writeChunks(
   path: string,
   name: string,
   chunks: Uint8Array[],
+  request = bridge.request.bind(bridge),
 ) {
   let result: any;
   for (let i = 0; i < chunks.length; i++) {
     const data = btoa(
       Array.from(chunks[i], (c) => String.fromCharCode(c)).join(""),
     );
-    result = await bridge.request("FS_UPLOAD", {
+    result = await request("FS_UPLOAD", {
       path,
       name,
       data,
@@ -373,6 +380,8 @@ export async function sendFiles(
   options: {
     expected?: Pick<Entry, "path" | "size" | "mtime">[];
     signal?: AbortSignal;
+    io?: Pick<typeof bridge, "request" | "bytes">;
+    permission?: typeof grant;
   } = {},
 ) {
   const checkAbort = () => {
@@ -386,7 +395,7 @@ export async function sendFiles(
       "Sélectionnez au maximum 20 fichiers pour cette insertion.",
     );
   const tab = target ? target.page : await pageTab();
-  await grant(tab.url!);
+  await (options.permission || grant)(tab.url!);
   const verify = async () => {
     checkAbort();
     if (target) return verifyPage(target.page);
@@ -430,7 +439,11 @@ export async function sendFiles(
     checkAbort();
     let entry: Entry;
     try {
-      entry = await bridge.request<Entry>("FS_STAT", { path }, 5000);
+      entry = await (options.io || bridge).request<Entry>(
+        "FS_STAT",
+        { path },
+        5000,
+      );
     } catch {
       throw new Error(
         `${path.split(/[\\/]/).pop()} : fichier inaccessible. Vérifiez le chemin et le compagnon.`,
@@ -469,7 +482,10 @@ export async function sendFiles(
     checkAbort();
     let bytes: Uint8Array;
     try {
-      bytes = await bridge.bytes(entry.path, UPLOAD_TOTAL_BYTES - total);
+      bytes = await (options.io || bridge).bytes(
+        entry.path,
+        UPLOAD_TOTAL_BYTES - total,
+      );
     } catch {
       throw new Error(
         `${entry.name} : lecture impossible. Vérifiez le fichier, son poids et la connexion au compagnon.`,

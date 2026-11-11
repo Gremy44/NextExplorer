@@ -44,6 +44,7 @@ export function collectedLink(address: string, title: string): CollectedLink {
 export type Hello = {
   workerError?: string;
   features?: {
+    mcpVersion?: number;
     remoteVersion?: number;
     spaceAnalysisVersion?: number;
     searchChecks?: boolean;

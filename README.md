@@ -2,9 +2,17 @@
 
 **Vos fichiers locaux et vos projets web dans un même espace.**
 
+[![Licence MIT](https://img.shields.io/badge/licence-MIT-blue)](LICENSE) [![Soutenir](https://img.shields.io/badge/Soutenir-Buy%20Me%20a%20Coffee-ffdd00)](https://buymeacoffee.com/gremy_44)
+
+![NextExplorer : fichiers et navigateur](distribution/images/banniere.png)
+
+**Code ouvert · version source 1.0.8.** Extension et compagnon sous [licence MIT](LICENSE) : utilisation, modification, forks, redistribution et usages commerciaux autorisés, en conservant la notice. Les bibliothèques et polices gardent leurs licences. Contributions bienvenues : [guide](CONTRIBUTING.md).
+
+**Nouveau : serveur MCP local.** Les assistants compatibles peuvent utiliser les opérations du compagnon, l'organisation et l'interface du navigateur, avec dossiers et capacités explicitement accordés. Aucun modèle imposé ni serveur MCP exposé sur le réseau. [Installation et catalogue](MCP.md). Le pilote binaire 1.0.7 ci-dessous reste inchangé ; reconstruire le compagnon et l'extension 1.0.8 pour le MCP.
+
 **Pilote public 1.0.7 — 29 octobre 2026 :** [installateur, extension et empreintes](https://github.com/Gremy44/NextExplorer-Downloads/releases/tag/v1.0.7-pilot.1). Compagnon et interface assortis, guide de chargement manuel Chrome/Edge, base gratuite consolidée. [Parcours de test et retours](distribution/TESTER.md). Connexions distantes expérimentales, désactivées par défaut ; IA locale non incluse.
 
-**Téléchargements publics :** [NextExplorer-Downloads](https://github.com/Gremy44/NextExplorer-Downloads), gratuit et non signé, pour essais sur des copies. Le code applicatif reste privé ; la [licence](LICENSE) autorise l’utilisation des versions compilées. Aucun paiement requis pour cette distribution.
+**Téléchargements publics :** [NextExplorer-Downloads](https://github.com/Gremy44/NextExplorer-Downloads), gratuit et non signé, pour essais sur des copies. Aucun paiement requis. Les anciennes publications conservent les fichiers et notices livrés avec elles ; le code présent ici est maintenant ouvert sous MIT.
 
 **Présentation publique :** [usages et captures grand format](distribution/README.md), [guide détaillé des fonctionnalités](distribution/FONCTIONNALITES.md). Six captures réelles de démonstration, dont le panneau Chrome recevant un dépôt Windows et Codex CLI ouvert dans la console du dossier actif.
 
@@ -20,7 +28,7 @@ L’interface est en français, avec des thèmes clair et sombre inspirés de Ma
 
 **Console intégrée :** **Aperçu → Console** ouvre un vrai PowerShell dans le dossier actif, avec suivi désactivable, saisie/commande en cours préservées et session conservée quand le volet est masqué. Windows et compagnon mis à jour requis. [Guide et limites](CONSOLE_INTEGREE.md).
 
-**Candidat local 1.0.6 :** retour au panneau natif Chrome, adapté à la hauteur disponible, après le blocage signalé avec la superposition 1.0.5. Installateur avec licence, informations d’éditeur, empreintes et prise en charge d’un certificat de signature reconnu ; [état et solutions Windows](SIGNATURE_WINDOWS.md). Galerie média, navigation et extraction ciblée d’archives, éditeur texte avec historique local, recherche Office et sous-titres avec diagnostic codec : [détails et limites](FEATURES_DOCUMENTS_LOCAUX.md). La version publique reste la 1.0.3 jusqu’à une publication distincte.
+**Base de l’interface :** panneau natif Chrome adapté à la hauteur disponible, galerie média, navigation et extraction ciblée d’archives, éditeur texte avec historique local, recherche Office et sous-titres avec diagnostic codec : [détails et limites](FEATURES_DOCUMENTS_LOCAUX.md). L’installateur pilote est décrit dans [le guide Windows](SIGNATURE_WINDOWS.md).
 
 Le parcours principal de l’installateur 1.0.6 est [validé sur Windows 11 neuf avec Chrome](VALIDATION_WINDOWS_NEUF.md), sous compte standard : installation, reconnexion, réinstallation, réparation et désinstallation. Signature, réputation de téléchargement et configurations complémentaires restent distinctes.
 
@@ -55,7 +63,7 @@ Les périmètres exacts et les limites sont décrits dans [la matrice des foncti
 ### Prérequis
 
 - Windows 64 bits et Chrome/Chromium 116 ou supérieur.
-- Git et accès à ce dépôt privé.
+- Git.
 - Node.js 22 ou supérieur, avec npm.
 - Go 1.26 ou supérieur. Le compagnon compilé ne nécessite ensuite aucune installation de Go.
 
@@ -142,4 +150,4 @@ Les documents de planification présents dans le dépôt décrivent des objectif
 
 ## Licence
 
-Le dépôt est privé. Aucune licence de redistribution du code NextExplorer n’est accordée dans ce dépôt. Les dépendances et les fixtures de test conservent leurs propres licences, recensées dans [THIRD_PARTY.md](THIRD_PARTY.md).
+Le code propre à NextExplorer est disponible sous [MIT](LICENSE), y compris pour un usage commercial. Les dépendances et les fixtures de test conservent leurs propres licences, recensées dans [THIRD_PARTY.md](THIRD_PARTY.md). Le don est facultatif : [soutenir le développement](https://buymeacoffee.com/gremy_44).

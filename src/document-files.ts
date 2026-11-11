@@ -5,12 +5,12 @@ import type { Entry, Listing } from "./types";
 import { quickCopyName } from "./quick-actions";
 import type { DocumentSource, DocumentOverlay } from "./document-operations";
 export const DOCUMENT_FILE_LIMIT = 32 * 1024 * 1024;
-export async function readDocument(entry: Entry, signal: AbortSignal) {
-  const before = await bridge.request<Entry>(
-    "FS_STAT",
-    { path: entry.path },
-    5000,
-  );
+export async function readDocument(
+  entry: Entry,
+  signal: AbortSignal,
+  io: Pick<typeof bridge, "request" | "bytes"> = bridge,
+) {
+  const before = await io.request<Entry>("FS_STAT", { path: entry.path }, 5000);
   if (
     before.type !== "file" ||
     before.size <= 0 ||
@@ -19,19 +19,19 @@ export async function readDocument(entry: Entry, signal: AbortSignal) {
     (entry.stamp && entry.stamp !== before.stamp)
   )
     throw new Error("Fichier modifié, vide ou supérieur à 32 Mio");
-  const data = await bridge.bytes(before.path, DOCUMENT_FILE_LIMIT, signal);
+  const data = await io.bytes(before.path, DOCUMENT_FILE_LIMIT, signal);
   signal.throwIfAborted();
-  const after = await bridge.request<Entry>(
-    "FS_STAT",
-    { path: entry.path },
-    5000,
-  );
+  const after = await io.request<Entry>("FS_STAT", { path: entry.path }, 5000);
   if (!sameFamilyFile(before, after) || before.stamp !== after.stamp)
     throw new Error("Le fichier a changé pendant sa lecture");
   return { entry: before, data };
 }
-export async function imageDocument(entry: Entry, signal: AbortSignal) {
-  const expected = await bridge.request<Entry>(
+export async function imageDocument(
+  entry: Entry,
+  signal: AbortSignal,
+  io: Pick<typeof bridge, "request" | "bytes"> = bridge,
+) {
+  const expected = await io.request<Entry>(
     "FS_STAT",
     { path: entry.path },
     5000,
@@ -41,13 +41,9 @@ export async function imageDocument(entry: Entry, signal: AbortSignal) {
     (entry.stamp && entry.stamp !== expected.stamp)
   )
     throw new Error("Image modifiée : actualisez le dossier");
-  await bridge.request(
-    "QUICK_IMAGE_INFO",
-    { path: entry.path, expected },
-    20000,
-  );
+  await io.request("QUICK_IMAGE_INFO", { path: entry.path, expected }, 20000);
   signal.throwIfAborted();
-  const source = await readDocument(expected, signal);
+  const source = await readDocument(expected, signal, io);
   const image = await createImageBitmap(new Blob([source.data as BlobPart]));
   try {
     signal.throwIfAborted();
@@ -114,10 +110,11 @@ export async function saveDocument(
   destination: string,
   name: string,
   data: Uint8Array,
+  request = bridge.request.bind(bridge),
 ) {
   if (!data.length || data.length > DOCUMENT_FILE_LIMIT)
     throw new Error("Copie limitée à 32 Mio");
-  const existing = await bridge.request<Listing>("FS_LIST_DIR", {
+  const existing = await request<Listing>("FS_LIST_DIR", {
     path: destination,
     filter: name.replace(/\.[^.]+$/, ""),
     showHidden: true,
@@ -134,5 +131,5 @@ export async function saveDocument(
   const chunks = [];
   for (let offset = 0; offset < data.length; offset += 384 * 1024)
     chunks.push(data.slice(offset, offset + 384 * 1024));
-  return writeChunks(destination, name, chunks);
+  return writeChunks(destination, name, chunks, request);
 }

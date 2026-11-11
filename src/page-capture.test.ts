@@ -38,9 +38,12 @@ afterEach(() => {
 it("capture exactement l’onglet confirmé, détache avant écriture et exporte une provenance épurée", async () => {
   await capturePagePDF("D:/Exports", page, "id");
   expect(attach).toHaveBeenCalledWith({ tabId: 7 }, "1.3");
-  expect(writeChunks).toHaveBeenCalledWith("D:/Exports", "Page-id.pdf", [
-    new TextEncoder().encode("%PDF-1.7\nCapture"),
-  ]);
+  expect(writeChunks).toHaveBeenCalledWith(
+    "D:/Exports",
+    "Page-id.pdf",
+    [new TextEncoder().encode("%PDF-1.7\nCapture")],
+    expect.any(Function),
+  );
   expect(detach.mock.invocationCallOrder[0]).toBeLessThan(
     vi.mocked(writeChunks).mock.invocationCallOrder[0],
   );

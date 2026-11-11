@@ -14,7 +14,7 @@ import {
   Archive,
   Server,
 } from "lucide-react";
-import { bridge, storageSet, storageGet } from "./bridge";
+import { bridge, storageSet, storageGet, storageSubscribe } from "./bridge";
 import { useOrganization } from "./OrganizationContext";
 import {
   defaultPreferences,
@@ -69,6 +69,19 @@ export function PreferencesDialog({
   const [section, setSection] = useState("appearance");
   const [noMatches, setNoMatches] = useState(false);
   const content = useRef<HTMLDivElement>(null);
+  const [mcpProfile, setMCPProfile] = useState("");
+  const [mcpStatus, setMCPStatus] = useState({ connected: false, error: "" });
+  useLayoutEffect(() => {
+    const read = () =>
+      void storageGet("mcpStatus", { connected: false, error: "" }).then(
+        setMCPStatus,
+      );
+    read();
+    return storageSubscribe(["mcpStatus"], read);
+  }, []);
+  useLayoutEffect(() => {
+    void storageGet("mcpProfileId", "").then(setMCPProfile);
+  }, [current.preferences.mcpEnabled]);
   const showSection = (id: string) => !!filter.trim() || section === id;
   useLayoutEffect(() => {
     const query = filter.trim().toLocaleLowerCase("fr");
@@ -465,7 +478,35 @@ export function PreferencesDialog({
               {engines}
             </fieldset>
             <fieldset hidden={!showSection("connections")}>
-              <legend>Dossiers distants</legend>
+              <legend>Connexions</legend>
+              {check("mcpEnabled", "Autoriser les assistants MCP locaux")}
+              {check(
+                "mcpWrite",
+                "Autoriser leurs modifications dans ce navigateur",
+              )}
+              <Help>
+                Le compagnon expose un serveur MCP local sur entrée/sortie
+                standard. Ses dossiers et capacités se définissent dans un
+                fichier de configuration ; voir MCP.md dans le dépôt. La console
+                exige une autorisation distincte. Désactiver ici coupe l'accès
+                aux fonctions du navigateur.
+              </Help>
+              {mcpProfile && (
+                <label className="field">
+                  <span>Profil MCP</span>
+                  <input
+                    aria-label="Identifiant du profil MCP"
+                    readOnly
+                    value={mcpProfile}
+                    onFocus={(event) => event.currentTarget.select()}
+                  />
+                </label>
+              )}
+              {current.preferences.mcpEnabled && mcpStatus.error && (
+                <p role="status" className="error">
+                  {mcpStatus.error}
+                </p>
+              )}
               {check("remoteEnabled", "Activer les connexions aux serveurs")}
               <p className="muted">
                 SFTP / SSH, FTP et FTPS. Les serveurs apparaissent dans la

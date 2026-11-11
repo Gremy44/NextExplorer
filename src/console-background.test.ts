@@ -28,12 +28,20 @@ function harness(ready = Promise.resolve()) {
     "utf8",
   ).replace(/^import\s+(?:"[^"]+"|[\s\S]*?from\s+"[^"]+");\s*/gm, "");
   vm.runInNewContext(source, {
-    chrome: { runtime, commands: { onCommand: event() } },
+    chrome: {
+      runtime,
+      commands: { onCommand: event() },
+      storage: { onChanged: event(), local: { get: async () => ({}) } },
+    },
     crypto,
     URL,
     setTimeout,
     clearTimeout,
     startDownloadFiling: () => () => {},
+    startMCPBridge: () => ({
+      register: () => Promise.resolve(),
+      receive: () => Promise.resolve(),
+    }),
     recordRelocations: () => Promise.resolve(),
     synchronizeRelocations: () => ready,
   });

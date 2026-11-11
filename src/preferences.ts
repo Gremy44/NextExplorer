@@ -89,6 +89,8 @@ export type Preferences = {
   menuSize: "compact" | "standard" | "comfortable";
   tooltips: boolean;
   remoteEnabled: boolean;
+  mcpEnabled: boolean;
+  mcpWrite: boolean;
   hidden: boolean;
   extensions: boolean;
   thumbnails: boolean;
@@ -118,6 +120,8 @@ export const defaultPreferences: Preferences = {
   menuSize: "standard",
   tooltips: true,
   remoteEnabled: false,
+  mcpEnabled: false,
+  mcpWrite: false,
   hidden: false,
   extensions: true,
   thumbnails: true,
@@ -189,6 +193,8 @@ export function restorePreferences(value: unknown): Preferences {
     "newTabFocus",
     "tooltips",
     "remoteEnabled",
+    "mcpEnabled",
+    "mcpWrite",
   ] as const)
     if (typeof p[key] !== "boolean")
       throw new Error(`Préférence invalide : ${key}`);

@@ -1,14 +1,16 @@
 # Ouverture du code et interface vocale locale — étude du 11 novembre 2026
 
+**Suite de la session :** le propriétaire a demandé l'implémentation complète du MCP puis l'ouverture du dépôt. MIT a été retenue pour cette ouverture ; [MCP.md](MCP.md) documente la version source 1.0.8 et remplace le périmètre MCP proposé ci-dessous. Les sections audio restent une étude : aucun modèle vocal n'est téléchargé ou intégré.
+
 ## Nouvelle orientation du propriétaire
 
 Ouvrir le projet et permettre à la communauté de l'utiliser et le faire évoluer ; d'éventuelles fonctionnalités payantes pourront être étudiées plus tard. Cette décision remplace l'orientation « code applicatif privé » du plan antérieur, sans transformer les simulations Founder en preuve que toute offre payante serait inutile.
 
-Publication non exécutée dans cette étude. Choix de licence et identification exacte de « Mochi » demandés au propriétaire, encore à confirmer. Aucun modèle téléchargé ni serveur MCP développé.
+L'étude initiale ci-dessous précédait cette demande : elle n'avait publié aucun code, développé aucun MCP ni téléchargé de modèle. Le choix technique de la voix demeure à confirmer et à mesurer.
 
 ## Préparation de l'ouverture
 
-La [licence actuelle](LICENSE) réserve modification et redistribution des éléments propres au projet : rendre le dépôt visible ne la transforme pas en licence libre. [Explication GitHub](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/licensing-a-repository).
+La licence précédente réservait modification et redistribution des éléments propres au projet : rendre le dépôt visible ne l'aurait pas transformée en licence libre. La [licence actuelle](LICENSE) est MIT. [Explication GitHub](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/licensing-a-repository).
 
 Options présentées : MIT si l'objectif est une réutilisation très libre, y compris commerciale, avec conservation des notices ; GPLv3 si l'objectif est de maintenir ouvertes les versions dérivées redistribuées, sous les conditions de cette licence. Le choix n'est pas fait par l'agent. Un futur payant reste possible, mais les droits déjà accordés aux copies ouvertes ne se retirent pas simplement ; contributions de tiers et licences des dépendances devront être prises en compte avant de créer une offre sous d'autres termes. [MIT](https://choosealicense.com/licenses/mit/), [GPLv3](https://choosealicense.com/licenses/gpl-3.0/).
 

@@ -17,15 +17,16 @@ type workerReply struct {
 	Status string          `json:"status"`
 }
 type workerClient struct {
-	pipe    *os.File
-	writer  *Host
-	mu      sync.Mutex
-	pending map[string]chan workerReply
-	closed  bool
+	pipe       *os.File
+	writer     *Host
+	mu         sync.Mutex
+	pending    map[string]chan workerReply
+	closed     bool
+	mcpVersion int
 }
 
 func workerAction(action string) bool {
-	if action == "WORKER_HELLO" || action == "RELOCATIONS" || strings.HasPrefix(action, "REMOTE_") {
+	if action == "WORKER_HELLO" || action == "RELOCATIONS" || strings.HasPrefix(action, "REMOTE_") || strings.HasPrefix(action, "MCP_") {
 		return true
 	}
 	switch action {
@@ -97,6 +98,9 @@ func connectWorker(event func(any)) (*workerClient, error) {
 	value, err := c.request(Request{ID: randomID(), Action: "WORKER_HELLO"})
 	if err == nil {
 		row, ok := value.(map[string]any)
+		if version, valid := row["mcpVersion"].(float64); valid {
+			c.mcpVersion = int(version)
+		}
 		exe, _ := os.Executable()
 		if !ok || row["protocol"] != float64(1) || row["executable"] != exe {
 			err = fmt.Errorf("un ancien worker est actif ; terminez ses tâches et fermez l’extension une minute avant de vous reconnecter")
@@ -170,6 +174,7 @@ func runWorker() error {
 	}
 	defer unlock()
 	h := newHost(io.Discard)
+	h.mcpBrowser = newMCPBrowserBroker()
 	h.journalDir = filepath.Join(filepath.Dir(dir), "journal")
 	h.durableDir = filepath.Join(dir, "tasks")
 	h.relocations, err = loadRelocations(filepath.Join(dir, "relocations"))
@@ -236,6 +241,8 @@ func runWorker() error {
 		clients[client] = true
 		clientsMu.Unlock()
 		go func() {
+			peer := &mcpPeer{host: h, client: client}
+			defer peer.close()
 			defer func() { pipe.Close(); clientsMu.Lock(); delete(clients, client); last = time.Now(); clientsMu.Unlock() }()
 			sem := make(chan struct{}, 16)
 			var wg sync.WaitGroup
@@ -253,7 +260,13 @@ func runWorker() error {
 				wg.Add(1)
 				go func() {
 					defer func() { <-sem; wg.Done() }()
-					value, err := h.dispatch(r)
+					var value any
+					var err error
+					if strings.HasPrefix(r.Action, "MCP_") {
+						value, err = peer.dispatch(r)
+					} else {
+						value, err = h.dispatch(r)
+					}
 					if err != nil {
 						client.send(M{"id": r.ID, "status": "ERROR", "error": err.Error()})
 					} else {

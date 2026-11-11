@@ -172,11 +172,12 @@ au site choisi ; les outils externes comme Codex ont leurs propres connexions.
 
 ### Gratuit signifie-t-il open source ?
 
-L’usage personnel et professionnel des versions livrées est gratuit selon
-la [licence](LICENSE). Le code applicatif reste privé. Ce dépôt contient
-documentation, téléchargements et retours ; les archives « Source code »
-générées par GitHub correspondent à ce dépôt documentaire.
-Les fonctions gratuites de la version reçue restent utilisables selon sa licence.
+Oui : le [dépôt applicatif NextExplorer](https://github.com/Gremy44/NextExplorer)
+est désormais ouvert sous MIT, avec extension, compagnon et serveur MCP local.
+Utilisation, modification, forks et redistribution sont autorisés en conservant
+les notices. Ce dépôt de téléchargements reste le canal des binaires et guides ;
+ses archives « Source code » portent sur sa documentation. Les anciennes versions
+gardent les notices livrées avec leurs fichiers.
 
 </details>
 

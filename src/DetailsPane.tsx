@@ -97,6 +97,16 @@ export function DetailsPane({
   const [consoleOpened, setConsoleOpened] = useState(false);
   const consoleAllowed = !isRemote(path) || remoteAvailable;
   useEffect(() => {
+    const open = () => {
+      if (consoleAllowed) {
+        setConsoleOpened(true);
+        setTab("console");
+      }
+    };
+    window.addEventListener("nxe-console-open", open);
+    return () => window.removeEventListener("nxe-console-open", open);
+  }, [consoleAllowed]);
+  useEffect(() => {
     if (!consoleAllowed) setTab("file");
   }, [consoleAllowed]);
   useEffect(() => {

@@ -12,6 +12,7 @@ import { runProtectionJourney } from "./protection-journey.mjs";
 import { runMainWorkflows } from "./main-workflows-journey.mjs";
 import { runDownloadFiling } from "./download-filing-journey.mjs";
 import { runUIConsistency } from "./ui-consistency-journey.mjs";
+import { runMCPJourney } from "./mcp-journey.mjs";
 
 assert.equal(process.platform, "win32", "Recette ConPTY Windows uniquement");
 process.env.PLAYWRIGHT_BROWSERS_PATH = path.resolve(".tools/browsers");
@@ -68,11 +69,15 @@ if (demo) {
     JSON.stringify(testManifest),
   );
 } else await cp(path.resolve("dist"), extension, { recursive: true });
-if (process.argv.includes("--filing")) {
+if (process.argv.includes("--filing") || process.argv.includes("--mcp")) {
   const manifestPath = path.join(extension, "manifest.json");
   const testManifest = JSON.parse(await readFile(manifestPath, "utf8"));
   // Isolated test copy: simulate acceptance of the optional downloads permission.
   testManifest.permissions.push("downloads");
+  if (process.argv.includes("--mcp")) {
+    testManifest.permissions.push("debugger");
+    testManifest.host_permissions = ["http://127.0.0.1/*"];
+  }
   await writeFile(manifestPath, JSON.stringify(testManifest));
 }
 const id = (await readFile("extension-id.txt", "utf8")).trim();
@@ -190,7 +195,10 @@ try {
     workerInfo.tasks,
     path.join(appdata, "NextExplorer", "worker", "tasks"),
   );
-  if (process.argv.includes("--ui")) {
+  if (process.argv.includes("--mcp")) {
+    await runMCPJourney({ page, context, fixture, root, appdata });
+    assert.deepEqual(errors, []);
+  } else if (process.argv.includes("--ui")) {
     await runUIConsistency({ page, fixture, label: "extension" });
     assert.deepEqual(errors, []);
   } else if (process.argv.includes("--filing")) {
