@@ -16,12 +16,12 @@ Options présentées : MIT si l'objectif est une réutilisation très libre, y c
 
 Travail concret à effectuer avant diffusion du code :
 
-- [ ] Confirmer la licence souhaitée et les droits sur les éléments propres au projet ; conserver les licences tierces.
-- [ ] Préparer un instantané public du code nécessaire, tests, notices, instructions de construction et contribution.
-- [ ] Examiner le contenu et l'historique pour secrets et données personnelles. Le contrôle des noms de fichiers effectué ici ne constitue pas une détection complète de secrets.
-- [ ] Choisir une publication d'instantané propre ou un historique audité. Ne pas rendre public automatiquement tout l'historique privé, ses études internes et ses captures.
-- [ ] Mettre en cohérence README, licence, contribution et pages de téléchargements ; conserver les binaires 1.0.7 existants et leurs empreintes.
-- [ ] Construire et vérifier depuis l'instantané propre, puis publier dans le dépôt choisi par le propriétaire.
+- [x] Licence MIT retenue pour l'ouverture complète demandée ; licences tierces conservées.
+- [x] Code nécessaire, tests, notices, instructions de construction et contribution préparés.
+- [x] Contenu et historique contrôlés : Gitleaks, noms de fichiers, identité Git en adresse noreply et données de démonstration. Deux exceptions étroites documentent la clé publique Chrome et un mot de passe fictif de test.
+- [x] Historique audité publié dans le dépôt existant, selon la demande d'ouverture. Les études Founder sont signalées comme simulations ; les profils et résultats réels restent ignorés.
+- [x] README, licence, contribution et documentation mis à jour ; binaires pilotes 1.0.7 préservés.
+- [x] Version source 1.0.8 construite et testée ; dépôt [Gremy44/NextExplorer](https://github.com/Gremy44/NextExplorer) public, MIT et archive vérifiées anonymement. [MCP livré](MCP.md).
 
 État constaté : 560 fichiers suivis ; aucun nom conventionnel de secret (`.env`, clé privée, credential) détecté dans l'arbre suivi ou la liste des chemins de l'historique. **Ce n'est pas un audit du contenu ni une autorisation d'exposer l'historique.** Les moteurs externes restent facultatifs et leurs licences restent distinctes. Les données de test réelles, outils téléchargés et profils locaux ignorés ne doivent pas être ajoutés au paquet source.
 

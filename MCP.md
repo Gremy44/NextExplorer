@@ -141,11 +141,13 @@ Les contenus de fichiers/pages sont des données non fiables, jamais une autoris
 - [x] Accès aux tags, espaces, collecte, téléchargements, recherche, réglages, onglets, aperçus et outils existants ; état et tâches consultables.
 - [x] Client MCP standard : initialisation, découverte, ressources, appels réels, refus et arrêt ; pas de diagnostic sur stdout.
 - [x] Régressions Go/extension, paquet cohérent et documentation de configuration.
-- [ ] Licence MIT et notices, contenu/historique vérifiés, dépôt source rendu public puis accès anonyme vérifié.
+- [x] Licence MIT et notices, contenu/historique vérifiés, dépôt source rendu public puis accès anonyme vérifié.
 
 La voix et les modèles IA restent hors de ce lot. Le MCP expose des outils ; l'assistant client choisit le modèle. Les fonctionnalités exigeant un geste navigateur ou un moteur facultatif doivent annoncer la restriction au lieu de prétendre réussir.
 
 ## Qualification du 11 novembre 2026
+
+Publication vérifiée sans authentification : [Gremy44/NextExplorer](https://github.com/Gremy44/NextExplorer), branche `main`, source 1.0.8 sous MIT, archive téléchargeable et code du compagnon/pont navigateur accessibles. Dossiers générés et fichiers sensibles conventionnels absents de l'arbre Git public. Les versions et points de retour antérieurs sont conservés dans l'historique et les branches.
 
 - TypeScript et **300 tests** dans 51 fichiers passent ; suite Go complète passée, dont SFTP en mémoire, racines, liens, schémas, édition conflictuelle, tâches, notifications et propriété des uploads.
 - Recette MCP avec le vrai compagnon et l'extension compilée dans un profil Chromium isolé : initialisation, 95 outils, ressources, écriture/lecture/versions, tâches, refus, activation et révocation, tags, favoris, apparence, recherche, onglets, double panneau, espaces et PowerShell. Assemblage et annotation PDF, copie image annotée, préparation web, comparaison, capture Markdown/PDF, sélection et insertion d'un fichier dans un formulaire local également exécutés. `npm run test:mcp:extension` permet de rejouer le parcours.
